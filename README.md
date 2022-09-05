@@ -36,7 +36,7 @@ For example, a line in your code like:
 println(fmt.Sprintf("K1: %2.2f\n", e.K1.ReadVoltage()))
 ```
 
-> **_NOTE:_** Using the `println` function handles newlines better than `fmt.Println`.
+> **_NOTE:_** Using the `println` function handles newlines better than `fmt.Println` in minicom output.
 
 You can launch minicom to view the printed output:
 
@@ -71,53 +71,10 @@ Use the following example task configuration to set tinygo flash as your default
 }
 ```
 
-## [Optional] Developing using picoprobe
-
-Follow the notes on setting up a Picoprobe.
-
-[](https://tinygo.org/docs/reference/microcontrollers/pico/#notes)
-
-Once you have confirmed that setup is working, you can add a default build task to build and flash your project via picoprobe.
-
-```plain
-Ctrl + Shift + P > Tasks: Configure Default Build Task
-```
-
-Use the following example task configurations to add the automated build and flash tasks. Set "tinygo flash task" as your default build command:
-
-```json
-{
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "tinygo build task",
-            "type": "shell",
-            "command": "tinygo build -o out.elf -target pico -size short -opt 1 ${workspaceRoot}",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "tinygo flash task",
-            "type": "shell",
-            "command": "openocd -f interface/picoprobe.cfg -f target/rp2040.cfg -c \"program out.elf verify reset exit\"",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "dependsOn": ["tinygo build task"]
-        }
-    ]
-}
-```
-
 Now you can build your project using `Ctrl + Shift + B` or search for the command:
 
 ```shell
-Ctrl + Shift + P > Tasks: Run Build Task`
+Ctrl + Shift + P > Tasks: Run Build Task
 ```
 
 ## Debugging using picoprobe
