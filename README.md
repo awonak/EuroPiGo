@@ -44,7 +44,34 @@ You can launch minicom to view the printed output:
 minicom -b 115200 -o -D /dev/ttyACM0
 ```
 
-## Developing using picoprobe
+## VSCode build task
+
+Add the TinyGo flash command as your default build task:
+
+```plain
+Ctrl + Shift + P > Tasks: Configure Default Build Task
+```
+
+Use the following example task configuration to set tinygo flash as your default build command:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "tinygo flash",
+            "type": "shell",
+            "command": "tinygo flash --target pico -size short -opt 1 ${workspaceRoot}/examples",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        }
+    ]
+}
+```
+
+## [Optional] Developing using picoprobe
 
 Follow the notes on setting up a Picoprobe.
 
