@@ -40,15 +40,18 @@ type Output struct {
 
 func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 
-	pwm.Configure(machine.PWMConfig{
+	err := pwm.Configure(machine.PWMConfig{
 		Period: defaultPeriod,
 	})
+	if err != nil {
+		fmt.Println("pwm Configure error: ", err.Error())
+	}
 
 	pwm.SetTop(CalibratedMaxDuty)
 
 	ch, err := pwm.Channel(pin)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("pwm Channel error: ", err.Error())
 	}
 
 	return &Output{pwm, pin, ch}

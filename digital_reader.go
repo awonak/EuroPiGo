@@ -18,6 +18,8 @@ func init() {
 
 type DigitalReader interface {
 	SetHandler(func(machine.Pin))
+	LastInput() time.Time
+	Value() bool
 }
 
 type DigitalInput struct {
@@ -33,7 +35,7 @@ func NewDI(pin machine.Pin) *DigitalInput {
 	}
 }
 
-func (d *DigitalInput) LastTriggered() time.Time {
+func (d *DigitalInput) LastInput() time.Time {
 	return d.lastInputTime
 }
 
@@ -58,19 +60,23 @@ func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin), delay time.D
 
 type Button struct {
 	Pin           machine.Pin
-	lastPressTime time.Time
+	lastInputTime time.Time
 }
 
 func NewButton(pin machine.Pin) *Button {
 	pin.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
 	return &Button{
 		Pin:           pin,
-		lastPressTime: time.Now(),
+		lastInputTime: time.Now(),
 	}
 }
 
 func (b *Button) Handler(handler func(p machine.Pin)) {
 	b.debounceWrapper(handler, DefaultDebounceDelay)
+}
+
+func (b *Button) LastInput() time.Time {
+	return b.lastInputTime
 }
 
 func (b *Button) Value() bool {
@@ -80,10 +86,10 @@ func (b *Button) Value() bool {
 
 func (b *Button) debounceWrapper(handler func(p machine.Pin), delay time.Duration) {
 	wrapped := func(p machine.Pin) {
-		if time.Now().Before(b.lastPressTime.Add(delay)) {
+		if time.Now().Before(b.lastInputTime.Add(delay)) {
 			return
 		}
-		b.lastPressTime = time.Now()
+		b.lastInputTime = time.Now()
 		handler(p)
 	}
 	b.Pin.SetInterrupt(machine.PinFalling, wrapped)

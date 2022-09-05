@@ -30,8 +30,7 @@ type EuroPi struct {
 }
 
 func New() EuroPi {
-
-	europi := EuroPi{
+	return EuroPi{
 		DI: NewDI(machine.GPIO22),
 		AI: NewAI(machine.ADC0),
 
@@ -50,6 +49,4 @@ func New() EuroPi {
 		CV5: NewOutput(machine.GPIO18, machine.PWM1),
 		CV6: NewOutput(machine.GPIO19, machine.PWM1),
 	}
-
-	return europi
 }

@@ -44,8 +44,8 @@ func (a *AnalogInput) Percent() float32 {
 	return float32(a.read()) / CalibratedMaxAI
 }
 
-func (a *AnalogInput) ReadVoltage() uint16 {
-	return uint16(a.Percent() * MaxVoltage)
+func (a *AnalogInput) ReadVoltage() float32 {
+	return a.Percent() * MaxVoltage
 }
 
 func (a *AnalogInput) Range(steps uint16) uint16 {
@@ -80,8 +80,8 @@ func (k *Knob) Percent() float32 {
 	return 1 - float32(k.read())/math.MaxUint16
 }
 
-func (k *Knob) ReadVoltage() uint16 {
-	return uint16(k.Percent() * MaxVoltage)
+func (k *Knob) ReadVoltage() float32 {
+	return k.Percent() * MaxVoltage
 }
 
 func (k *Knob) Range(steps uint16) uint16 {

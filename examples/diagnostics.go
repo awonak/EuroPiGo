@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"machine"
 
-	europi "github.com/awonak/EuroPiGo"
-
 	"tinygo.org/x/tinydraw"
+
+	europi "github.com/awonak/EuroPiGo"
 )
 
 type MyApp struct {
@@ -51,17 +51,18 @@ func main() {
 		e.Display.Display()
 
 		// Set voltage values for the 6 CV outputs.
-		if e.K1.ReadVoltage() != myApp.prevK1 {
-			e.CV1.Voltage(10 * e.K1.Percent())
-			myApp.prevK1 = e.K1.ReadVoltage()
+		if e.K1.Range(1000) != myApp.prevK1 {
+			e.CV1.Voltage(e.K1.ReadVoltage())
+			e.CV4.Voltage(europi.MaxVoltage - e.K1.ReadVoltage())
+			myApp.prevK1 = e.K1.Range(1000)
+
 		}
-		if e.K2.ReadVoltage() != myApp.prevK2 {
-			e.CV2.Voltage(10 * e.K2.Percent())
-			myApp.prevK2 = e.K2.ReadVoltage()
+		if e.K2.Range(1000) != myApp.prevK2 {
+			e.CV2.Voltage(e.K2.ReadVoltage())
+			e.CV5.Voltage(europi.MaxVoltage - e.K2.ReadVoltage())
+			myApp.prevK2 = e.K2.Range(1000)
 		}
 		e.CV3.On()
-		e.CV4.Voltage(10 - (10 * e.K1.Percent()))
-		e.CV5.Voltage(10 - (10 * e.K2.Percent()))
 		e.CV6.Off()
 	}
 }
