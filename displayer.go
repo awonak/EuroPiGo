@@ -16,7 +16,10 @@ const (
 	OLEDHeight = 32
 )
 
-var White = color.RGBA{255, 255, 255, 255}
+var (
+	DefaultFont = &proggy.TinySZ8pt7b
+	White       = color.RGBA{255, 255, 255, 255}
+)
 
 type Displayer interface {
 	WriteLine(text string, x, y int16)
@@ -24,6 +27,8 @@ type Displayer interface {
 
 type Display struct {
 	ssd1306.Device
+
+	font *tinyfont.Font
 }
 
 func NewDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *Display {
@@ -39,9 +44,13 @@ func NewDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *Display {
 		Width:   OLEDWidth,
 		Height:  OLEDHeight,
 	})
-	return &Display{display}
+	return &Display{display, DefaultFont}
+}
+
+func (d *Display) SetFont(font *tinyfont.Font) {
+	d.font = font
 }
 
 func (d *Display) WriteLine(text string, x, y int16) {
-	tinyfont.WriteLine(d, &proggy.TinySZ8pt7b, x, y, text, White)
+	tinyfont.WriteLine(d, d.font, x, y, text, White)
 }

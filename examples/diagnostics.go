@@ -41,7 +41,7 @@ func main() {
 		if myApp.knobsDisplayPercent {
 			knobText = fmt.Sprintf("K1: %0.2f  K2: %0.2f", e.K1.Percent(), e.K2.Percent())
 		} else {
-			knobText = fmt.Sprintf("K1: %d  K2: %d", e.K1.Range(100), e.K2.Range(100))
+			knobText = fmt.Sprintf("K1: %2d  K2: %2d", e.K1.Range(100), e.K2.Range(100))
 		}
 		e.Display.WriteLine(knobText, 3, 18)
 
@@ -55,7 +55,6 @@ func main() {
 			e.CV1.Voltage(e.K1.ReadVoltage())
 			e.CV4.Voltage(europi.MaxVoltage - e.K1.ReadVoltage())
 			myApp.prevK1 = e.K1.Range(1000)
-
 		}
 		if e.K2.Range(1000) != myApp.prevK2 {
 			e.CV2.Voltage(e.K2.ReadVoltage())
