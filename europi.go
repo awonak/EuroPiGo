@@ -10,23 +10,24 @@ const (
 )
 
 type EuroPi struct {
-	DI *DigitalInput
-	AI *AnalogInput
+	DI DigitalReader
+	AI AnalogReader
 
+	// Display is a wrapper around ssd1306.Device
 	Display *Display
 
-	B1 *Button
-	B2 *Button
+	B1 DigitalReader
+	B2 DigitalReader
 
-	K1 *Knob
-	K2 *Knob
+	K1 AnalogReader
+	K2 AnalogReader
 
-	CV1 *Output
-	CV2 *Output
-	CV3 *Output
-	CV4 *Output
-	CV5 *Output
-	CV6 *Output
+	CV1 Outputer
+	CV2 Outputer
+	CV3 Outputer
+	CV4 Outputer
+	CV5 Outputer
+	CV6 Outputer
 }
 
 func New() EuroPi {

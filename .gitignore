@@ -16,6 +16,7 @@
 
 # TinyGo
 *.elf
+*.uf2
 
 # IDE local settings
 .vscode

@@ -17,7 +17,7 @@ func init() {
 }
 
 type DigitalReader interface {
-	SetHandler(func(machine.Pin))
+	Handler(func(machine.Pin))
 	LastInput() time.Time
 	Value() bool
 }

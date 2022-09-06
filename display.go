@@ -17,17 +17,13 @@ const (
 )
 
 var (
-	DefaultFont = &proggy.TinySZ8pt7b
-	White       = color.RGBA{255, 255, 255, 255}
+	DefaultChannel = machine.I2C0
+	DefaultFont    = &proggy.TinySZ8pt7b
+	White          = color.RGBA{255, 255, 255, 255}
 )
-
-type Displayer interface {
-	WriteLine(text string, x, y int16)
-}
 
 type Display struct {
 	ssd1306.Device
-
 	font *tinyfont.Font
 }
 
@@ -38,16 +34,16 @@ func NewDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *Display {
 		SCL:       sclPin,
 	})
 
-	display := ssd1306.NewI2C(machine.I2C0)
+	display := ssd1306.NewI2C(DefaultChannel)
 	display.Configure(ssd1306.Config{
 		Address: OLEDAddr,
 		Width:   OLEDWidth,
 		Height:  OLEDHeight,
 	})
-	return &Display{display, DefaultFont}
+	return &Display{Device: display, font: DefaultFont}
 }
 
-func (d *Display) SetFont(font *tinyfont.Font) {
+func (d *Display) Font(font *tinyfont.Font) {
 	d.font = font
 }
 

@@ -11,8 +11,8 @@ import (
 
 type MyApp struct {
 	knobsDisplayPercent bool
-	prevK1              uint16
-	prevK2              uint16
+	prevK1              int
+	prevK2              int
 }
 
 func main() {
@@ -51,15 +51,15 @@ func main() {
 		e.Display.Display()
 
 		// Set voltage values for the 6 CV outputs.
-		if e.K1.Range(1000) != myApp.prevK1 {
+		if e.K1.Range(1<<10) != myApp.prevK1 {
 			e.CV1.Voltage(e.K1.ReadVoltage())
 			e.CV4.Voltage(europi.MaxVoltage - e.K1.ReadVoltage())
-			myApp.prevK1 = e.K1.Range(1000)
+			myApp.prevK1 = e.K1.Range(1 << 10)
 		}
-		if e.K2.Range(1000) != myApp.prevK2 {
+		if e.K2.Range(1<<10) != myApp.prevK2 {
 			e.CV2.Voltage(e.K2.ReadVoltage())
 			e.CV5.Voltage(europi.MaxVoltage - e.K2.ReadVoltage())
-			myApp.prevK2 = e.K2.Range(1000)
+			myApp.prevK2 = e.K2.Range(1 << 10)
 		}
 		e.CV3.On()
 		e.CV6.Off()
