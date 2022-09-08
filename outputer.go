@@ -3,17 +3,19 @@ package europi
 import (
 	"fmt"
 	"machine"
-	"math"
 )
 
 const (
-	// CalibratedMaxDuty was calculated using the EuroPi calibration program:
+	// Manually calibrated to best match expected voltages. Additional info:
 	// https://github.com/Allen-Synthesis/EuroPi/blob/main/software/programming_instructions.md#calibrate-the-module
-	CalibratedMaxDuty = 63475
-	CalibratedOffset  = math.MaxUint16 - CalibratedMaxDuty
+	CalibratedOffset = 32
+	// The default PWM Top of MaxUint16 caused noisy output. Dropping this down to a 12bit value resulted in much smoother cv output.
+	CalibratedTop = 0xfff - CalibratedOffset
 )
 
-var defaultPeriod uint64 = 1e9 / 2000
+// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
+// For a frequency of 1mHz, we must set a period of 1000ns.
+var defaultPeriod uint64 = 1000
 
 // PWMer is an interface for interacting with a machine.pwmGroup
 type PWMer interface {
@@ -27,6 +29,7 @@ type PWMer interface {
 }
 
 type Outputer interface {
+	Get() (value uint32)
 	Voltage(v float32)
 	On()
 	Off()
@@ -39,7 +42,6 @@ type Output struct {
 }
 
 func NewOutput(pin machine.Pin, pwm PWMer) *Output {
-
 	err := pwm.Configure(machine.PWMConfig{
 		Period: defaultPeriod,
 	})
@@ -47,7 +49,7 @@ func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 		fmt.Println("pwm Configure error: ", err.Error())
 	}
 
-	pwm.SetTop(CalibratedMaxDuty)
+	pwm.SetTop(CalibratedTop)
 
 	ch, err := pwm.Channel(pin)
 	if err != nil {
@@ -57,10 +59,14 @@ func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 	return &Output{pwm, pin, ch}
 }
 
+func (o *Output) Get() uint32 {
+	return o.pwm.Get(o.ch)
+}
+
 func (o *Output) Voltage(v float32) {
 	// TODO: boundary check
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
-	cv := (math.MaxUint16 - invertedCv) - CalibratedOffset
+	cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
 	o.pwm.Set(o.ch, uint32(cv))
 }
 
