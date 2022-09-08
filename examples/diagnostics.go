@@ -11,19 +11,27 @@ import (
 
 type MyApp struct {
 	knobsDisplayPercent bool
+	staticCv            int
+	prevStaticCv        int
 	prevK1              int
 	prevK2              int
 }
 
 func main() {
 
-	myApp := MyApp{}
+	myApp := MyApp{
+		staticCv: 5,
+	}
 
 	e := europi.New()
 
-	// Demonstrate adding a IRQ handler to B1.
+	// Demonstrate adding a IRQ handler to B1 and B2.
 	e.B1.Handler(func(p machine.Pin) {
 		myApp.knobsDisplayPercent = !myApp.knobsDisplayPercent
+	})
+
+	e.B2.Handler(func(p machine.Pin) {
+		myApp.staticCv = (myApp.staticCv + 1) % europi.MaxVoltage
 	})
 
 	for {
@@ -62,6 +70,9 @@ func main() {
 			myApp.prevK2 = e.K2.Range(1 << 10)
 		}
 		e.CV3.On()
-		e.CV6.Off()
+		if myApp.staticCv != myApp.prevStaticCv {
+			e.CV6.Voltage(float32(myApp.staticCv))
+			myApp.prevStaticCv = myApp.staticCv
+		}
 	}
 }
