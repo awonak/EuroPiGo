@@ -10,21 +10,23 @@ import (
 )
 
 const (
-	DefaultBPM  = 120
-	MinBPM      = 20
-	MaxBPM      = 240
-	PPQN        = 4
-	MaxDivision = 16
+	MinBPM     = 20
+	MaxBPM     = 240
+	DefaultBPM = 120
+	PPQN       = 4
 )
 
 var (
-	DefaultDivisions = [2]int{1, 1}
+	DefaultDivisions = [6]int{1, 2, 4, -2, -4, -8}
 	DivisionChoices  []int
 )
 
 func init() {
-	// Create range of -16 to -2 for division and 1 to 16 for multiplication.
-	for i := -16; i <= 16; i++ {
+	// Seed the clock multiplication and division options.
+	// DivisionChoices = append(DivisionChoices, -64)
+	// DivisionChoices = append(DivisionChoices, -32)
+	// Create range of -16 to -2 for division and 1 to 8 for multiplication.
+	for i := -16; i <= 8; i++ {
 		if i != -1 && i != 0 {
 			DivisionChoices = append(DivisionChoices, i)
 		}
@@ -36,9 +38,11 @@ type Clockwerk struct {
 
 	bpm         int
 	selectedDiv int
-	divisions   [2]int
+	clocks      [6]int
+	resets      [6]chan int
 
 	displayShouldUpdate bool
+	clocksShouldRestart bool
 	prevk2              int
 }
 
@@ -47,34 +51,54 @@ func (c *Clockwerk) editParams() {
 	if _bpm != c.bpm {
 		c.bpm = _bpm
 		c.displayShouldUpdate = true
+		c.clocksShouldRestart = true
 	}
 
 	i := c.K2.Range(len(DivisionChoices))
 	if c.prevk2 != DivisionChoices[i] {
-		c.divisions[c.selectedDiv] = DivisionChoices[i]
+		c.clocks[c.selectedDiv] = DivisionChoices[i]
 		c.prevk2 = DivisionChoices[i]
 		c.displayShouldUpdate = true
+		c.clocksShouldRestart = true
 	}
 }
 
-func (c *Clockwerk) clock(idx int) {
+func (c *Clockwerk) startClocks() {
+	for i := 0; i < len(c.clocks); i++ {
+		c.resets[i] = make(chan int)
+		high, low := c.clockPulseWidth(c.clocks[i])
+		go c.clock(c.CV[i], high, low, c.resets[i])
+	}
+}
+
+func (c *Clockwerk) resetClocks() {
+	for _, c := range c.resets {
+		c <- 0
+	}
+	c.startClocks()
+}
+
+func (c *Clockwerk) clock(cv europi.Outputer, high, low time.Duration, reset chan int) {
 	t := time.Now()
 	for {
+		// Check if a reset signal has been received on the channel.
+		select {
+		case <-reset:
+			return
+		default:
+		}
+
 		// Add expensive call to clock goroutine to factor its time into clock sleep.
-		c.updateDisplay()
 		c.editParams()
+		c.updateDisplay()
 
-		// TODO: Make pulse width configurable.
-		high, low := c.clockPulseWidth(c.divisions[idx])
-
-		c.CV[idx].On()
+		cv.On()
 		t = t.Add(high)
 		time.Sleep(t.Sub(time.Now()))
 
-		c.CV[idx].Off()
+		cv.Off()
 		t = t.Add(low)
 		time.Sleep(t.Sub(time.Now()))
-
 	}
 }
 
@@ -101,10 +125,11 @@ func (c *Clockwerk) updateDisplay() {
 		c.Display.ClearBuffer()
 
 		// Master clock and pulse width.
-		c.Display.WriteLine(fmt.Sprintf("BPM: %3d     PW: 50%%", c.bpm), 0, 8)
+		c.Display.WriteLine(fmt.Sprintf("BPM: %3d", c.bpm), 0, 8)
+		c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
 
-		// Divisions
-		for i, div := range c.divisions {
+		// Display each clock multiplication or division setting.
+		for i, div := range c.clocks {
 			var divText string
 			switch {
 			case div < -1:
@@ -114,9 +139,9 @@ func (c *Clockwerk) updateDisplay() {
 			default:
 				divText = " 1"
 			}
-			c.Display.WriteLine(fmt.Sprintf("%-3v", divText), int16(i*europi.OLEDWidth/len(c.divisions))+2, 26)
+			c.Display.WriteLine(fmt.Sprintf("%-3v", divText), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
 		}
-		xWidth := int16(europi.OLEDWidth / len(c.divisions))
+		xWidth := int16(europi.OLEDWidth / len(c.clocks))
 		xOffset := int16(c.selectedDiv) * xWidth
 		// TODO: replace box with chevron.
 		tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
@@ -131,29 +156,33 @@ func main() {
 		EuroPi:              europi.New(),
 		bpm:                 DefaultBPM,
 		displayShouldUpdate: true,
-		divisions:           DefaultDivisions,
+		clocks:              DefaultDivisions,
 	}
 
 	// Lower range value can have lower sample size
 	c.K1.Samples(500)
 	c.K2.Samples(20)
 
+	// Move clock config option to the left.
 	c.B1.Handler(func(p machine.Pin) {
-		c.selectedDiv = europi.Clamp(c.selectedDiv-1, 0, len(c.divisions))
+		c.selectedDiv = europi.Clamp(c.selectedDiv-1, 0, len(c.clocks))
 		c.displayShouldUpdate = true
 	})
 
+	// Move clock config option to the right.
 	c.B2.Handler(func(p machine.Pin) {
-		c.selectedDiv = europi.Clamp(c.selectedDiv+1, 0, len(c.divisions))
+		c.selectedDiv = europi.Clamp(c.selectedDiv+1, 0, len(c.clocks)-1)
 		c.displayShouldUpdate = true
 	})
 
-	for i := 0; i < len(c.divisions); i++ {
-		go c.clock(i)
-	}
+	c.startClocks()
 
 	for {
-		// Long sleep between goroutine executions
-		time.Sleep(1 * time.Second)
+		// Check for clock updates every 2 seconds.
+		if c.clocksShouldRestart {
+			c.resetClocks()
+			c.clocksShouldRestart = false
+		}
+		time.Sleep(2 * time.Second)
 	}
 }
