@@ -1,14 +1,16 @@
 package europi
 
-func Clamp(value, low, high int) int {
-	switch {
-	case low < value && value < high:
-		return value
-	case value > high:
-		return high
-	case value < low:
-		return low
-	default:
-		return value
+type Number interface {
+	int | float32
+}
+
+// Clamp returns a value that is no lower than `low“ and no higher than `high“.
+func Clamp[V Number](value, low, high V) V {
+	if value > high {
+		value = high
 	}
+	if value < low {
+		value = low
+	}
+	return value
 }
