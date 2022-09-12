@@ -49,7 +49,7 @@ func (d *DigitalInput) Value() bool {
 	return !d.Pin.Get()
 }
 
-// Handler sets the callback function to be call when a rising edge is detected."""
+// Handler sets the callback function to be call when a rising edge is detected.
 func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
 	d.debounceWrapper(handler, DefaultDebounceDelay)
 }
@@ -79,7 +79,7 @@ func NewButton(pin machine.Pin) *Button {
 	}
 }
 
-// Handler sets the callback function to be call when the button is pressed."""
+// Handler sets the callback function to be call when the button is pressed.
 func (b *Button) Handler(handler func(p machine.Pin)) {
 	b.debounceWrapper(handler, DefaultDebounceDelay)
 }

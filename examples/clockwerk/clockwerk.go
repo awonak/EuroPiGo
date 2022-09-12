@@ -155,8 +155,8 @@ func main() {
 	c := Clockwerk{
 		EuroPi:              europi.New(),
 		bpm:                 DefaultBPM,
-		displayShouldUpdate: true,
 		clocks:              DefaultDivisions,
+		displayShouldUpdate: true,
 	}
 
 	// Lower range value can have lower sample size
