@@ -1,5 +1,7 @@
 # EuroPiGo
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/awonak/EuroPiGo.svg)](https://pkg.go.dev/github.com/awonak/EuroPiGo)
+
 Alternate firmware for the [Allen Synthesis EuroPi](https://github.com/Allen-Synthesis/EuroPi) written in Go.
 
 ## Getting started
