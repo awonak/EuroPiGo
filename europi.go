@@ -9,6 +9,7 @@ const (
 	MinVoltage = 0.0
 )
 
+// EuroPi is the collection of component wrappers used to interact with the module.
 type EuroPi struct {
 	// Display is a wrapper around ssd1306.Device
 	Display *Display
@@ -31,6 +32,7 @@ type EuroPi struct {
 	CV  []Outputer
 }
 
+// New will return a new EuroPi struct.
 func New() EuroPi {
 	cv1 := NewOutput(machine.GPIO21, machine.PWM2)
 	cv2 := NewOutput(machine.GPIO20, machine.PWM2)

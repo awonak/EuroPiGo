@@ -28,6 +28,7 @@ type PWMer interface {
 	SetPeriod(period uint64) error
 }
 
+// Outputer is an interface for interacting with the cv output jacks.
 type Outputer interface {
 	Get() (value uint32)
 	Voltage(v float32)
@@ -35,12 +36,14 @@ type Outputer interface {
 	Off()
 }
 
+// Outputer is struct for interacting with the cv output jacks.
 type Output struct {
 	pwm PWMer
 	pin machine.Pin
 	ch  uint8
 }
 
+// NewOutput returns a new Output struct.
 func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 	err := pwm.Configure(machine.PWMConfig{
 		Period: defaultPeriod,
@@ -59,21 +62,25 @@ func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 	return &Output{pwm, pin, ch}
 }
 
+// Get returns the current set voltage in the range of 0 to pwm.Top().
 func (o *Output) Get() uint32 {
 	return o.pwm.Get(o.ch)
 }
 
+// Voltage sets the current output voltage within a range of 0.0 to 10.0.
 func (o *Output) Voltage(v float32) {
-	// TODO: boundary check
+	v = Clamp(v, MinVoltage, MaxVoltage)
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
 	cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
 	o.pwm.Set(o.ch, uint32(cv))
 }
 
+// On sets the current voltage high at 10.0v.
 func (o *Output) On() {
 	o.pwm.Set(o.ch, o.pwm.Top())
 }
 
+// Off sets the current voltage low at 0.0v.
 func (o *Output) Off() {
 	o.pwm.Set(o.ch, 0)
 }
