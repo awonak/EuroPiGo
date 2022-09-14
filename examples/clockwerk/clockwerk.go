@@ -42,7 +42,7 @@ type Clockwerk struct {
 	resets      [6]chan int
 
 	displayShouldUpdate bool
-	clocksShouldRestart bool
+	clocksShouldReset   bool
 	prevk2              int
 }
 
@@ -51,7 +51,7 @@ func (c *Clockwerk) editParams() {
 	if _bpm != c.bpm {
 		c.bpm = _bpm
 		c.displayShouldUpdate = true
-		c.clocksShouldRestart = true
+		c.clocksShouldReset = true
 	}
 
 	i := c.K2.Range(len(DivisionChoices))
@@ -59,7 +59,7 @@ func (c *Clockwerk) editParams() {
 		c.clocks[c.selectedDiv] = DivisionChoices[i]
 		c.prevk2 = DivisionChoices[i]
 		c.displayShouldUpdate = true
-		c.clocksShouldRestart = true
+		c.clocksShouldReset = true
 	}
 }
 
@@ -179,9 +179,9 @@ func main() {
 
 	for {
 		// Check for clock updates every 2 seconds.
-		if c.clocksShouldRestart {
+		if c.clocksShouldReset {
 			c.resetClocks()
-			c.clocksShouldRestart = false
+			c.clocksShouldReset = false
 		}
 		time.Sleep(2 * time.Second)
 	}
