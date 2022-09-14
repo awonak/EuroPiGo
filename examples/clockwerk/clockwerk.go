@@ -5,8 +5,9 @@ import (
 	"machine"
 	"time"
 
-	europi "github.com/awonak/EuroPiGo"
 	"tinygo.org/x/tinydraw"
+
+	europi "github.com/awonak/EuroPiGo"
 )
 
 const (
@@ -14,11 +15,12 @@ const (
 	MaxBPM     = 240
 	DefaultBPM = 120
 	PPQN       = 4
+	ResetDelay = time.Duration(2 * time.Second)
 )
 
 var (
-	DefaultDivisions = [6]int{1, 2, 4, -2, -4, -8}
-	DivisionChoices  []int
+	DefaultFactor = [6]int{1, 2, 4, -2, -4, -8}
+	FactorChoices []int
 )
 
 func init() {
@@ -28,7 +30,7 @@ func init() {
 	// Create range of -16 to -2 for division and 1 to 8 for multiplication.
 	for i := -16; i <= 8; i++ {
 		if i != -1 && i != 0 {
-			DivisionChoices = append(DivisionChoices, i)
+			FactorChoices = append(FactorChoices, i)
 		}
 	}
 }
@@ -36,39 +38,40 @@ func init() {
 type Clockwerk struct {
 	europi.EuroPi
 
-	bpm         int
-	selectedDiv int
-	clocks      [6]int
-	resets      [6]chan int
+	bpm      int
+	clocks   [6]int
+	resets   [6]chan int
+	selected int
 
 	displayShouldUpdate bool
 	clocksShouldReset   bool
+	lastClockChange     time.Time
 	prevk2              int
 }
 
 func (c *Clockwerk) editParams() {
-	_bpm := c.K1.Range(MaxBPM-MinBPM+1) + MinBPM
-	if _bpm != c.bpm {
-		c.bpm = _bpm
+	if c.bpm != c.readBPM() {
+		c.bpm = c.readBPM()
 		c.displayShouldUpdate = true
 		c.clocksShouldReset = true
+		c.lastClockChange = time.Now()
 	}
 
-	i := c.K2.Range(len(DivisionChoices))
-	if c.prevk2 != DivisionChoices[i] {
-		c.clocks[c.selectedDiv] = DivisionChoices[i]
-		c.prevk2 = DivisionChoices[i]
+	if c.prevk2 != c.readFactor() {
+		c.clocks[c.selected] = c.readFactor()
+		c.prevk2 = c.clocks[c.selected]
 		c.displayShouldUpdate = true
 		c.clocksShouldReset = true
+		c.lastClockChange = time.Now()
 	}
 }
 
-func (c *Clockwerk) startClocks() {
-	for i := 0; i < len(c.clocks); i++ {
-		c.resets[i] = make(chan int)
-		high, low := c.clockPulseWidth(c.clocks[i])
-		go c.clock(c.CV[i], high, low, c.resets[i])
-	}
+func (c *Clockwerk) readBPM() int {
+	return c.K1.Range(MaxBPM-MinBPM+1) + MinBPM
+}
+
+func (c *Clockwerk) readFactor() int {
+	return FactorChoices[c.K2.Range(len(FactorChoices))]
 }
 
 func (c *Clockwerk) resetClocks() {
@@ -78,7 +81,14 @@ func (c *Clockwerk) resetClocks() {
 	c.startClocks()
 }
 
-func (c *Clockwerk) clock(cv europi.Outputer, high, low time.Duration, reset chan int) {
+func (c *Clockwerk) startClocks() {
+	for i := 0; i < len(c.clocks); i++ {
+		c.resets[i] = make(chan int)
+		go c.clock(i, c.resets[i])
+	}
+}
+
+func (c *Clockwerk) clock(i int, reset chan int) {
 	t := time.Now()
 	for {
 		// Check if a reset signal has been received on the channel.
@@ -92,11 +102,13 @@ func (c *Clockwerk) clock(cv europi.Outputer, high, low time.Duration, reset cha
 		c.editParams()
 		c.updateDisplay()
 
-		cv.On()
+		high, low := c.clockPulseWidth(c.clocks[i])
+
+		c.CV[i].On()
 		t = t.Add(high)
 		time.Sleep(t.Sub(time.Now()))
 
-		cv.Off()
+		c.CV[i].Off()
 		t = t.Add(low)
 		time.Sleep(t.Sub(time.Now()))
 	}
@@ -129,22 +141,26 @@ func (c *Clockwerk) updateDisplay() {
 		c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
 
 		// Display each clock multiplication or division setting.
-		for i, div := range c.clocks {
-			var divText string
+		for i, factor := range c.clocks {
+			var text string
 			switch {
-			case div < -1:
-				divText = fmt.Sprintf("\\%d", -div)
-			case div > 1:
-				divText = fmt.Sprintf("x%d", div)
+			case factor < -1:
+				text = fmt.Sprintf("\\%d", -factor)
+			case factor > 1:
+				text = fmt.Sprintf("x%d", factor)
 			default:
-				divText = " 1"
+				text = " 1"
 			}
-			c.Display.WriteLine(fmt.Sprintf("%-3v", divText), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
+			c.Display.WriteLine(fmt.Sprintf("%-3v", text), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
 		}
 		xWidth := int16(europi.OLEDWidth / len(c.clocks))
-		xOffset := int16(c.selectedDiv) * xWidth
+		xOffset := int16(c.selected) * xWidth
 		// TODO: replace box with chevron.
 		tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
+
+		if c.clocksShouldReset {
+			tinydraw.Rectangle(c.Display, 0, 0, 128, 32, europi.White)
+		}
 
 		c.Display.Display()
 		c.displayShouldUpdate = false
@@ -154,9 +170,9 @@ func (c *Clockwerk) updateDisplay() {
 func main() {
 	c := Clockwerk{
 		EuroPi:              europi.New(),
-		bpm:                 DefaultBPM,
-		clocks:              DefaultDivisions,
+		clocks:              DefaultFactor,
 		displayShouldUpdate: true,
+		clocksShouldReset:   false,
 	}
 
 	// Lower range value can have lower sample size
@@ -165,24 +181,38 @@ func main() {
 
 	// Move clock config option to the left.
 	c.B1.Handler(func(p machine.Pin) {
-		c.selectedDiv = europi.Clamp(c.selectedDiv-1, 0, len(c.clocks))
+		if c.B2.Value() {
+			c.clocksShouldReset = true
+			return
+		}
+		c.selected = europi.Clamp(c.selected-1, 0, len(c.clocks))
 		c.displayShouldUpdate = true
 	})
 
 	// Move clock config option to the right.
 	c.B2.Handler(func(p machine.Pin) {
-		c.selectedDiv = europi.Clamp(c.selectedDiv+1, 0, len(c.clocks)-1)
+		if c.B1.Value() {
+			c.clocksShouldReset = true
+			return
+		}
+		c.selected = europi.Clamp(c.selected+1, 0, len(c.clocks)-1)
 		c.displayShouldUpdate = true
 	})
+
+	// Init parameter configs based on current knob positions.
+	c.bpm = c.readBPM()
+	c.prevk2 = c.readFactor()
 
 	c.startClocks()
 
 	for {
 		// Check for clock updates every 2 seconds.
-		if c.clocksShouldReset {
+		lastChange := time.Now().Sub(c.lastClockChange)
+		if c.clocksShouldReset && lastChange > ResetDelay {
 			c.resetClocks()
 			c.clocksShouldReset = false
+			c.displayShouldUpdate = true
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(ResetDelay)
 	}
 }
