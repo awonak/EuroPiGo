@@ -63,13 +63,24 @@ Use the following example task configuration to set tinygo flash as your default
         {
             "label": "tinygo flash",
             "type": "shell",
-            "command": "tinygo flash --target pico -size short -opt 1 ${workspaceRoot}/examples",
+            "command": "tinygo flash -tags europi --target pico -opt 1 ${workspaceRoot}/examples/clockwerk",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
         }
     ]
+}
+```
+
+Also make sure your `settings.json` contains the europi build flag:
+
+```json
+{
+    "go.toolsEnvVars": {
+        ...
+        "GOFLAGS": "-tags=europi..."
+    }
 }
 ```
 
