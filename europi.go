@@ -1,4 +1,4 @@
-package europi
+package europi // import europi "github.com/awonak/EuroPiGo"
 
 import (
 	"machine"

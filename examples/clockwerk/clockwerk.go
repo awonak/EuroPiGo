@@ -1,3 +1,31 @@
+/*
+Clockwerk
+author: Adam Wonak (github.com/awonak)
+date: 2022-09-12
+labels: clock
+
+Clock multiplier / divider with a range of /16 to *8 from the main clock speed.
+
+Note: when several clocks are at audio rate and set to different multiplications, the clocks may become unstable.
+
+digital_in: unused
+analog_in: unused
+
+knob_1: adjust clock tempo between 20 and 240 BPM
+knob_2: adjust the multiplication/division factor of the selected clock output
+
+button_1: move the selected clock param edit to the left
+button_2: move the selected clock param edit to the right
+
+dual_press: reset all clocks to resync
+
+output_1: clock output 1
+output_2: clock output 2
+output_3: clock output 3
+output_4: clock output 4
+output_5: clock output 5
+output_6: clock output 6
+*/
 package main
 
 import (
@@ -19,6 +47,7 @@ const (
 )
 
 var (
+	// Positive values are multiplications and negative values are divisions.
 	DefaultFactor = [6]int{1, 2, 4, -2, -4, -8}
 	FactorChoices []int
 )
