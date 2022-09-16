@@ -23,7 +23,7 @@ Install the TinyGo VSCode plugin
 Use the `tinygo flash` command while your pico is in BOOTSEL mode to compile the script and copy it to your attached EuroPi pico.
 
 ```shell
-tinygo flash --target pico examples/diagnostics.go
+tinygo flash -tags europi -target pico examples/diagnostics.go
 ```
 
 > **_NOTE:_** After the first time you flash your TinyGo program you will no longer need to reboot in BOOTSEL mode to flash your script. Sweet!
@@ -46,7 +46,7 @@ You can launch minicom to view the printed output:
 minicom -b 115200 -o -D /dev/ttyACM0
 ```
 
-## VSCode build task
+## Configuring VSCode build task
 
 Add the TinyGo flash command as your default build task:
 
