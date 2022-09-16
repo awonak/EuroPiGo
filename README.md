@@ -35,10 +35,8 @@ When your EuroPi pico is connected via USB you can view printed serial output us
 For example, a line in your code like:
 
 ```go
-println(fmt.Sprintf("K1: %2.2f", e.K1.ReadVoltage()))
+fmt.Printf("K1: %2.2f\n\r", e.K1.ReadVoltage())
 ```
-
-> **_NOTE:_** Using the `println` function handles newlines better than `fmt.Println` in minicom output.
 
 You can launch minicom to view the printed output:
 
@@ -50,7 +48,7 @@ minicom -b 115200 -o -D /dev/ttyACM0
 
 Add the TinyGo flash command as your default build task:
 
-```plain
+```plaintext
 Ctrl + Shift + P > Tasks: Configure Default Build Task
 ```
 
@@ -75,7 +73,7 @@ Use the following example task configuration to set tinygo flash as your default
 
 Now you can build and flash your project using `Ctrl + Shift + B` or search for the command:
 
-```shell
+```plaintext
 Ctrl + Shift + P > Tasks: Run Build Task
 ```
 
