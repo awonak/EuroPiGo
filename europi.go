@@ -42,7 +42,7 @@ func New() EuroPi {
 	cv6 := NewOutput(machine.GPIO19, machine.PWM1)
 
 	return EuroPi{
-		Display: NewDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
+		Display: NewDisplay(DisplayChannel, DisplayI2CSda, DisplayI2CScl),
 
 		DI: NewDI(machine.GPIO22),
 		AI: NewAI(machine.ADC0),
