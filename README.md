@@ -26,7 +26,9 @@ Use the `tinygo flash` command while your pico is in BOOTSEL mode to compile the
 tinygo flash --target pico examples/diagnostics.go
 ```
 
-> **_NOTE:_** After the first time you flash your TinyGo program you will no longer need to reboot in BOOTSEL mode to flash your script. Sweet!
+After the first time you flash your TinyGo program you will no longer need to reboot in BOOTSEL mode to flash your script.
+
+> **_NOTE:_** If your script throws a panic, you will need to reflash using BOOTSEL mode.
 
 ## Serial printing
 
@@ -35,7 +37,7 @@ When your EuroPi pico is connected via USB you can view printed serial output us
 For example, a line in your code like:
 
 ```go
-fmt.Printf("K1: %2.2f\n\r", e.K1.ReadVoltage())
+log.Printf("K1: %2.2f\n\r", e.K1.ReadVoltage())
 ```
 
 You can launch minicom to view the printed output:
