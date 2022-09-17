@@ -73,7 +73,7 @@ Use the following example task configuration to set tinygo flash as your default
 }
 ```
 
-Also make sure your `settings.json` contains the europi build flag:
+Also make sure your Workspace Settings `settings.json` contains the europi build flag:
 
 ```json
 {
