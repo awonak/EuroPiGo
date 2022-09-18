@@ -61,7 +61,7 @@ func init() {
 }
 
 type Clockwerk struct {
-	europi.EuroPi
+	*europi.EuroPi
 
 	bpm      int
 	clocks   [6]int
