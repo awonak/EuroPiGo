@@ -1,24 +1,16 @@
 package europi
 
 import (
-	"fmt"
 	"machine"
 	"time"
 )
 
-var DefaultDebounceDelay time.Duration
-
-func init() {
-	var err error
-	DefaultDebounceDelay, err = time.ParseDuration("500ms")
-	if err != nil {
-		fmt.Print(fmt.Errorf("defaultDebounce fail: %e", err))
-	}
-}
+const DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
 
 // DigitalReader is an interface for common digital inputs methods.
 type DigitalReader interface {
 	Handler(func(machine.Pin))
+	Debounce(delay time.Duration)
 	LastInput() time.Time
 	Value() bool
 }
@@ -27,6 +19,7 @@ type DigitalReader interface {
 type DigitalInput struct {
 	Pin           machine.Pin
 	lastInputTime time.Time
+	debounceDelay time.Duration
 }
 
 // NewDI creates a new DigitalInput struct.
@@ -35,6 +28,7 @@ func NewDI(pin machine.Pin) *DigitalInput {
 	return &DigitalInput{
 		Pin:           pin,
 		lastInputTime: time.Now(),
+		debounceDelay: DefaultDebounceDelay,
 	}
 }
 
@@ -49,25 +43,31 @@ func (d *DigitalInput) Value() bool {
 	return !d.Pin.Get()
 }
 
+// Debounce overrides the default debounce delay with the provided duration value.
+func (d *DigitalInput) Debounce(delay time.Duration) {
+	d.debounceDelay = delay
+}
+
 // Handler sets the callback function to be call when a rising edge is detected.
 func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
-	d.debounceWrapper(handler, DefaultDebounceDelay)
+	d.debounceWrapper(handler)
 }
-func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin), delay time.Duration) {
+func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin)) {
 	wrapped := func(p machine.Pin) {
-		if time.Now().Before(d.lastInputTime.Add(delay)) {
+		if time.Now().Before(d.lastInputTime.Add(d.debounceDelay)) {
 			return
 		}
 		d.lastInputTime = time.Now()
 		handler(p)
 	}
-	d.Pin.SetInterrupt(machine.PinFalling, wrapped)
+	d.Pin.SetInterrupt(machine.PinRising, wrapped)
 }
 
 // Button is a struct for handling push button behavior.
 type Button struct {
 	Pin           machine.Pin
 	lastInputTime time.Time
+	debounceDelay time.Duration
 }
 
 // NewButton creates a new Button struct.
@@ -76,7 +76,13 @@ func NewButton(pin machine.Pin) *Button {
 	return &Button{
 		Pin:           pin,
 		lastInputTime: time.Now(),
+		debounceDelay: DefaultDebounceDelay,
 	}
+}
+
+// Debounce overrides the default debounce delay with the provided duration value.
+func (b *Button) Debounce(delay time.Duration) {
+	b.debounceDelay = delay
 }
 
 // Handler sets the callback function to be call when the button is pressed.
