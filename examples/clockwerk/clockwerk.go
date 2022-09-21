@@ -80,7 +80,7 @@ func (c *Clockwerk) editParams() {
 	if _bpm != c.bpm {
 		c.bpm = _bpm
 		c.displayShouldUpdate = true
-		c.clocksShouldReset = true
+		c.clocksShouldReset = true && !c.external
 		c.lastClockChange = time.Now()
 	}
 
