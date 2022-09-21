@@ -1,31 +1,26 @@
-/*
-Clockwerk
-author: Adam Wonak (github.com/awonak)
-date: 2022-09-12
-labels: clock
-
-Clock multiplier / divider with a range of /16 to *8 from the main clock speed.
-
-Note: when several clocks are at audio rate and set to different multiplications, the clocks may become unstable.
-
-digital_in: unused
-analog_in: unused
-
-knob_1: adjust clock tempo between 20 and 240 BPM
-knob_2: adjust the multiplication/division factor of the selected clock output
-
-button_1: move the selected clock param edit to the left
-button_2: move the selected clock param edit to the right
-
-dual_press: reset all clocks to resync
-
-output_1: clock output 1
-output_2: clock output 2
-output_3: clock output 3
-output_4: clock output 4
-output_5: clock output 5
-output_6: clock output 6
-*/
+// Clockwerk
+// author: Adam Wonak (github.com/awonak)
+// date: 2022-09-12
+// labels: clock
+//
+// Clock multiplier / divider with a range of /16 to *8 from the main clock speed.
+//
+// Note: Clocks will run stable within the 20-240 bpm range, however when
+// several clocks are at audio rate and set to different multiplications, the
+// clocks may become unstable.
+//
+// digital_in: unused (TODO: enable external clock)
+// analog_in: unused
+//
+// knob_1: adjust clock tempo between 20 and 240 BPM
+// knob_2: adjust the multiplication/division factor of the selected clock output
+//
+// button_1: move the selected clock param edit to the left
+// button_2: move the selected clock param edit to the right
+//
+// dual_press: reset all clocks to resync
+//
+// output_[1-6]: clock output [1-6]
 package main
 
 import (
@@ -54,6 +49,7 @@ var (
 
 func init() {
 	// Seed the clock multiplication and division options.
+	// TODO: fix pulsewidth period for these divisions.
 	// DivisionChoices = append(DivisionChoices, -64)
 	// DivisionChoices = append(DivisionChoices, -32)
 	// Create range of -16 to -2 for division and 1 to 8 for multiplication.
@@ -65,7 +61,7 @@ func init() {
 }
 
 type Clockwerk struct {
-	europi.EuroPi
+	*europi.EuroPi
 
 	bpm      int
 	clocks   [6]int
@@ -77,20 +73,20 @@ type Clockwerk struct {
 	displayShouldUpdate bool
 	clocksShouldReset   bool
 	lastClockChange     time.Time
-	prevk2              int
 }
 
 func (c *Clockwerk) editParams() {
-	if c.bpm != c.readBPM() {
-		c.bpm = c.readBPM()
+	_bpm := c.readBPM()
+	if _bpm != c.bpm {
+		c.bpm = _bpm
 		c.displayShouldUpdate = true
 		c.clocksShouldReset = true
 		c.lastClockChange = time.Now()
 	}
 
-	if c.prevk2 != c.readFactor() {
-		c.clocks[c.selected] = c.readFactor()
-		c.prevk2 = c.clocks[c.selected]
+	_factor := c.readFactor()
+	if _factor != c.clocks[c.selected] {
+		c.clocks[c.selected] = _factor
 		c.displayShouldUpdate = true
 		c.clocksShouldReset = true
 		c.lastClockChange = time.Now()
@@ -247,7 +243,7 @@ func main() {
 
 	// Init parameter configs based on current knob positions.
 	c.bpm = c.readBPM()
-	c.prevk2 = c.readFactor()
+	c.clocks[c.selected] = c.readFactor()
 
 	c.startClocks()
 

@@ -33,7 +33,7 @@ type EuroPi struct {
 }
 
 // New will return a new EuroPi struct.
-func New() EuroPi {
+func New() *EuroPi {
 	cv1 := NewOutput(machine.GPIO21, machine.PWM2)
 	cv2 := NewOutput(machine.GPIO20, machine.PWM2)
 	cv3 := NewOutput(machine.GPIO16, machine.PWM0)
@@ -41,7 +41,7 @@ func New() EuroPi {
 	cv5 := NewOutput(machine.GPIO18, machine.PWM1)
 	cv6 := NewOutput(machine.GPIO19, machine.PWM1)
 
-	return EuroPi{
+	return &EuroPi{
 		Display: NewDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
 
 		DI: NewDI(machine.GPIO22),
