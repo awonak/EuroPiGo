@@ -50,18 +50,14 @@ func (d *DigitalInput) Debounce(delay time.Duration) {
 
 // Handler sets the callback function to be call when a rising edge is detected.
 func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
-	d.debounceWrapper(handler)
-}
-func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin)) {
-	wrapped := func(p machine.Pin) {
+	d.Pin.SetInterrupt(machine.PinRising, func(p machine.Pin) {
 		t := time.Now()
 		if t.Before(d.lastInputTime.Add(d.debounceDelay)) {
 			return
 		}
 		handler(p)
 		d.lastInputTime = t
-	}
-	d.Pin.SetInterrupt(machine.PinRising, wrapped)
+	})
 }
 
 // Button is a struct for handling push button behavior.
@@ -86,11 +82,6 @@ func (b *Button) Debounce(delay time.Duration) {
 	b.debounceDelay = delay
 }
 
-// Handler sets the callback function to be call when the button is pressed.
-func (b *Button) Handler(handler func(p machine.Pin)) {
-	b.debounceWrapper(handler, DefaultDebounceDelay)
-}
-
 // LastInput return the time of the last button press.
 func (b *Button) LastInput() time.Time {
 	return b.lastInputTime
@@ -102,14 +93,14 @@ func (b *Button) Value() bool {
 	return !b.Pin.Get()
 }
 
-func (b *Button) debounceWrapper(handler func(p machine.Pin), delay time.Duration) {
-	wrapped := func(p machine.Pin) {
+// Handler sets the callback function to be call when the button is pressed.
+func (b *Button) Handler(handler func(p machine.Pin)) {
+	b.Pin.SetInterrupt(machine.PinFalling, func(p machine.Pin) {
 		t := time.Now()
-		if t.Before(b.lastInputTime.Add(delay)) {
+		if t.Before(b.lastInputTime.Add(b.debounceDelay)) {
 			return
 		}
 		handler(p)
 		b.lastInputTime = t
-	}
-	b.Pin.SetInterrupt(machine.PinFalling, wrapped)
+	})
 }
