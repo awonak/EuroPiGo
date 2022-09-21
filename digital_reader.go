@@ -54,10 +54,10 @@ func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
 }
 func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin)) {
 	wrapped := func(p machine.Pin) {
-		if time.Now().Before(d.lastInputTime.Add(d.debounceDelay)) {
+		t := time.Now()
+		if t.Before(d.lastInputTime.Add(d.debounceDelay)) {
 			return
 		}
-		t := time.Now()
 		handler(p)
 		d.lastInputTime = t
 	}
@@ -104,10 +104,10 @@ func (b *Button) Value() bool {
 
 func (b *Button) debounceWrapper(handler func(p machine.Pin), delay time.Duration) {
 	wrapped := func(p machine.Pin) {
-		if time.Now().Before(b.lastInputTime.Add(delay)) {
+		t := time.Now()
+		if t.Before(b.lastInputTime.Add(delay)) {
 			return
 		}
-		t := time.Now()
 		handler(p)
 		b.lastInputTime = t
 	}
