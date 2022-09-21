@@ -71,6 +71,8 @@ type Clockwerk struct {
 	clocks   [6]int
 	resets   [6]chan int
 	selected int
+	external bool
+	period   time.Duration
 
 	displayShouldUpdate bool
 	clocksShouldReset   bool
@@ -96,7 +98,15 @@ func (c *Clockwerk) editParams() {
 }
 
 func (c *Clockwerk) readBPM() int {
-	return c.K1.Range(MaxBPM-MinBPM+1) + MinBPM
+	// Provide a range of 19 - 240 bpm. bpm < 20 will switch to external clock.
+	_bpm := c.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
+	if _bpm < MinBPM && c.period > 0 {
+		_bpm = int((time.Minute)/(c.period*PPQN)) + 1
+		c.external = true
+	} else {
+		c.external = false
+	}
+	return _bpm
 }
 
 func (c *Clockwerk) readFactor() int {
@@ -166,19 +176,21 @@ func (c *Clockwerk) updateDisplay() {
 		c.Display.ClearBuffer()
 
 		// Master clock and pulse width.
-		c.Display.WriteLine(fmt.Sprintf("BPM: %3d", c.bpm), 0, 8)
-		c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
+		var external string
+		if c.external {
+			external = "^"
+		}
+		c.Display.WriteLine(fmt.Sprintf("%1sBPM: %3d", external, c.bpm), 2, 8)
+		// c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
 
 		// Display each clock multiplication or division setting.
 		for i, factor := range c.clocks {
-			var text string
+			text := " 1"
 			switch {
 			case factor < -1:
 				text = fmt.Sprintf("\\%d", -factor)
 			case factor > 1:
 				text = fmt.Sprintf("x%d", factor)
-			default:
-				text = " 1"
 			}
 			c.Display.WriteLine(fmt.Sprintf("%-3v", text), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
 		}
@@ -207,6 +219,11 @@ func main() {
 	// Lower range value can have lower sample size
 	c.K1.Samples(500)
 	c.K2.Samples(20)
+
+	c.DI.Handler(func(pin machine.Pin) {
+		// Measure current period between clock pulses.
+		c.period = time.Now().Sub(c.DI.LastInput())
+	})
 
 	// Move clock config option to the left.
 	c.B1.Handler(func(p machine.Pin) {
