@@ -109,18 +109,22 @@ func (c *Clockwerk) readFactor() int {
 	return FactorChoices[c.K2.Range(len(FactorChoices))]
 }
 
-func (c *Clockwerk) resetClocks() {
-	for _, c := range c.resets {
-		c <- 0
-	}
-	c.startClocks()
-}
-
 func (c *Clockwerk) startClocks() {
 	for i := 0; i < len(c.clocks); i++ {
 		c.resets[i] = make(chan int)
 		go c.clock(i, c.resets[i])
 	}
+}
+
+func (c *Clockwerk) stopClocks() {
+	for _, c := range c.resets {
+		c <- 0
+	}
+}
+
+func (c *Clockwerk) resetClocks() {
+	c.stopClocks()
+	c.startClocks()
 }
 
 func (c *Clockwerk) clock(i int, reset chan int) {
@@ -168,40 +172,41 @@ func (c *Clockwerk) sleepPeriod() time.Duration {
 }
 
 func (c *Clockwerk) updateDisplay() {
-	if c.displayShouldUpdate {
-		c.Display.ClearBuffer()
-
-		// Master clock and pulse width.
-		var external string
-		if c.external {
-			external = "^"
-		}
-		c.Display.WriteLine(fmt.Sprintf("%1sBPM: %3d", external, c.bpm), 2, 8)
-		// c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
-
-		// Display each clock multiplication or division setting.
-		for i, factor := range c.clocks {
-			text := " 1"
-			switch {
-			case factor < -1:
-				text = fmt.Sprintf("\\%d", -factor)
-			case factor > 1:
-				text = fmt.Sprintf("x%d", factor)
-			}
-			c.Display.WriteLine(fmt.Sprintf("%-3v", text), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
-		}
-		xWidth := int16(europi.OLEDWidth / len(c.clocks))
-		xOffset := int16(c.selected) * xWidth
-		// TODO: replace box with chevron.
-		tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
-
-		if c.clocksShouldReset {
-			tinydraw.Rectangle(c.Display, 0, 0, 128, 32, europi.White)
-		}
-
-		c.Display.Display()
-		c.displayShouldUpdate = false
+	if !c.displayShouldUpdate {
+		return
 	}
+	c.displayShouldUpdate = false
+	c.Display.ClearBuffer()
+
+	// Master clock and pulse width.
+	var external string
+	if c.external {
+		external = "^"
+	}
+	c.Display.WriteLine(fmt.Sprintf("%1sBPM: %3d", external, c.bpm), 2, 8)
+	// c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
+
+	// Display each clock multiplication or division setting.
+	for i, factor := range c.clocks {
+		text := " 1"
+		switch {
+		case factor < -1:
+			text = fmt.Sprintf("\\%d", -factor)
+		case factor > 1:
+			text = fmt.Sprintf("x%d", factor)
+		}
+		c.Display.WriteLine(fmt.Sprintf("%-3v", text), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
+	}
+	xWidth := int16(europi.OLEDWidth / len(c.clocks))
+	xOffset := int16(c.selected) * xWidth
+	// TODO: replace box with chevron.
+	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
+
+	if c.clocksShouldReset {
+		tinydraw.Rectangle(c.Display, 0, 0, 128, 32, europi.White)
+	}
+
+	c.Display.Display()
 }
 
 func main() {
@@ -249,12 +254,12 @@ func main() {
 
 	for {
 		// Check for clock updates every 2 seconds.
+		time.Sleep(ResetDelay)
 		lastChange := time.Now().Sub(c.lastClockChange)
 		if c.clocksShouldReset && lastChange > ResetDelay {
 			c.resetClocks()
 			c.clocksShouldReset = false
 			c.displayShouldUpdate = true
 		}
-		time.Sleep(ResetDelay)
 	}
 }
