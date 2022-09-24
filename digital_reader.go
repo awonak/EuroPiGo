@@ -10,7 +10,7 @@ const DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
 // DigitalReader is an interface for common digital inputs methods.
 type DigitalReader interface {
 	Handler(func(machine.Pin))
-	Debounce(delay time.Duration)
+	HandlerWithDebounce(func(machine.Pin), time.Duration)
 	LastInput() time.Time
 	Value() bool
 }
@@ -43,25 +43,22 @@ func (d *DigitalInput) Value() bool {
 	return !d.Pin.Get()
 }
 
-// Debounce overrides the default debounce delay with the provided duration value.
-func (d *DigitalInput) Debounce(delay time.Duration) {
-	d.debounceDelay = delay
-}
-
 // Handler sets the callback function to be call when a rising edge is detected.
 func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
-	d.debounceWrapper(handler)
+	d.Pin.SetInterrupt(machine.PinRising, handler)
 }
-func (d *DigitalInput) debounceWrapper(handler func(p machine.Pin)) {
-	wrapped := func(p machine.Pin) {
+
+// HandlerWithDebounce sets the callback function to be call when a rising edge
+// is detected and it has been `delay` duration since last rising edge.
+func (d *DigitalInput) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
+	d.Pin.SetInterrupt(machine.PinRising, func(p machine.Pin) {
 		t := time.Now()
-		if t.Before(d.lastInputTime.Add(d.debounceDelay)) {
+		if t.Before(d.lastInputTime.Add(delay)) {
 			return
 		}
 		handler(p)
 		d.lastInputTime = t
-	}
-	d.Pin.SetInterrupt(machine.PinRising, wrapped)
+	})
 }
 
 // Button is a struct for handling push button behavior.
@@ -69,6 +66,7 @@ type Button struct {
 	Pin           machine.Pin
 	lastInputTime time.Time
 	debounceDelay time.Duration
+	callback      func(p machine.Pin)
 }
 
 // NewButton creates a new Button struct.
@@ -77,18 +75,28 @@ func NewButton(pin machine.Pin) *Button {
 	return &Button{
 		Pin:           pin,
 		lastInputTime: time.Now(),
-		debounceDelay: DefaultDebounceDelay,
 	}
-}
-
-// Debounce overrides the default debounce delay with the provided duration value.
-func (b *Button) Debounce(delay time.Duration) {
-	b.debounceDelay = delay
 }
 
 // Handler sets the callback function to be call when the button is pressed.
 func (b *Button) Handler(handler func(p machine.Pin)) {
-	b.debounceWrapper(handler, DefaultDebounceDelay)
+	b.Pin.SetInterrupt(machine.PinFalling, handler)
+}
+
+// Handler sets the callback function to be call when the button is pressed.
+func (b *Button) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
+	b.callback = handler
+	b.debounceDelay = delay
+	b.Pin.SetInterrupt(machine.PinFalling, b.debounceWrapper)
+}
+
+func (b *Button) debounceWrapper(p machine.Pin) {
+	t := time.Now()
+	if t.Before(b.lastInputTime.Add(b.debounceDelay)) {
+		return
+	}
+	b.callback(p)
+	b.lastInputTime = t
 }
 
 // LastInput return the time of the last button press.
@@ -100,16 +108,4 @@ func (b *Button) LastInput() time.Time {
 func (b *Button) Value() bool {
 	// Invert signal to match expected behavior.
 	return !b.Pin.Get()
-}
-
-func (b *Button) debounceWrapper(handler func(p machine.Pin), delay time.Duration) {
-	wrapped := func(p machine.Pin) {
-		t := time.Now()
-		if t.Before(b.lastInputTime.Add(delay)) {
-			return
-		}
-		handler(p)
-		b.lastInputTime = t
-	}
-	b.Pin.SetInterrupt(machine.PinFalling, wrapped)
 }
