@@ -29,7 +29,7 @@ type EuroPi struct {
 	CV4 Outputer
 	CV5 Outputer
 	CV6 Outputer
-	CV  []Outputer
+	CV  [6]Outputer
 }
 
 // New will return a new EuroPi struct.
@@ -59,6 +59,6 @@ func New() *EuroPi {
 		CV4: cv4,
 		CV5: cv5,
 		CV6: cv5,
-		CV:  []Outputer{cv1, cv2, cv3, cv4, cv5, cv6},
+		CV:  [6]Outputer{cv1, cv2, cv3, cv4, cv5, cv6},
 	}
 }
