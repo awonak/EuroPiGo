@@ -71,6 +71,7 @@ type Clockwerk struct {
 	displayShouldUpdate bool
 	clocksShouldReset   bool
 	lastClockChange     time.Time
+	prevk2              int
 }
 
 func (c *Clockwerk) editParams() {
@@ -82,9 +83,9 @@ func (c *Clockwerk) editParams() {
 		c.lastClockChange = time.Now()
 	}
 
-	_factor := c.readFactor()
-	if _factor != c.clocks[c.selected] {
-		c.clocks[c.selected] = _factor
+	if c.prevk2 != c.readFactor() {
+		c.clocks[c.selected] = c.readFactor()
+		c.prevk2 = c.clocks[c.selected]
 		c.displayShouldUpdate = true
 		c.clocksShouldReset = true
 		c.lastClockChange = time.Now()
