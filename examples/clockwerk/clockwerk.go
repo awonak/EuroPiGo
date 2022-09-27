@@ -183,6 +183,7 @@ func (c *Clockwerk) updateDisplay() {
 	var external string
 	if c.external {
 		external = "^"
+		c.Display.WriteLine(fmt.Sprintf("P: %v", c.period), europi.OLEDWidth/2, 8)
 	}
 	c.Display.WriteLine(fmt.Sprintf("%1sBPM: %3d", external, c.bpm), 2, 8)
 	// c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
