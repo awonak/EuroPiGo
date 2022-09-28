@@ -11,10 +11,10 @@ import (
 
 type MyApp struct {
 	knobsDisplayPercent bool
+	prevK1              uint16
+	prevK2              uint16
 	staticCv            int
 	prevStaticCv        int
-	prevK1              int
-	prevK2              int
 }
 
 func main() {

@@ -18,9 +18,9 @@ type DigitalReader interface {
 // DigitalInput is a struct for handling reading of the digital input.
 type DigitalInput struct {
 	Pin           machine.Pin
+	debounceDelay time.Duration
 	lastInput     time.Time
 	callback      func(p machine.Pin)
-	debounceDelay time.Duration
 }
 
 // NewDI creates a new DigitalInput struct.
@@ -68,8 +68,8 @@ func (d *DigitalInput) debounceWrapper(p machine.Pin) {
 // Button is a struct for handling push button behavior.
 type Button struct {
 	Pin           machine.Pin
-	lastInput     time.Time
 	debounceDelay time.Duration
+	lastInput     time.Time
 	callback      func(p machine.Pin)
 }
 

@@ -65,18 +65,17 @@ func init() {
 }
 
 type Clockwerk struct {
-	*europi.EuroPi
-
-	bpm      int
-	clocks   [6]int
-	resets   [6]chan int
-	selected int
-	external bool
-	period   time.Duration
-
 	displayShouldUpdate bool
 	doClockReset        bool
+	external            bool
+	selected            uint8
+	bpm                 uint16
 	prevk2              int
+	period              time.Duration
+	clocks              [6]int
+	resets              [6]chan uint8
+
+	*europi.EuroPi
 }
 
 func (c *Clockwerk) editParams() {
@@ -94,14 +93,14 @@ func (c *Clockwerk) editParams() {
 	}
 }
 
-func (c *Clockwerk) readBPM() int {
+func (c *Clockwerk) readBPM() uint16 {
 	// Provide a range of 59 - 240 bpm. bpm < 60 will switch to external clock.
 	_bpm := c.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
 	if _bpm < MinBPM {
 		c.external = true
 		_bpm = 0
 		if c.period > 0 {
-			_bpm = int((time.Minute)/(c.period*PPQN)) + 1
+			_bpm = uint16((time.Minute)/(c.period*PPQN)) + 1
 		}
 	} else {
 		c.external = false
@@ -111,13 +110,13 @@ func (c *Clockwerk) readBPM() int {
 }
 
 func (c *Clockwerk) readFactor() int {
-	return FactorChoices[c.K2.Range(len(FactorChoices))]
+	return FactorChoices[c.K2.Range(uint16(len(FactorChoices)))]
 }
 
 func (c *Clockwerk) startClocks() {
 	for i := 0; i < len(c.clocks); i++ {
-		c.resets[i] = make(chan int)
-		go c.clock(i, c.resets[i])
+		c.resets[i] = make(chan uint8)
+		go c.clock(uint8(i), c.resets[i])
 	}
 }
 
@@ -132,7 +131,7 @@ func (c *Clockwerk) resetClocks() {
 	c.startClocks()
 }
 
-func (c *Clockwerk) clock(i int, reset chan int) {
+func (c *Clockwerk) clock(i uint8, reset chan uint8) {
 	t := time.Now()
 	for {
 		// Check if a reset signal has been received on the channel.
@@ -193,7 +192,7 @@ func (c *Clockwerk) updateDisplay() {
 	if c.external {
 		external = "^"
 	}
-	c.Display.WriteLine(external+"BPM: "+strconv.Itoa(c.bpm), 2, 8)
+	c.Display.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8)
 
 	// Display each clock multiplication or division setting.
 	for i, factor := range c.clocks {
@@ -236,7 +235,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = europi.Clamp(c.selected-1, 0, len(c.clocks))
+		c.selected = uint8(europi.Clamp(int(c.selected)-1, 0, len(c.clocks)))
 		c.displayShouldUpdate = true
 	})
 
@@ -246,7 +245,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = europi.Clamp(c.selected+1, 0, len(c.clocks)-1)
+		c.selected = uint8(europi.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
 		c.displayShouldUpdate = true
 	})
 
@@ -264,5 +263,6 @@ func main() {
 			c.resetClocks()
 			c.displayShouldUpdate = true
 		}
+		europi.DebugMemoryUsage()
 	}
 }
