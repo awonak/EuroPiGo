@@ -3,29 +3,33 @@
 // date: 2022-09-12
 // labels: clock
 //
-// Clock multiplier / divider with a range of /16 to *8 from the main clock speed.
+// Clock multiplier and divider with a range of /16 to x8 from the main clock speed.
 //
-// Note: Clocks will run stable within the 20-240 bpm range, however when
+// Note: Clocks will run stable within the 60-240 bpm range, however when
 // several clocks are at audio rate and set to different multiplications, the
 // clocks may become unstable.
 //
-// digital_in: unused (TODO: enable external clock)
-// analog_in: unused
+// Note: When the clock is slow and there are several divisions, the async sleep
+// functions will cause the restart to complete much slower because it has to
+// wait for all clocks to wake up before it can receive the restart signal.
 //
-// knob_1: adjust clock tempo between 20 and 240 BPM
-// knob_2: adjust the multiplication/division factor of the selected clock output
+// - digital_in: external clock
+// - analog_in: unused
 //
-// button_1: move the selected clock param edit to the left
-// button_2: move the selected clock param edit to the right
+// - knob_1: adjust clock tempo between 60 and 240 BPM
+// - knob_2: adjust the multiplication/division factor of the selected clock output
 //
-// dual_press: reset all clocks to resync
+// - button_1: move the selected clock param edit to the left
+// - button_2: move the selected clock param edit to the right
 //
-// output_[1-6]: clock output [1-6]
+// - dual_press: reset all clocks to resync
+//
+// - output_[1-6]: clock output [1-6]
 package main
 
 import (
-	"fmt"
 	"machine"
+	"strconv"
 	"time"
 
 	"tinygo.org/x/tinydraw"
@@ -34,7 +38,7 @@ import (
 )
 
 const (
-	MinBPM     = 20
+	MinBPM     = 60
 	MaxBPM     = 240
 	DefaultBPM = 120
 	PPQN       = 4
@@ -71,8 +75,7 @@ type Clockwerk struct {
 	period   time.Duration
 
 	displayShouldUpdate bool
-	clocksShouldReset   bool
-	lastClockChange     time.Time
+	doClockReset        bool
 	prevk2              int
 }
 
@@ -81,27 +84,28 @@ func (c *Clockwerk) editParams() {
 	if _bpm != c.bpm {
 		c.bpm = _bpm
 		c.displayShouldUpdate = true
-		c.clocksShouldReset = true && !c.external
-		c.lastClockChange = time.Now()
 	}
 
-	if c.prevk2 != c.readFactor() {
-		c.clocks[c.selected] = c.readFactor()
-		c.prevk2 = c.clocks[c.selected]
+	_factor := c.readFactor()
+	if _factor != c.prevk2 {
+		c.clocks[c.selected] = _factor
+		c.prevk2 = _factor
 		c.displayShouldUpdate = true
-		c.clocksShouldReset = true
-		c.lastClockChange = time.Now()
 	}
 }
 
 func (c *Clockwerk) readBPM() int {
-	// Provide a range of 19 - 240 bpm. bpm < 20 will switch to external clock.
+	// Provide a range of 59 - 240 bpm. bpm < 60 will switch to external clock.
 	_bpm := c.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
-	if _bpm < MinBPM && c.period > 0 {
-		_bpm = int((time.Minute)/(c.period*PPQN)) + 1
+	if _bpm < MinBPM {
 		c.external = true
+		_bpm = 0
+		if c.period > 0 {
+			_bpm = int((time.Minute)/(c.period*PPQN)) + 1
+		}
 	} else {
 		c.external = false
+		c.period = 0
 	}
 	return _bpm
 }
@@ -118,8 +122,8 @@ func (c *Clockwerk) startClocks() {
 }
 
 func (c *Clockwerk) stopClocks() {
-	for _, c := range c.resets {
-		c <- 0
+	for _, r := range c.resets {
+		r <- 0
 	}
 }
 
@@ -141,6 +145,11 @@ func (c *Clockwerk) clock(i int, reset chan int) {
 		// Add expensive call to clock goroutine to factor its time into clock sleep.
 		c.editParams()
 		c.updateDisplay()
+
+		// External clock selected but not receiving pulses.
+		if c.bpm == 0 {
+			continue
+		}
 
 		high, low := c.clockPulseWidth(c.clocks[i])
 
@@ -183,30 +192,24 @@ func (c *Clockwerk) updateDisplay() {
 	var external string
 	if c.external {
 		external = "^"
-		c.Display.WriteLine(fmt.Sprintf("P: %v", c.period), europi.OLEDWidth/2, 8)
 	}
-	c.Display.WriteLine(fmt.Sprintf("%1sBPM: %3d", external, c.bpm), 2, 8)
-	// c.Display.WriteLine(fmt.Sprintf("PW: 50%%"), europi.OLEDWidth/2, 8)
+	c.Display.WriteLine(external+"BPM: "+strconv.Itoa(c.bpm), 2, 8)
 
 	// Display each clock multiplication or division setting.
 	for i, factor := range c.clocks {
 		text := " 1"
 		switch {
 		case factor < -1:
-			text = fmt.Sprintf("\\%d", -factor)
+			text = "\\" + strconv.Itoa(-factor)
 		case factor > 1:
-			text = fmt.Sprintf("x%d", factor)
+			text = "x" + strconv.Itoa(factor)
 		}
-		c.Display.WriteLine(fmt.Sprintf("%-3v", text), int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
+		c.Display.WriteLine(text, int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
 	}
 	xWidth := int16(europi.OLEDWidth / len(c.clocks))
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
 	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
-
-	if c.clocksShouldReset {
-		tinydraw.Rectangle(c.Display, 0, 0, 128, 32, europi.White)
-	}
 
 	c.Display.Display()
 }
@@ -216,7 +219,6 @@ func main() {
 		EuroPi:              europi.New(),
 		clocks:              DefaultFactor,
 		displayShouldUpdate: true,
-		clocksShouldReset:   false,
 	}
 
 	// Lower range value can have lower sample size
@@ -231,7 +233,7 @@ func main() {
 	// Move clock config option to the left.
 	c.B1.Handler(func(p machine.Pin) {
 		if c.B2.Value() {
-			c.clocksShouldReset = true
+			c.doClockReset = true
 			return
 		}
 		c.selected = europi.Clamp(c.selected-1, 0, len(c.clocks))
@@ -241,7 +243,7 @@ func main() {
 	// Move clock config option to the right.
 	c.B2.Handler(func(p machine.Pin) {
 		if c.B1.Value() {
-			c.clocksShouldReset = true
+			c.doClockReset = true
 			return
 		}
 		c.selected = europi.Clamp(c.selected+1, 0, len(c.clocks)-1)
@@ -250,17 +252,16 @@ func main() {
 
 	// Init parameter configs based on current knob positions.
 	c.bpm = c.readBPM()
-	c.clocks[c.selected] = c.readFactor()
+	c.prevk2 = c.readFactor()
 
 	c.startClocks()
 
 	for {
 		// Check for clock updates every 2 seconds.
 		time.Sleep(ResetDelay)
-		lastChange := time.Now().Sub(c.lastClockChange)
-		if c.clocksShouldReset && lastChange > ResetDelay {
+		if c.doClockReset {
+			c.doClockReset = false
 			c.resetClocks()
-			c.clocksShouldReset = false
 			c.displayShouldUpdate = true
 		}
 	}
