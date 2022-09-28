@@ -1,7 +1,7 @@
 package europi
 
 import (
-	"fmt"
+	"log"
 	"machine"
 )
 
@@ -49,14 +49,14 @@ func NewOutput(pin machine.Pin, pwm PWMer) *Output {
 		Period: defaultPeriod,
 	})
 	if err != nil {
-		fmt.Println("pwm Configure error: ", err.Error())
+		log.Fatal("pwm Configure error: ", err.Error())
 	}
 
 	pwm.SetTop(CalibratedTop)
 
 	ch, err := pwm.Channel(pin)
 	if err != nil {
-		fmt.Println("pwm Channel error: ", err.Error())
+		log.Fatal("pwm Channel error: ", err.Error())
 	}
 
 	return &Output{pwm, pin, ch}
