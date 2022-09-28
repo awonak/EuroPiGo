@@ -47,7 +47,6 @@ func (d *DigitalInput) Value() bool {
 // Handler sets the callback function to be call when a rising edge is detected.
 func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
 	d.HandlerWithDebounce(handler, 0)
-
 }
 
 // Handler sets the callback function to be call when a rising edge is detected and debounce delay time has elapsed.

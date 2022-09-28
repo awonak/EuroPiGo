@@ -1,7 +1,6 @@
 package europi
 
 import (
-	"fmt"
 	"log"
 	"runtime"
 )
@@ -20,6 +19,5 @@ func Clamp[V int | float32](value, low, high V) V {
 func DebugMemoryUsage() {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
-	log.Println("Heap Used: ", mem.HeapInuse, " Free: ", mem.HeapIdle, " Sys:", mem.HeapSys)
-	fmt.Print("\r")
+	log.Println("Heap Used: ", mem.HeapInuse, " Free: ", mem.HeapIdle, " Sys:", mem.HeapSys, "\r")
 }
