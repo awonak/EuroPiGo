@@ -8,14 +8,14 @@ import (
 const (
 	// Manually calibrated to best match expected voltages. Additional info:
 	// https://github.com/Allen-Synthesis/EuroPi/blob/main/software/programming_instructions.md#calibrate-the-module
-	CalibratedOffset = 32
-	// The default PWM Top of MaxUint16 caused noisy output. Dropping this down to a 12bit value resulted in much smoother cv output.
-	CalibratedTop = 0xfff - CalibratedOffset
+	CalibratedOffset = 3
+	// The default PWM Top of MaxUint16 caused noisy output. Dropping this down to a 8bit value resulted in much smoother cv output.
+	CalibratedTop = 0xff - CalibratedOffset
 )
 
 // We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
-// For a frequency of 1mHz, we must set a period of 1000ns.
-var defaultPeriod uint64 = 1000
+// Set a period of 500ns.
+var defaultPeriod uint64 = 500
 
 // PWMer is an interface for interacting with a machine.pwmGroup
 type PWMer interface {
