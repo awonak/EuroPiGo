@@ -1,3 +1,4 @@
+// Diagnostics is a script for demonstrating all main interactions with the EuroPiGo firmware.
 package main
 
 import (
