@@ -8,7 +8,7 @@ import (
 const (
 	// Manually calibrated to best match expected voltages. Additional info:
 	// https://github.com/Allen-Synthesis/EuroPi/blob/main/software/programming_instructions.md#calibrate-the-module
-	CalibratedOffset = 3
+	CalibratedOffset = 0
 	// The default PWM Top of MaxUint16 caused noisy output. Dropping this down to a 8bit value resulted in much smoother cv output.
 	CalibratedTop = 0xff - CalibratedOffset
 )
@@ -71,7 +71,8 @@ func (o *Output) Get() uint32 {
 func (o *Output) Voltage(v float32) {
 	v = Clamp(v, MinVoltage, MaxVoltage)
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
-	cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
+	// cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
+	cv := float32(invertedCv) - CalibratedOffset
 	o.pwm.Set(o.ch, uint32(cv))
 }
 

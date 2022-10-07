@@ -8,7 +8,7 @@ import (
 const (
 	// Calibrated[Min|Max]AI was calculated using the EuroPi calibration program:
 	// https://github.com/Allen-Synthesis/EuroPi/blob/main/software/programming_instructions.md#calibrate-the-module
-	CalibratedMinAI = 384
+	CalibratedMinAI = 300
 	CalibratedMaxAI = 44009
 
 	DefaultSamples = 1000
