@@ -1,7 +1,7 @@
 package europi
 
 import (
-	"log"
+	"errors"
 	"machine"
 )
 
@@ -13,9 +13,33 @@ const (
 	CalibratedTop = 0xff - CalibratedOffset
 )
 
-// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
-// Set a period of 500ns.
-var defaultPeriod uint64 = 500
+var (
+	CV1 Outputer
+	CV2 Outputer
+	CV3 Outputer
+	CV4 Outputer
+	CV5 Outputer
+	CV6 Outputer
+	CV  [6]Outputer
+)
+
+func init() {
+	CV1 = newOutput(machine.GPIO21, machine.PWM2)
+	CV2 = newOutput(machine.GPIO20, machine.PWM2)
+	CV3 = newOutput(machine.GPIO16, machine.PWM0)
+	CV4 = newOutput(machine.GPIO17, machine.PWM0)
+	CV5 = newOutput(machine.GPIO18, machine.PWM1)
+	CV6 = newOutput(machine.GPIO19, machine.PWM1)
+	CV = [6]Outputer{CV1, CV2, CV3, CV4, CV5, CV6}
+}
+
+var (
+	// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
+	// Set a period of 500ns.
+	defaultPeriod uint64 = 500
+
+	ErrInvalidPwmChannel = errors.New("invalid pwm channel")
+)
 
 // PWMer is an interface for interacting with a machine.pwmGroup
 type PWMer interface {
@@ -37,38 +61,38 @@ type Outputer interface {
 }
 
 // Outputer is struct for interacting with the cv output jacks.
-type Output struct {
+type output struct {
 	pwm PWMer
 	pin machine.Pin
 	ch  uint8
 }
 
-// NewOutput returns a new Output struct.
-func NewOutput(pin machine.Pin, pwm PWMer) *Output {
+// newOutput returns a new Output struct.
+func newOutput(pin machine.Pin, pwm PWMer) *output {
 	err := pwm.Configure(machine.PWMConfig{
 		Period: defaultPeriod,
 	})
 	if err != nil {
-		log.Fatal("pwm Configure error: ", err.Error())
+		panic("pwm Configure error")
 	}
 
 	pwm.SetTop(CalibratedTop)
 
 	ch, err := pwm.Channel(pin)
 	if err != nil {
-		log.Fatal("pwm Channel error: ", err.Error())
+		panic("pwm Channel error")
 	}
 
-	return &Output{pwm, pin, ch}
+	return &output{pwm, pin, ch}
 }
 
 // Get returns the current set voltage in the range of 0 to pwm.Top().
-func (o *Output) Get() uint32 {
+func (o *output) Get() uint32 {
 	return o.pwm.Get(o.ch)
 }
 
 // Voltage sets the current output voltage within a range of 0.0 to 10.0.
-func (o *Output) Voltage(v float32) {
+func (o *output) Voltage(v float32) {
 	v = Clamp(v, MinVoltage, MaxVoltage)
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
 	// cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
@@ -77,11 +101,11 @@ func (o *Output) Voltage(v float32) {
 }
 
 // On sets the current voltage high at 10.0v.
-func (o *Output) On() {
+func (o *output) On() {
 	o.pwm.Set(o.ch, o.pwm.Top())
 }
 
 // Off sets the current voltage low at 0.0v.
-func (o *Output) Off() {
+func (o *output) Off() {
 	o.pwm.Set(o.ch, 0)
 }

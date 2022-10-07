@@ -5,7 +5,25 @@ import (
 	"time"
 )
 
-const DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
+const (
+	DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
+
+	DIPin = machine.GPIO22
+	B1Pin = machine.GPIO4
+	B2Pin = machine.GPIO5
+)
+
+var (
+	DI DigitalReader
+	B1 DigitalReader
+	B2 DigitalReader
+)
+
+func init() {
+	DI = newDI(DIPin)
+	B1 = newButton(B1Pin)
+	B2 = newButton(B2Pin)
+}
 
 // DigitalReader is an interface for common digital inputs methods.
 type DigitalReader interface {
@@ -15,8 +33,8 @@ type DigitalReader interface {
 	Value() bool
 }
 
-// DigitalInput is a struct for handling reading of the digital input.
-type DigitalInput struct {
+// digitalInput is a struct for handling reading of the digital input.
+type digitalInput struct {
 	Pin           machine.Pin
 	debounceDelay time.Duration
 	lastInput     time.Time
@@ -24,9 +42,9 @@ type DigitalInput struct {
 }
 
 // NewDI creates a new DigitalInput struct.
-func NewDI(pin machine.Pin) *DigitalInput {
+func newDI(pin machine.Pin) *digitalInput {
 	pin.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
-	return &DigitalInput{
+	return &digitalInput{
 		Pin:           pin,
 		lastInput:     time.Now(),
 		debounceDelay: DefaultDebounceDelay,
@@ -34,29 +52,29 @@ func NewDI(pin machine.Pin) *DigitalInput {
 }
 
 // LastInput return the time of the last high input (triggered at 0.8v).
-func (d *DigitalInput) LastInput() time.Time {
+func (d *digitalInput) LastInput() time.Time {
 	return d.lastInput
 }
 
 // Value returns true if the input is high (above 0.8v), else false.
-func (d *DigitalInput) Value() bool {
+func (d *digitalInput) Value() bool {
 	// Invert signal to match expected behavior.
 	return !d.Pin.Get()
 }
 
 // Handler sets the callback function to be call when a rising edge is detected.
-func (d *DigitalInput) Handler(handler func(p machine.Pin)) {
+func (d *digitalInput) Handler(handler func(p machine.Pin)) {
 	d.HandlerWithDebounce(handler, 0)
 }
 
 // Handler sets the callback function to be call when a rising edge is detected and debounce delay time has elapsed.
-func (d *DigitalInput) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
+func (d *digitalInput) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
 	d.callback = handler
 	d.debounceDelay = delay
 	d.Pin.SetInterrupt(machine.PinFalling, d.debounceWrapper)
 }
 
-func (d *DigitalInput) debounceWrapper(p machine.Pin) {
+func (d *digitalInput) debounceWrapper(p machine.Pin) {
 	t := time.Now()
 	if t.Before(d.lastInput.Add(d.debounceDelay)) {
 		return
@@ -65,18 +83,18 @@ func (d *DigitalInput) debounceWrapper(p machine.Pin) {
 	d.lastInput = t
 }
 
-// Button is a struct for handling push button behavior.
-type Button struct {
+// button is a struct for handling push button behavior.
+type button struct {
 	Pin           machine.Pin
 	debounceDelay time.Duration
 	lastInput     time.Time
 	callback      func(p machine.Pin)
 }
 
-// NewButton creates a new Button struct.
-func NewButton(pin machine.Pin) *Button {
+// newButton creates a new Button struct.
+func newButton(pin machine.Pin) *button {
 	pin.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
-	return &Button{
+	return &button{
 		Pin:           pin,
 		lastInput:     time.Now(),
 		debounceDelay: DefaultDebounceDelay,
@@ -84,18 +102,18 @@ func NewButton(pin machine.Pin) *Button {
 }
 
 // Handler sets the callback function to be call when the button is pressed.
-func (b *Button) Handler(handler func(p machine.Pin)) {
+func (b *button) Handler(handler func(p machine.Pin)) {
 	b.HandlerWithDebounce(handler, 0)
 }
 
 // Handler sets the callback function to be call when the button is pressed and debounce delay time has elapsed.
-func (b *Button) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
+func (b *button) HandlerWithDebounce(handler func(p machine.Pin), delay time.Duration) {
 	b.callback = handler
 	b.debounceDelay = delay
 	b.Pin.SetInterrupt(machine.PinFalling, b.debounceWrapper)
 }
 
-func (b *Button) debounceWrapper(p machine.Pin) {
+func (b *button) debounceWrapper(p machine.Pin) {
 	t := time.Now()
 	if t.Before(b.lastInput.Add(b.debounceDelay)) {
 		return
@@ -105,12 +123,12 @@ func (b *Button) debounceWrapper(p machine.Pin) {
 }
 
 // LastInput return the time of the last button press.
-func (b *Button) LastInput() time.Time {
+func (b *button) LastInput() time.Time {
 	return b.lastInput
 }
 
 // Value returns true if button is currently pressed, else false.
-func (b *Button) Value() bool {
+func (b *button) Value() bool {
 	// Invert signal to match expected behavior.
 	return !b.Pin.Get()
 }

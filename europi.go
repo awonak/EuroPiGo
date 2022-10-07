@@ -9,10 +9,12 @@ const (
 	MinVoltage = 0.0
 )
 
+var e *EuroPi
+
 // EuroPi is the collection of component wrappers used to interact with the module.
 type EuroPi struct {
 	// Display is a wrapper around ssd1306.Device
-	Display *Display
+	Display *display
 
 	DI DigitalReader
 	AI AnalogReader
@@ -32,26 +34,36 @@ type EuroPi struct {
 	CV  [6]Outputer
 }
 
-// New will return a new EuroPi struct.
+func init() {
+	if e == nil {
+		e = newEuroPi()
+	}
+}
+
 func New() *EuroPi {
-	cv1 := NewOutput(machine.GPIO21, machine.PWM2)
-	cv2 := NewOutput(machine.GPIO20, machine.PWM2)
-	cv3 := NewOutput(machine.GPIO16, machine.PWM0)
-	cv4 := NewOutput(machine.GPIO17, machine.PWM0)
-	cv5 := NewOutput(machine.GPIO18, machine.PWM1)
-	cv6 := NewOutput(machine.GPIO19, machine.PWM1)
+	return e
+}
+
+// newEuroPi will return a new EuroPi struct.
+func newEuroPi() *EuroPi {
+	cv1 := newOutput(machine.GPIO21, machine.PWM2)
+	cv2 := newOutput(machine.GPIO20, machine.PWM2)
+	cv3 := newOutput(machine.GPIO16, machine.PWM0)
+	cv4 := newOutput(machine.GPIO17, machine.PWM0)
+	cv5 := newOutput(machine.GPIO18, machine.PWM1)
+	cv6 := newOutput(machine.GPIO19, machine.PWM1)
 
 	return &EuroPi{
-		Display: NewDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
+		Display: newDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
 
-		DI: NewDI(machine.GPIO22),
-		AI: NewAI(machine.ADC0),
+		DI: newDI(machine.GPIO22),
+		AI: newAI(machine.ADC0),
 
-		B1: NewButton(machine.GPIO4),
-		B2: NewButton(machine.GPIO5),
+		B1: newButton(machine.GPIO4),
+		B2: newButton(machine.GPIO5),
 
-		K1: NewKnob(machine.ADC1),
-		K2: NewKnob(machine.ADC2),
+		K1: newKnob(machine.ADC1),
+		K2: newKnob(machine.ADC2),
 
 		CV1: cv1,
 		CV2: cv2,
