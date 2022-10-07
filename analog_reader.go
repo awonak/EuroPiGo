@@ -22,9 +22,9 @@ var (
 
 func init() {
 	machine.InitADC()
-	AI = newAI(machine.ADC0)
-	K1 = newKnob(machine.ADC1)
-	K2 = newKnob(machine.ADC2)
+	AI = newAI(AIPin)
+	K1 = newKnob(K1Pin)
+	K2 = newKnob(K2Pin)
 }
 
 // AnalogReader is an interface for common analog read methods for knobs and cv input.

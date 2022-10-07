@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	Display = newDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1)
+	Display = newDisplay(DisplayChannel, DisplaySdaPin, DisplaySclPin)
 }
 
 // Display is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.

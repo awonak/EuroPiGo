@@ -5,13 +5,7 @@ import (
 	"time"
 )
 
-const (
-	DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
-
-	DIPin = machine.GPIO22
-	B1Pin = machine.GPIO4
-	B2Pin = machine.GPIO5
-)
+const DefaultDebounceDelay = time.Duration(50 * time.Millisecond)
 
 var (
 	DI DigitalReader

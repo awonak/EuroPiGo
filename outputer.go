@@ -24,12 +24,12 @@ var (
 )
 
 func init() {
-	CV1 = newOutput(machine.GPIO21, machine.PWM2)
-	CV2 = newOutput(machine.GPIO20, machine.PWM2)
-	CV3 = newOutput(machine.GPIO16, machine.PWM0)
-	CV4 = newOutput(machine.GPIO17, machine.PWM0)
-	CV5 = newOutput(machine.GPIO18, machine.PWM1)
-	CV6 = newOutput(machine.GPIO19, machine.PWM1)
+	CV1 = newOutput(CV1Pin, CV1PwmGroup)
+	CV2 = newOutput(CV2Pin, CV2PwmGroup)
+	CV3 = newOutput(CV3Pin, CV3PwmGroup)
+	CV4 = newOutput(CV4Pin, CV4PwmGroup)
+	CV5 = newOutput(CV5Pin, CV5PwmGroup)
+	CV6 = newOutput(CV6Pin, CV6PwmGroup)
 	CV = [6]Outputer{CV1, CV2, CV3, CV4, CV5, CV6}
 }
 
