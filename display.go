@@ -17,24 +17,16 @@ const (
 )
 
 var (
-	DefaultChannel = machine.I2C0
-	DefaultFont    = &proggy.TinySZ8pt7b
-	White          = color.RGBA{255, 255, 255, 255}
-
-	Display *display
+	DefaultFont = &proggy.TinySZ8pt7b
+	White       = color.RGBA{255, 255, 255, 255}
 )
 
-func init() {
-	Display = newDisplay(DisplayChannel, DisplaySdaPin, DisplaySclPin)
-}
-
-// Display is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.
 type display struct {
 	ssd1306.Device
+
 	font *tinyfont.Font
 }
 
-// newDisplay returns a new Display struct.
 func newDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *display {
 	channel.Configure(machine.I2CConfig{
 		Frequency: OLEDFreq,
@@ -42,7 +34,7 @@ func newDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *display {
 		SCL:       sclPin,
 	})
 
-	d := ssd1306.NewI2C(DefaultChannel)
+	d := ssd1306.NewI2C(channel)
 	d.Configure(ssd1306.Config{
 		Address: OLEDAddr,
 		Width:   OLEDWidth,

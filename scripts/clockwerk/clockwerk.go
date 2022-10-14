@@ -49,6 +49,7 @@ var (
 	// Positive values are multiplications and negative values are divisions.
 	DefaultFactor = [6]int{1, 2, 4, -2, -4, -8}
 	FactorChoices []int
+	EuroPi        = europi.GetInstance()
 )
 
 func init() {
@@ -93,7 +94,7 @@ func (c *Clockwerk) editParams() {
 
 func (c *Clockwerk) readBPM() uint16 {
 	// Provide a range of 59 - 240 bpm. bpm < 60 will switch to external clock.
-	_bpm := europi.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
+	_bpm := EuroPi.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
 	if _bpm < MinBPM {
 		c.external = true
 		_bpm = 0
@@ -108,7 +109,7 @@ func (c *Clockwerk) readBPM() uint16 {
 }
 
 func (c *Clockwerk) readFactor() int {
-	return FactorChoices[europi.K2.Range(uint16(len(FactorChoices)))]
+	return FactorChoices[EuroPi.K2.Range(uint16(len(FactorChoices)))]
 }
 
 func (c *Clockwerk) startClocks() {
@@ -150,11 +151,11 @@ func (c *Clockwerk) clock(i uint8, reset chan uint8) {
 
 		high, low := c.clockPulseWidth(c.clocks[i])
 
-		europi.CV[i].On()
+		EuroPi.CV[i].On()
 		t = t.Add(high)
 		time.Sleep(t.Sub(time.Now()))
 
-		europi.CV[i].Off()
+		EuroPi.CV[i].Off()
 		t = t.Add(low)
 		time.Sleep(t.Sub(time.Now()))
 	}
@@ -183,14 +184,14 @@ func (c *Clockwerk) updateDisplay() {
 		return
 	}
 	c.displayShouldUpdate = false
-	europi.Display.ClearBuffer()
+	EuroPi.Display.ClearBuffer()
 
 	// Master clock and pulse width.
 	var external string
 	if c.external {
 		external = "^"
 	}
-	europi.Display.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8)
+	EuroPi.Display.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8)
 
 	// Display each clock multiplication or division setting.
 	for i, factor := range c.clocks {
@@ -201,14 +202,14 @@ func (c *Clockwerk) updateDisplay() {
 		case factor > 1:
 			text = "x" + strconv.Itoa(factor)
 		}
-		europi.Display.WriteLine(text, int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
+		EuroPi.Display.WriteLine(text, int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
 	}
 	xWidth := int16(europi.OLEDWidth / len(c.clocks))
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
-	tinydraw.Rectangle(europi.Display, xOffset, 16, xWidth, 16, europi.White)
+	tinydraw.Rectangle(EuroPi.Display, xOffset, 16, xWidth, 16, europi.White)
 
-	europi.Display.Display()
+	EuroPi.Display.Display()
 }
 
 func (c *Clockwerk) moveSelectedFactor(pin machine.Pin) {
@@ -219,7 +220,7 @@ func (c *Clockwerk) moveSelectedFactor(pin machine.Pin) {
 	case europi.B2Pin:
 		move = 1
 	}
-	if europi.B1.Value() && europi.B2.Value() {
+	if EuroPi.B1.Value() && EuroPi.B2.Value() {
 		c.doClockReset = true
 		return
 	}
@@ -234,26 +235,26 @@ func main() {
 	}
 
 	// Lower range value can have lower sample size
-	europi.K1.Samples(500)
-	europi.K2.Samples(20)
+	EuroPi.K1.Samples(500)
+	EuroPi.K2.Samples(20)
 
-	europi.DI.Handler(func(pin machine.Pin) {
+	EuroPi.DI.Handler(func(pin machine.Pin) {
 		// Measure current period between clock pulses.
-		c.period = time.Now().Sub(europi.DI.LastInput())
+		c.period = time.Now().Sub(EuroPi.DI.LastInput())
 	})
 
 	// Move clock config option to the left.
-	europi.B1.Handler(c.moveSelectedFactor)
+	EuroPi.B1.Handler(c.moveSelectedFactor)
 
 	// Move clock config option to the right.
-	europi.B2.Handler(c.moveSelectedFactor)
+	EuroPi.B2.Handler(c.moveSelectedFactor)
 
 	// Init parameter configs based on current knob positions.
 	c.bpm = c.readBPM()
 	c.prevk2 = c.readFactor()
 
 	c.startClocks()
-	europi.DebugMemoryUsedPerSecond()
+	go europi.DebugMemoryUsedPerSecond()
 
 	for {
 		// Check for clock updates every 2 seconds.
