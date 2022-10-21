@@ -28,14 +28,14 @@ type AnalogReader interface {
 }
 
 type analogInput struct {
-	machine.ADC
+	adc     machine.ADC
 	samples uint16
 }
 
 func newAnalogInput(pin machine.Pin) *analogInput {
 	adc := machine.ADC{Pin: pin}
 	adc.Configure(machine.ADCConfig{})
-	return &analogInput{ADC: adc, samples: defaultSamples}
+	return &analogInput{adc: adc, samples: defaultSamples}
 }
 
 // Samples sets the number of reads for an more accurate average read.
@@ -61,20 +61,20 @@ func (a *analogInput) Range(steps uint16) uint16 {
 func (a *analogInput) read() uint16 {
 	var sum int
 	for i := 0; i < int(a.samples); i++ {
-		sum += Clamp(int(a.Get())-calibratedMinAI, 0, calibratedMaxAI)
+		sum += Clamp(int(a.adc.Get())-calibratedMinAI, 0, calibratedMaxAI)
 	}
 	return uint16(sum / int(a.samples))
 }
 
 type knob struct {
-	machine.ADC
+	adc     machine.ADC
 	samples uint16
 }
 
 func newKnob(pin machine.Pin) *knob {
 	adc := machine.ADC{Pin: pin}
 	adc.Configure(machine.ADCConfig{})
-	return &knob{ADC: adc, samples: defaultSamples}
+	return &knob{adc: adc, samples: defaultSamples}
 }
 
 // Samples sets the number of reads for an more accurate average read.
@@ -100,7 +100,7 @@ func (k *knob) Range(steps uint16) uint16 {
 func (k *knob) read() uint16 {
 	var sum int
 	for i := 0; i < int(k.samples); i++ {
-		sum += int(k.Get())
+		sum += int(k.adc.Get())
 	}
 	return uint16(sum / int(k.samples))
 }

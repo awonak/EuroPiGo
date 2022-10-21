@@ -72,8 +72,11 @@ type EuroPi struct {
 	CV [6]*output
 }
 
-func init() {
-	europi = new()
+func New() *EuroPi {
+	if europi == nil {
+		europi = new()
+	}
+	return europi
 }
 
 func new() *EuroPi {
@@ -104,8 +107,4 @@ func new() *EuroPi {
 		CV6: cv5,
 		CV:  [6]*output{cv1, cv2, cv3, cv4, cv5, cv6},
 	}
-}
-
-func GetInstance() *EuroPi {
-	return europi
 }

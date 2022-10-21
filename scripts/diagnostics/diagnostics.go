@@ -11,6 +11,8 @@ import (
 	europi "github.com/awonak/EuroPiGo"
 )
 
+var EuroPi = europi.New()
+
 type MyApp struct {
 	knobsDisplayPercent bool
 	displayShouldUpdate bool
@@ -25,8 +27,6 @@ func (m *MyApp) updateDisplay() {
 		return
 	}
 	m.displayShouldUpdate = false
-
-	EuroPi := europi.GetInstance()
 
 	EuroPi.Display.ClearBuffer()
 
@@ -56,7 +56,6 @@ func main() {
 	myApp := MyApp{
 		staticCv: 5,
 	}
-	EuroPi := europi.GetInstance()
 
 	// Demonstrate adding a IRQ handler to B1 and B2.
 	EuroPi.B1.Handler(func(p machine.Pin) {

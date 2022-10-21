@@ -49,7 +49,7 @@ var (
 	// Positive values are multiplications and negative values are divisions.
 	DefaultFactor = [6]int{1, 2, 4, -2, -4, -8}
 	FactorChoices []int
-	EuroPi        = europi.GetInstance()
+	EuroPi        = europi.New()
 )
 
 func init() {
