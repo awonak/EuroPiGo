@@ -34,7 +34,9 @@ import (
 
 	"tinygo.org/x/tinydraw"
 
-	europi "github.com/awonak/EuroPiGo"
+	"github.com/heucuva/europi"
+	europiMath "github.com/heucuva/europi/internal/math"
+	"github.com/heucuva/europi/output"
 )
 
 const (
@@ -203,12 +205,12 @@ func (c *Clockwerk) updateDisplay() {
 		case factor > 1:
 			text = "x" + strconv.Itoa(factor)
 		}
-		c.Display.WriteLine(text, int16(i*europi.OLEDWidth/len(c.clocks))+2, 26)
+		c.Display.WriteLine(text, int16(i*output.OLEDWidth/len(c.clocks))+2, 26)
 	}
-	xWidth := int16(europi.OLEDWidth / len(c.clocks))
+	xWidth := int16(output.OLEDWidth / len(c.clocks))
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
-	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, europi.White)
+	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, output.White)
 
 	c.Display.Display()
 }
@@ -235,7 +237,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = uint8(europi.Clamp(int(c.selected)-1, 0, len(c.clocks)))
+		c.selected = uint8(europiMath.Clamp(int(c.selected)-1, 0, len(c.clocks)))
 		c.displayShouldUpdate = true
 	})
 
@@ -245,7 +247,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = uint8(europi.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
+		c.selected = uint8(europiMath.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
 		c.displayShouldUpdate = true
 	})
 

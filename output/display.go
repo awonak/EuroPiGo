@@ -1,4 +1,4 @@
-package europi
+package output
 
 import (
 	"image/color"
@@ -45,8 +45,8 @@ func NewDisplay(channel *machine.I2C, sdaPin, sclPin machine.Pin) *Display {
 	return &Display{Device: display, font: DefaultFont}
 }
 
-// Font overrides the default font used by `WriteLine`.
-func (d *Display) Font(font *tinyfont.Font) {
+// SetFont overrides the default font used by `WriteLine`.
+func (d *Display) SetFont(font *tinyfont.Font) {
 	d.font = font
 }
 

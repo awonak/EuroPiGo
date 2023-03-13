@@ -1,4 +1,4 @@
-module github.com/awonak/EuroPiGo
+module github.com/heucuva/europi
 
 go 1.19
 

@@ -1,4 +1,4 @@
-// Diagnostics is a script for demonstrating all main interactions with the EuroPiGo firmware.
+// Diagnostics is a script for demonstrating all main interactions with the europi-go firmware.
 package main
 
 import (
@@ -7,7 +7,9 @@ import (
 
 	"tinygo.org/x/tinydraw"
 
-	europi "github.com/awonak/EuroPiGo"
+	"github.com/heucuva/europi"
+	"github.com/heucuva/europi/input"
+	"github.com/heucuva/europi/output"
 )
 
 type MyApp struct {
@@ -32,14 +34,14 @@ func main() {
 	})
 
 	e.B2.Handler(func(p machine.Pin) {
-		myApp.staticCv = (myApp.staticCv + 1) % europi.MaxVoltage
+		myApp.staticCv = (myApp.staticCv + 1) % input.MaxVoltage
 	})
 
 	for {
 		e.Display.ClearBuffer()
 
 		// Highlight the border of the oled display.
-		tinydraw.Rectangle(e.Display, 0, 0, 128, 32, europi.White)
+		tinydraw.Rectangle(e.Display, 0, 0, 128, 32, output.White)
 
 		// Display analog and digital input values.
 		inputText := fmt.Sprintf("din: %5v  ain: %2.2f  ", e.DI.Value(), e.AI.Percent())
@@ -61,18 +63,18 @@ func main() {
 
 		// Set voltage values for the 6 CV outputs.
 		if e.K1.Range(1<<12) != myApp.prevK1 {
-			e.CV1.Voltage(e.K1.ReadVoltage())
-			e.CV4.Voltage(europi.MaxVoltage - e.K1.ReadVoltage())
+			e.CV1.SetVoltage(e.K1.ReadVoltage())
+			e.CV4.SetVoltage(output.MaxVoltage - e.K1.ReadVoltage())
 			myApp.prevK1 = e.K1.Range(1 << 12)
 		}
 		if e.K2.Range(1<<12) != myApp.prevK2 {
-			e.CV2.Voltage(e.K2.ReadVoltage())
-			e.CV5.Voltage(europi.MaxVoltage - e.K2.ReadVoltage())
+			e.CV2.SetVoltage(e.K2.ReadVoltage())
+			e.CV5.SetVoltage(output.MaxVoltage - e.K2.ReadVoltage())
 			myApp.prevK2 = e.K2.Range(1 << 12)
 		}
 		e.CV3.On()
 		if myApp.staticCv != myApp.prevStaticCv {
-			e.CV6.Voltage(float32(myApp.staticCv))
+			e.CV6.SetVoltage(float32(myApp.staticCv))
 			myApp.prevStaticCv = myApp.staticCv
 		}
 	}

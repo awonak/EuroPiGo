@@ -1,0 +1,16 @@
+package math
+
+type Clampable interface {
+	~uint8 | ~uint16 | ~int | ~float32
+}
+
+// Clamp returns a value that is no lower than "low" and no higher than "high".
+func Clamp[V Clampable](value, low, high V) V {
+	if value >= high {
+		return high
+	}
+	if value <= low {
+		return low
+	}
+	return value
+}
