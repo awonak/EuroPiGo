@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	OLEDFreq   = machine.TWI_FREQ_400KHZ
-	OLEDAddr   = 0x3C
+	OLEDFreq   = machine.KHz * 400
+	OLEDAddr   = ssd1306.Address_128_32
 	OLEDWidth  = 128
 	OLEDHeight = 32
 )
