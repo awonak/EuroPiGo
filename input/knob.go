@@ -3,6 +3,8 @@ package input
 import (
 	"machine"
 	"math"
+
+	europim "github.com/heucuva/europi/internal/math"
 )
 
 // A struct for handling the reading of knob voltage and position.
@@ -36,6 +38,10 @@ func (k *Knob) ReadVoltage() float32 {
 // Range return a value between 0 and the given steps (not inclusive) based on the range of the knob's position.
 func (k *Knob) Range(steps uint16) uint16 {
 	return uint16(k.Percent() * float32(steps))
+}
+
+func (k *Knob) Choice(numItems int) int {
+	return europim.Lerp(k.Percent(), 0, numItems-1)
 }
 
 func (k *Knob) read() uint16 {

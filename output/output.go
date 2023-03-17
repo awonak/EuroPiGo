@@ -26,6 +26,7 @@ var defaultPeriod uint64 = 500
 type Output interface {
 	Get() uint32
 	SetVoltage(v float32)
+	Set(v bool)
 	On()
 	Off()
 }
@@ -59,6 +60,15 @@ func NewOutput(pin machine.Pin, pwm PWM) Output {
 // Get returns the current set voltage in the range of 0 to pwm.Top().
 func (o *output) Get() uint32 {
 	return o.pwm.Get(o.ch)
+}
+
+// Set updates the current voltage high (true) or low (false)
+func (o *output) Set(v bool) {
+	if v {
+		o.On()
+	} else {
+		o.Off()
+	}
 }
 
 // SetVoltage sets the current output voltage within a range of 0.0 to 10.0.

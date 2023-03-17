@@ -5,6 +5,7 @@ import (
 	"machine"
 
 	"tinygo.org/x/drivers/ssd1306"
+	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/proggy"
 )
@@ -53,4 +54,9 @@ func (d *Display) SetFont(font *tinyfont.Font) {
 // WriteLine writes the given text to the display where x, y is the bottom leftmost pixel of the text.
 func (d *Display) WriteLine(text string, x, y int16) {
 	tinyfont.WriteLine(d, d.font, x, y, text, White)
+}
+
+// DrawHLine draws a horizontal line
+func (d *Display) DrawHLine(x, y, xLen int16, c color.RGBA) {
+	tinydraw.Line(d, x, y, x+xLen-1, y, c)
 }

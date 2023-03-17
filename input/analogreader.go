@@ -10,6 +10,7 @@ type AnalogReader interface {
 	ReadVoltage() float32
 	Percent() float32
 	Range(steps uint16) uint16
+	Choice(numItems int) int
 }
 
 func init() {

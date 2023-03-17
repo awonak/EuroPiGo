@@ -4,6 +4,7 @@ import (
 	"machine"
 
 	europiMath "github.com/heucuva/europi/internal/math"
+	europim "github.com/heucuva/europi/internal/math"
 )
 
 const (
@@ -50,6 +51,10 @@ func (a *Analog) ReadVoltage() float32 {
 // Range return a value between 0 and the given steps (not inclusive) based on the range of the analog input.
 func (a *Analog) Range(steps uint16) uint16 {
 	return uint16(a.Percent() * float32(steps))
+}
+
+func (a *Analog) Choice(numItems int) int {
+	return europim.Lerp(a.Percent(), 0, numItems-1)
 }
 
 func (a *Analog) read() uint16 {
