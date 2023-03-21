@@ -20,7 +20,6 @@ var (
 func Bootstrap(options ...BootstrapOption) error {
 	config := bootstrapConfig{
 		mainLoopInterval: DefaultMainLoopInterval,
-		vfsEnable:        DefaultEnableVirtualFileSystem,
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,

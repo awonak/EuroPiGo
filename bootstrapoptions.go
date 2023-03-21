@@ -9,7 +9,6 @@ type BootstrapOption func(o *bootstrapConfig) error
 
 type bootstrapConfig struct {
 	mainLoopInterval time.Duration
-	vfsEnable        bool
 
 	// lifecycle callbacks
 	onPostBootstrapConstructionFn PostBootstrapConstructionFunc
