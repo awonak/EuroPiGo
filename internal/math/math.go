@@ -14,3 +14,12 @@ func Clamp[V Clampable](value, low, high V) V {
 	}
 	return value
 }
+
+// Abs returns the absolute value
+func Abs(value float32) float32 {
+	if value >= 0 {
+		return value
+	}
+
+	return -value
+}

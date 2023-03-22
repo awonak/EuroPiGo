@@ -20,6 +20,7 @@ func WithLockedKnob(name string, opts ...KnobOption) KnobBankOption {
 		e := knobBankEntry{
 			name:       name,
 			enabled:    true,
+			locked:     true,
 			minVoltage: input.MinVoltage,
 			maxVoltage: input.MaxVoltage,
 			scale:      1,

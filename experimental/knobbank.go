@@ -6,14 +6,16 @@ import (
 )
 
 type KnobBank struct {
-	knob    input.AnalogReader
-	current int
-	bank    []knobBankEntry
+	knob      input.AnalogReader
+	current   int
+	lastValue float32
+	bank      []knobBankEntry
 }
 
 func NewKnobBank(knob input.AnalogReader, opts ...KnobBankOption) (*KnobBank, error) {
 	kb := &KnobBank{
-		knob: knob,
+		knob:      knob,
+		lastValue: knob.ReadVoltage(),
 	}
 
 	for _, opt := range opts {
@@ -41,23 +43,27 @@ func (kb *KnobBank) Samples(samples uint16) {
 }
 
 func (kb *KnobBank) ReadVoltage() float32 {
+	value := kb.knob.ReadVoltage()
 	if len(kb.bank) == 0 {
-		return kb.knob.ReadVoltage()
+		return value
 	}
 
 	cur := &kb.bank[kb.current]
-	cur.update(kb.knob)
-	return cur.value
+	percent := kb.knob.Percent()
+	kb.lastValue = cur.update(percent, value, kb.lastValue)
+	return cur.Value()
 }
 
 func (kb *KnobBank) Percent() float32 {
+	percent := kb.knob.Percent()
 	if len(kb.bank) == 0 {
-		return kb.knob.Percent()
+		return percent
 	}
 
 	cur := &kb.bank[kb.current]
-	cur.update(kb.knob)
-	return cur.percent
+	value := kb.knob.ReadVoltage()
+	kb.lastValue = cur.update(percent, value, kb.lastValue)
+	return cur.Percent()
 }
 
 func (kb *KnobBank) Range(steps uint16) uint16 {
@@ -70,8 +76,11 @@ func (kb *KnobBank) Choice(numItems int) int {
 	}
 
 	cur := &kb.bank[kb.current]
-	cur.update(kb.knob)
-	return math.Lerp(cur.percent, 0, numItems-1)
+	value := kb.knob.ReadVoltage()
+	percent := kb.knob.Percent()
+	kb.lastValue = cur.update(percent, value, kb.lastValue)
+	idx := math.Lerp(cur.Percent(), 0, 2*numItems+1) / 2
+	return math.Clamp(idx, 0, numItems-1)
 }
 
 func (kb *KnobBank) Next() {
@@ -80,7 +89,9 @@ func (kb *KnobBank) Next() {
 		return
 	}
 
-	kb.bank[kb.current].lock(kb.knob)
+	cur := &kb.bank[kb.current]
+	cur.lock(kb.knob, kb.lastValue)
+
 	kb.current++
 	if kb.current >= len(kb.bank) {
 		kb.current = 0
@@ -99,13 +110,15 @@ type knobBankEntry struct {
 	scale      float32
 }
 
-func (e *knobBankEntry) lock(knob input.AnalogReader) {
+func (e *knobBankEntry) lock(knob input.AnalogReader, lastValue float32) float32 {
 	if e.locked {
-		return
+		return lastValue
 	}
 
-	e.update(knob)
 	e.locked = true
+	value := knob.ReadVoltage()
+	percent := knob.Percent()
+	return e.update(percent, value, lastValue)
 }
 
 func (e *knobBankEntry) unlock() {
@@ -116,11 +129,24 @@ func (e *knobBankEntry) unlock() {
 	e.locked = false
 }
 
-func (e *knobBankEntry) update(knob input.AnalogReader) {
+func (e *knobBankEntry) Percent() float32 {
+	return math.Lerp[float32](e.percent*e.scale, 0, 1)
+}
+
+func (e *knobBankEntry) Value() float32 {
+	return math.Clamp(e.value*e.scale, e.minVoltage, e.maxVoltage)
+}
+
+func (e *knobBankEntry) update(percent, value, lastValue float32) float32 {
 	if !e.enabled || e.locked {
-		return
+		return lastValue
 	}
 
-	e.percent = math.Lerp[float32](knob.Percent()*e.scale, 0, 1)
-	e.value = math.Clamp(knob.ReadVoltage()*e.scale, e.minVoltage, e.maxVoltage)
+	if math.Abs(value-lastValue) < 0.05 {
+		return lastValue
+	}
+
+	e.percent = percent
+	e.value = value
+	return value
 }
