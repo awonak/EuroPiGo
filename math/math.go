@@ -1,7 +1,7 @@
 package math
 
 type Clampable interface {
-	~uint8 | ~uint16 | ~int | ~float32
+	~uint8 | ~uint16 | ~int | ~float32 | ~int32 | ~int64
 }
 
 // Clamp returns a value that is no lower than "low" and no higher than "high".

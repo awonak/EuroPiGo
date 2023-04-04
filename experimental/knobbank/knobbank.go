@@ -1,8 +1,8 @@
-package experimental
+package knobbank
 
 import (
 	"github.com/heucuva/europi/input"
-	"github.com/heucuva/europi/internal/math"
+	"github.com/heucuva/europi/math"
 )
 
 type KnobBank struct {

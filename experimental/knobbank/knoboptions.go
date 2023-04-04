@@ -1,10 +1,10 @@
-package experimental
+package knobbank
 
 import (
 	"fmt"
 
 	"github.com/heucuva/europi/input"
-	"github.com/heucuva/europi/internal/math"
+	"github.com/heucuva/europi/math"
 )
 
 type KnobOption func(e *knobBankEntry) error

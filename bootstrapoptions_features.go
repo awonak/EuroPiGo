@@ -15,3 +15,13 @@ func MainLoopInterval(interval time.Duration) BootstrapOption {
 		return nil
 	}
 }
+
+// EnableDisplayLogger enables (or disables) the logging of `log.Printf` (and similar) messages to
+// the EuroPi's display. Enabling this will likely be undesirable except in cases where on-screen
+// debugging is absoluely necessary.
+func EnableDisplayLogger(enabled bool) BootstrapOption {
+	return func(o *bootstrapConfig) error {
+		o.enableDisplayLogger = enabled
+		return nil
+	}
+}

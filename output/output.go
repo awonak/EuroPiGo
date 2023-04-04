@@ -4,7 +4,7 @@ import (
 	"log"
 	"machine"
 
-	europiMath "github.com/heucuva/europi/internal/math"
+	europim "github.com/heucuva/europi/math"
 )
 
 const (
@@ -29,6 +29,7 @@ type Output interface {
 	Set(v bool)
 	On()
 	Off()
+	Voltage() float32
 }
 
 // Output is struct for interacting with the cv output jacks.
@@ -36,6 +37,7 @@ type output struct {
 	pwm PWM
 	pin machine.Pin
 	ch  uint8
+	v   float32
 }
 
 // NewOutput returns a new Output interface.
@@ -54,7 +56,7 @@ func NewOutput(pin machine.Pin, pwm PWM) Output {
 		log.Fatal("pwm Channel error: ", err.Error())
 	}
 
-	return &output{pwm, pin, ch}
+	return &output{pwm, pin, ch, MinVoltage}
 }
 
 // Get returns the current set voltage in the range of 0 to pwm.Top().
@@ -73,19 +75,27 @@ func (o *output) Set(v bool) {
 
 // SetVoltage sets the current output voltage within a range of 0.0 to 10.0.
 func (o *output) SetVoltage(v float32) {
-	v = europiMath.Clamp(v, MinVoltage, MaxVoltage)
+	v = europim.Clamp(v, MinVoltage, MaxVoltage)
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
 	// cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
 	cv := float32(invertedCv) - CalibratedOffset
 	o.pwm.Set(o.ch, uint32(cv))
+	o.v = v
 }
 
 // On sets the current voltage high at 10.0v.
 func (o *output) On() {
+	o.v = MaxVoltage
 	o.pwm.Set(o.ch, o.pwm.Top())
 }
 
 // Off sets the current voltage low at 0.0v.
 func (o *output) Off() {
 	o.pwm.Set(o.ch, 0)
+	o.v = MinVoltage
+}
+
+// Voltage returns the current voltage
+func (o *output) Voltage() float32 {
+	return o.v
 }

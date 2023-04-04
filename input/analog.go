@@ -3,8 +3,7 @@ package input
 import (
 	"machine"
 
-	europiMath "github.com/heucuva/europi/internal/math"
-	europim "github.com/heucuva/europi/internal/math"
+	europim "github.com/heucuva/europi/math"
 )
 
 const (
@@ -60,7 +59,7 @@ func (a *Analog) Choice(numItems int) int {
 func (a *Analog) read() uint16 {
 	var sum int
 	for i := 0; i < int(a.samples); i++ {
-		sum += europiMath.Clamp(int(a.Get())-CalibratedMinAI, 0, CalibratedMaxAI)
+		sum += europim.Clamp(int(a.Get())-CalibratedMinAI, 0, CalibratedMaxAI)
 	}
 	return uint16(sum / int(a.samples))
 }

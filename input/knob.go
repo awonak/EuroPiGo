@@ -4,7 +4,7 @@ import (
 	"machine"
 	"math"
 
-	europim "github.com/heucuva/europi/internal/math"
+	europim "github.com/heucuva/europi/math"
 )
 
 // A struct for handling the reading of knob voltage and position.

@@ -60,3 +60,8 @@ func (d *Display) WriteLine(text string, x, y int16) {
 func (d *Display) DrawHLine(x, y, xLen int16, c color.RGBA) {
 	tinydraw.Line(d, x, y, x+xLen-1, y, c)
 }
+
+// DrawLine draws an arbitrary line
+func (d *Display) DrawLine(x0, y0, x1, y1 int16, c color.RGBA) {
+	tinydraw.Line(d, x0, y0, x1, y1, c)
+}

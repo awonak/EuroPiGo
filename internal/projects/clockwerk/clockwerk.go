@@ -35,7 +35,7 @@ import (
 	"tinygo.org/x/tinydraw"
 
 	"github.com/heucuva/europi"
-	europiMath "github.com/heucuva/europi/internal/math"
+	europim "github.com/heucuva/europi/math"
 	"github.com/heucuva/europi/output"
 )
 
@@ -237,7 +237,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = uint8(europiMath.Clamp(int(c.selected)-1, 0, len(c.clocks)))
+		c.selected = uint8(europim.Clamp(int(c.selected)-1, 0, len(c.clocks)))
 		c.displayShouldUpdate = true
 	})
 
@@ -247,7 +247,7 @@ func main() {
 			c.doClockReset = true
 			return
 		}
-		c.selected = uint8(europiMath.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
+		c.selected = uint8(europim.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
 		c.displayShouldUpdate = true
 	})
 

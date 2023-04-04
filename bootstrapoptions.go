@@ -8,7 +8,9 @@ import (
 type BootstrapOption func(o *bootstrapConfig) error
 
 type bootstrapConfig struct {
-	mainLoopInterval time.Duration
+	mainLoopInterval    time.Duration
+	panicHandler        func(e *EuroPi, err any)
+	enableDisplayLogger bool
 
 	// lifecycle callbacks
 	onPostBootstrapConstructionFn PostBootstrapConstructionFunc

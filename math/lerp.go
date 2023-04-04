@@ -1,7 +1,7 @@
 package math
 
 type Lerpable interface {
-	~uint8 | ~uint16 | ~int | ~float32
+	~uint8 | ~uint16 | ~int | ~float32 | ~int32 | ~int64
 }
 
 func Lerp[V Lerpable](t float32, low, high V) V {

@@ -2,11 +2,8 @@ package europi
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"time"
-
-	"github.com/heucuva/europi/output"
 )
 
 var (
@@ -20,6 +17,7 @@ var (
 func Bootstrap(options ...BootstrapOption) error {
 	config := bootstrapConfig{
 		mainLoopInterval: DefaultMainLoopInterval,
+		panicHandler:     DefaultPanicHandler,
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,
@@ -43,12 +41,10 @@ func Bootstrap(options ...BootstrapOption) error {
 	Pi = e
 	piWantDestroyChan = make(chan struct{}, 1)
 
+	panicHandler := config.panicHandler
 	defer func() {
-		if err := recover(); err != nil {
-			fnt := output.DefaultFont
-			e.Display.SetFont(fnt)
-			e.Display.WriteLine(fmt.Sprint(err), 0, int16(fnt.YAdvance))
-			_ = e.Display.Display()
+		if err := recover(); err != nil && panicHandler != nil {
+			panicHandler(e, err)
 		}
 	}()
 
@@ -89,7 +85,9 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
 		config.onPreInitializeComponentsFn(e)
 	}
 
-	// TODO: initialize components
+	if config.enableDisplayLogger {
+		enableDisplayLogger(e)
+	}
 
 	if config.onPostInitializeComponentsFn != nil {
 		config.onPostInitializeComponentsFn(e)
@@ -150,6 +148,8 @@ func bootstrapDestroy(config *bootstrapConfig, e *EuroPi) {
 	if config.onBeginDestroyFn != nil {
 		config.onBeginDestroyFn(e)
 	}
+
+	disableDisplayLogger(e)
 
 	close(piWantDestroyChan)
 	Pi = nil
