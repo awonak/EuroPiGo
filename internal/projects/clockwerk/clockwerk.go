@@ -215,56 +215,62 @@ func (c *Clockwerk) updateDisplay() {
 	c.Display.Display()
 }
 
-func main() {
-	c := Clockwerk{
-		EuroPi:              europi.New(),
-		clocks:              DefaultFactor,
-		displayShouldUpdate: true,
-	}
+var app Clockwerk
+
+func startLoop(e *europi.EuroPi) {
+	app.EuroPi = e
+	app.clocks = DefaultFactor
+	app.displayShouldUpdate = true
 
 	// Lower range value can have lower sample size
-	c.K1.Samples(500)
-	c.K2.Samples(20)
+	app.K1.Samples(500)
+	app.K2.Samples(20)
 
-	c.DI.Handler(func(pin machine.Pin) {
+	app.DI.Handler(func(pin machine.Pin) {
 		// Measure current period between clock pulses.
-		c.period = time.Now().Sub(c.DI.LastInput())
+		app.period = time.Now().Sub(app.DI.LastInput())
 	})
 
 	// Move clock config option to the left.
-	c.B1.Handler(func(p machine.Pin) {
-		if c.B2.Value() {
-			c.doClockReset = true
+	app.B1.Handler(func(p machine.Pin) {
+		if app.B2.Value() {
+			app.doClockReset = true
 			return
 		}
-		c.selected = uint8(europim.Clamp(int(c.selected)-1, 0, len(c.clocks)))
-		c.displayShouldUpdate = true
+		app.selected = uint8(europim.Clamp(int(app.selected)-1, 0, len(app.clocks)))
+		app.displayShouldUpdate = true
 	})
 
 	// Move clock config option to the right.
-	c.B2.Handler(func(p machine.Pin) {
-		if c.B1.Value() {
-			c.doClockReset = true
+	app.B2.Handler(func(p machine.Pin) {
+		if app.B1.Value() {
+			app.doClockReset = true
 			return
 		}
-		c.selected = uint8(europim.Clamp(int(c.selected)+1, 0, len(c.clocks)-1))
-		c.displayShouldUpdate = true
+		app.selected = uint8(europim.Clamp(int(app.selected)+1, 0, len(app.clocks)-1))
+		app.displayShouldUpdate = true
 	})
 
 	// Init parameter configs based on current knob positions.
-	c.bpm = c.readBPM()
-	c.prevk2 = c.readFactor()
+	app.bpm = app.readBPM()
+	app.prevk2 = app.readFactor()
 
-	c.startClocks()
+	app.startClocks()
+}
 
-	for {
-		// Check for clock updates every 2 seconds.
-		time.Sleep(ResetDelay)
-		if c.doClockReset {
-			c.doClockReset = false
-			c.resetClocks()
-			c.displayShouldUpdate = true
-		}
-		europi.DebugMemoryUsage()
+func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
+	if app.doClockReset {
+		app.doClockReset = false
+		app.resetClocks()
+		app.displayShouldUpdate = true
 	}
+	europi.DebugMemoryUsage()
+}
+
+func main() {
+	europi.Bootstrap(
+		europi.StartLoop(startLoop),
+		europi.MainLoop(mainLoop),
+		europi.MainLoopInterval(ResetDelay), // Check for clock updates every 2 seconds.
+	)
 }
