@@ -9,8 +9,13 @@ type BootstrapOption func(o *bootstrapConfig) error
 
 type bootstrapConfig struct {
 	mainLoopInterval    time.Duration
-	panicHandler        func(e *EuroPi, err any)
+	panicHandler        func(e *EuroPi, reason any)
 	enableDisplayLogger bool
+	initRandom          bool
+
+	// user interface
+	ui            UserInterface
+	uiRefreshRate time.Duration
 
 	// lifecycle callbacks
 	onPostBootstrapConstructionFn PostBootstrapConstructionFunc

@@ -10,6 +10,11 @@ func (c CV) ToVolts() float32 {
 	return v * 5
 }
 
+// ToBipolarCV converts a (normalized) CV value to a (normalized) BipolarCV value
+func (c CV) ToBipolarCV() BipolarCV {
+	return BipolarCV(c.ToFloat32()*2.0 - 1.0)
+}
+
 // ToFloat32 returns a (normalized) CV value to its floating point representation [0.0 .. 1.0]
 func (c CV) ToFloat32() float32 {
 	return float32(c)

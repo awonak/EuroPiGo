@@ -1,5 +1,10 @@
 package units
 
+const (
+	MinVOct VOct = 0.0
+	MaxVOct VOct = 10.0
+)
+
 // VOct is a representation of a Volt-per-Octave value
 type VOct float32
 

@@ -16,8 +16,10 @@ var (
 // Bootstrap will set up a global runtime environment (see europi.Pi)
 func Bootstrap(options ...BootstrapOption) error {
 	config := bootstrapConfig{
-		mainLoopInterval: DefaultMainLoopInterval,
-		panicHandler:     DefaultPanicHandler,
+		mainLoopInterval:    DefaultMainLoopInterval,
+		panicHandler:        DefaultPanicHandler,
+		enableDisplayLogger: DefaultEnableDisplayLogger,
+		initRandom:          DefaultInitRandom,
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,
@@ -41,17 +43,21 @@ func Bootstrap(options ...BootstrapOption) error {
 	Pi = e
 	piWantDestroyChan = make(chan struct{}, 1)
 
-	panicHandler := config.panicHandler
-	defer func() {
-		if err := recover(); err != nil && panicHandler != nil {
-			panicHandler(e, err)
-		}
-	}()
-
 	var onceBootstrapDestroy sync.Once
+	panicHandler := config.panicHandler
+	lastDestroyFunc := config.onBeginDestroyFn
 	runBootstrapDestroy := func() {
+		reason := recover()
+		if reason != nil && panicHandler != nil {
+			config.onBeginDestroyFn = func(e *EuroPi, reason any) {
+				if lastDestroyFunc != nil {
+					lastDestroyFunc(e, reason)
+				}
+				panicHandler(e, reason)
+			}
+		}
 		onceBootstrapDestroy.Do(func() {
-			bootstrapDestroy(&config, e)
+			bootstrapDestroy(&config, e, reason)
 		})
 	}
 	defer runBootstrapDestroy()
@@ -89,6 +95,15 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
 		enableDisplayLogger(e)
 	}
 
+	if config.initRandom {
+		initRandom(e)
+	}
+
+	// ui initializaiton is always last
+	if config.ui != nil {
+		enableUI(e, config.ui, config.uiRefreshRate)
+	}
+
 	if config.onPostInitializeComponentsFn != nil {
 		config.onPostInitializeComponentsFn(e)
 	}
@@ -98,6 +113,10 @@ func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
 	if config.onStartLoopFn != nil {
 		config.onStartLoopFn(e)
 	}
+
+	startUI(e)
+
+	ForceRepaintUI(e)
 
 	if config.mainLoopInterval > 0 {
 		bootstrapRunLoopWithDelay(config, e)
@@ -144,12 +163,21 @@ mainLoop:
 	}
 }
 
-func bootstrapDestroy(config *bootstrapConfig, e *EuroPi) {
+func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, reason any) {
 	if config.onBeginDestroyFn != nil {
-		config.onBeginDestroyFn(e)
+		config.onBeginDestroyFn(e, reason)
 	}
 
+	disableUI(e)
+
 	disableDisplayLogger(e)
+
+	uninitRandom(e)
+
+	if e != nil && e.Display != nil {
+		// show the last buffer
+		e.Display.Display()
+	}
 
 	close(piWantDestroyChan)
 	Pi = nil

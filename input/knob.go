@@ -3,8 +3,10 @@ package input
 import (
 	"machine"
 	"math"
+	"runtime/interrupt"
 
 	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/units"
 )
 
 // A struct for handling the reading of knob voltage and position.
@@ -35,6 +37,16 @@ func (k *Knob) ReadVoltage() float32 {
 	return k.Percent() * MaxVoltage
 }
 
+// ReadCV returns the current read voltage as a CV value.
+func (k *Knob) ReadCV() units.CV {
+	return units.CV(k.Percent())
+}
+
+// ReadCV returns the current read voltage as a V/Octave value.
+func (k *Knob) ReadVOct() units.VOct {
+	return units.VOct(k.ReadVoltage())
+}
+
 // Range return a value between 0 and the given steps (not inclusive) based on the range of the knob's position.
 func (k *Knob) Range(steps uint16) uint16 {
 	return uint16(k.Percent() * float32(steps))
@@ -46,8 +58,10 @@ func (k *Knob) Choice(numItems int) int {
 
 func (k *Knob) read() uint16 {
 	var sum int
+	state := interrupt.Disable()
 	for i := 0; i < int(k.samples); i++ {
 		sum += int(k.Get())
 	}
+	interrupt.Restore(state)
 	return uint16(sum / int(k.samples))
 }
