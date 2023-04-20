@@ -3,8 +3,12 @@ package output
 import (
 	"log"
 	"machine"
+	"math"
+	"runtime/interrupt"
+	"runtime/volatile"
 
 	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/units"
 )
 
 const (
@@ -26,6 +30,8 @@ var defaultPeriod uint64 = 500
 type Output interface {
 	Get() uint32
 	SetVoltage(v float32)
+	SetCV(cv units.CV)
+	SetVOct(voct units.VOct)
 	Set(v bool)
 	On()
 	Off()
@@ -37,7 +43,7 @@ type output struct {
 	pwm PWM
 	pin machine.Pin
 	ch  uint8
-	v   float32
+	v   uint32
 }
 
 // NewOutput returns a new Output interface.
@@ -61,7 +67,10 @@ func NewOutput(pin machine.Pin, pwm PWM) Output {
 
 // Get returns the current set voltage in the range of 0 to pwm.Top().
 func (o *output) Get() uint32 {
-	return o.pwm.Get(o.ch)
+	state := interrupt.Disable()
+	v := o.pwm.Get(o.ch)
+	interrupt.Restore(state)
+	return v
 }
 
 // Set updates the current voltage high (true) or low (false)
@@ -79,23 +88,39 @@ func (o *output) SetVoltage(v float32) {
 	invertedCv := (v / MaxVoltage) * float32(o.pwm.Top())
 	// cv := (float32(o.pwm.Top()) - invertedCv) - CalibratedOffset
 	cv := float32(invertedCv) - CalibratedOffset
+	state := interrupt.Disable()
 	o.pwm.Set(o.ch, uint32(cv))
-	o.v = v
+	interrupt.Restore(state)
+	volatile.StoreUint32(&o.v, math.Float32bits(v))
+}
+
+// SetCV sets the current output voltage based on a CV value
+func (o *output) SetCV(cv units.CV) {
+	o.SetVoltage(cv.ToVolts())
+}
+
+// SetCV sets the current output voltage based on a V/Octave value
+func (o *output) SetVOct(voct units.VOct) {
+	o.SetVoltage(voct.ToVolts())
 }
 
 // On sets the current voltage high at 10.0v.
 func (o *output) On() {
-	o.v = MaxVoltage
+	volatile.StoreUint32(&o.v, math.Float32bits(MaxVoltage))
+	state := interrupt.Disable()
 	o.pwm.Set(o.ch, o.pwm.Top())
+	interrupt.Restore(state)
 }
 
 // Off sets the current voltage low at 0.0v.
 func (o *output) Off() {
+	volatile.StoreUint32(&o.v, math.Float32bits(MinVoltage))
+	state := interrupt.Disable()
 	o.pwm.Set(o.ch, 0)
-	o.v = MinVoltage
+	interrupt.Restore(state)
 }
 
 // Voltage returns the current voltage
 func (o *output) Voltage() float32 {
-	return o.v
+	return math.Float32frombits(volatile.LoadUint32(&o.v))
 }

@@ -44,3 +44,7 @@ func (w *Logger) Write(p []byte) (n int, err error) {
 	w.repaint()
 	return
 }
+
+func (w *Logger) Flush() {
+	w.repaint()
+}

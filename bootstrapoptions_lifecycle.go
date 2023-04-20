@@ -56,7 +56,7 @@ type (
 	StartLoopFunc                 func(e *EuroPi)
 	MainLoopFunc                  func(e *EuroPi, deltaTime time.Duration)
 	EndLoopFunc                   func(e *EuroPi)
-	BeginDestroyFunc              func(e *EuroPi)
+	BeginDestroyFunc              func(e *EuroPi, reason any)
 	FinishDestroyFunc             func(e *EuroPi)
 )
 
