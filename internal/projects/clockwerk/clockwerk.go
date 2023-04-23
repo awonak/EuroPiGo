@@ -278,7 +278,7 @@ func startLoop(e *europi.EuroPi) {
 	app.startClocks()
 }
 
-func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
+func mainLoop() {
 	if app.doClockReset {
 		app.doClockReset = false
 		app.resetClocks()
@@ -288,9 +288,13 @@ func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
 }
 
 func main() {
-	europi.Bootstrap(
-		europi.StartLoop(startLoop),
-		europi.MainLoop(mainLoop),
-		europi.MainLoopInterval(ResetDelay), // Check for clock updates every 2 seconds.
-	)
+	startLoop(europi.New())
+
+	// Check for clock updates every 2 seconds.
+	ticker := time.NewTicker(ResetDelay)
+	defer ticker.Stop()
+	for {
+		<-ticker.C
+		mainLoop()
+	}
 }
