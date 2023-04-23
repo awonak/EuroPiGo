@@ -18,6 +18,7 @@ func TestDebouncer(t *testing.T) {
 
 	t.Run("Debounce", func(t *testing.T) {
 		t.Run("Delay0", func(t *testing.T) {
+			t.Parallel()
 			delay := time.Duration(0)
 			runs := 4
 			runDebouncerTest(t, runs, delay, time.Duration(0), 4)
@@ -26,6 +27,7 @@ func TestDebouncer(t *testing.T) {
 		})
 
 		t.Run("Delay100ms", func(t *testing.T) {
+			t.Parallel()
 			delay := time.Millisecond * 100
 			runs := 4
 			runDebouncerTest(t, runs, delay, time.Duration(0), 0)
@@ -34,6 +36,7 @@ func TestDebouncer(t *testing.T) {
 		})
 
 		t.Run("Delay10s", func(t *testing.T) {
+			t.Parallel()
 			delay := time.Millisecond * 100
 			runs := 4
 			runDebouncerTest(t, runs, delay, time.Duration(0), 0)
