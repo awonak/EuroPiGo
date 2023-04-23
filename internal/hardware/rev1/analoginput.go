@@ -47,19 +47,16 @@ func (a *analoginput) Configure(config hal.AnalogInputConfig) error {
 		return errors.New("samples must be non-zero")
 	}
 
-	if config.CalibratedMinAI == 0 && config.CalibratedMaxAI == 0 {
-		config.CalibratedMinAI = DefaultCalibratedMinAI
-		config.CalibratedMaxAI = DefaultCalibratedMaxAI
-	}
-
-	if config.CalibratedMinAI == config.CalibratedMaxAI {
-		return errors.New("calibratedminai and calibratedmaxai must be different")
-	} else if config.CalibratedMinAI > config.CalibratedMaxAI {
-		return errors.New("calibtatedminai must be less than calibratedmaxai")
+	if config.CalibratedMinAI != 0 || config.CalibratedMaxAI != 0 {
+		if config.CalibratedMinAI == config.CalibratedMaxAI {
+			return errors.New("calibratedminai and calibratedmaxai must be different")
+		} else if config.CalibratedMinAI > config.CalibratedMaxAI {
+			return errors.New("calibtatedminai must be less than calibratedmaxai")
+		}
+		a.cal = lerp.NewLerp32(config.CalibratedMinAI, config.CalibratedMaxAI)
 	}
 
 	a.samples = config.Samples
-	a.cal = lerp.NewLerp32(config.CalibratedMinAI, config.CalibratedMaxAI)
 	return nil
 }
 

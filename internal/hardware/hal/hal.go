@@ -4,6 +4,7 @@ type HardwareId int
 
 const (
 	HardwareIdInvalid = HardwareId(iota)
+	HardwareIdRevisionMarker
 	HardwareIdDigital1Input
 	HardwareIdAnalog1Input
 	HardwareIdDisplay1Output

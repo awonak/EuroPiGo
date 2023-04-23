@@ -5,53 +5,72 @@ import (
 )
 
 var (
-	hwDigital1Input    hal.DigitalInput
-	hwAnalog1Input     hal.AnalogInput
-	hwDisplay1Output   hal.DisplayOutput
-	hwButton1Input     hal.ButtonInput
-	hwButton2Input     hal.ButtonInput
-	hwKnob1Input       hal.KnobInput
-	hwKnob2Input       hal.KnobInput
-	hwCV1Output        hal.VoltageOutput
-	hwCV2Output        hal.VoltageOutput
-	hwCV3Output        hal.VoltageOutput
-	hwCV4Output        hal.VoltageOutput
-	hwCV5Output        hal.VoltageOutput
-	hwCV6Output        hal.VoltageOutput
-	hwRandom1Generator hal.RandomGenerator
+	RevisionMarker         hal.RevisionMarker
+	InputDigital1          hal.DigitalInput
+	InputAnalog1           hal.AnalogInput
+	OutputDisplay1         hal.DisplayOutput
+	InputButton1           hal.ButtonInput
+	InputButton2           hal.ButtonInput
+	InputKnob1             hal.KnobInput
+	InputKnob2             hal.KnobInput
+	OutputVoltage1         hal.VoltageOutput
+	OutputVoltage2         hal.VoltageOutput
+	OutputVoltage3         hal.VoltageOutput
+	OutputVoltage4         hal.VoltageOutput
+	OutputVoltage5         hal.VoltageOutput
+	OutputVoltage6         hal.VoltageOutput
+	DeviceRandomGenerator1 hal.RandomGenerator
 )
 
-func GetHardware(hw hal.HardwareId) any {
+func GetHardware[T any](hw hal.HardwareId) T {
 	switch hw {
+	case hal.HardwareIdRevisionMarker:
+		t, _ := RevisionMarker.(T)
+		return t
 	case hal.HardwareIdDigital1Input:
-		return hwDigital1Input
+		t, _ := InputDigital1.(T)
+		return t
 	case hal.HardwareIdAnalog1Input:
-		return hwAnalog1Input
+		t, _ := InputAnalog1.(T)
+		return t
 	case hal.HardwareIdDisplay1Output:
-		return hwDisplay1Output
+		t, _ := OutputDisplay1.(T)
+		return t
 	case hal.HardwareIdButton1Input:
-		return hwButton1Input
+		t, _ := InputButton1.(T)
+		return t
 	case hal.HardwareIdButton2Input:
-		return hwButton2Input
+		t, _ := InputButton2.(T)
+		return t
 	case hal.HardwareIdKnob1Input:
-		return hwKnob1Input
+		t, _ := InputKnob1.(T)
+		return t
 	case hal.HardwareIdKnob2Input:
-		return hwKnob2Input
+		t, _ := InputKnob2.(T)
+		return t
 	case hal.HardwareIdVoltage1Output:
-		return hwCV1Output
+		t, _ := OutputVoltage1.(T)
+		return t
 	case hal.HardwareIdVoltage2Output:
-		return hwCV2Output
+		t, _ := OutputVoltage2.(T)
+		return t
 	case hal.HardwareIdVoltage3Output:
-		return hwCV3Output
+		t, _ := OutputVoltage3.(T)
+		return t
 	case hal.HardwareIdVoltage4Output:
-		return hwCV4Output
+		t, _ := OutputVoltage4.(T)
+		return t
 	case hal.HardwareIdVoltage5Output:
-		return hwCV5Output
+		t, _ := OutputVoltage5.(T)
+		return t
 	case hal.HardwareIdVoltage6Output:
-		return hwCV6Output
+		t, _ := OutputVoltage6.(T)
+		return t
 	case hal.HardwareIdRandom1Generator:
-		return hwRandom1Generator
+		t, _ := DeviceRandomGenerator1.(T)
+		return t
 	default:
-		return nil
+		var none T
+		return none
 	}
 }

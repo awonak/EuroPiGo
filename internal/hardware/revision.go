@@ -1,11 +1,14 @@
 package hardware
 
-type Revision int
+import "github.com/heucuva/europi/internal/hardware/hal"
+
+type Revision = hal.Revision
 
 const (
-	Revision0 = Revision(iota)
-	Revision1
-	Revision2
+	RevisionUnknown = hal.RevisionUnknown
+	Revision0       = hal.Revision0
+	Revision1       = hal.Revision1
+	Revision2       = hal.Revision2
 )
 
 // aliases
