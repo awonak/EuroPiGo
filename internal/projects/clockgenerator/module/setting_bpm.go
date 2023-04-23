@@ -3,7 +3,7 @@ package module
 import (
 	"fmt"
 
-	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/lerp"
 	"github.com/heucuva/europi/units"
 )
 
@@ -12,14 +12,18 @@ const (
 	MaxBPM float32 = 480.0
 )
 
+var (
+	bpmLerp = lerp.NewLerp32(MinBPM, MaxBPM)
+)
+
 func BPMString(bpm float32) string {
 	return fmt.Sprintf(`%3.1f`, bpm)
 }
 
 func BPMToCV(bpm float32) units.CV {
-	return units.CV(europim.InverseLerp(bpm, MinBPM, MaxBPM))
+	return units.CV(bpmLerp.ClampedInverseLerp(bpm))
 }
 
 func CVToBPM(cv units.CV) float32 {
-	return europim.LerpRound(cv.ToFloat32(), MinBPM, MaxBPM)
+	return bpmLerp.ClampedLerpRound(cv.ToFloat32())
 }

@@ -1,7 +1,6 @@
 package screen
 
 import (
-	"machine"
 	"time"
 
 	"github.com/heucuva/europi"
@@ -42,7 +41,7 @@ func (m *Settings) Button1Debounce() time.Duration {
 	return time.Millisecond * 200
 }
 
-func (m *Settings) Button1(e *europi.EuroPi, p machine.Pin) {
+func (m *Settings) Button1(e *europi.EuroPi, deltaTime time.Duration) {
 	m.km.Next()
 }
 

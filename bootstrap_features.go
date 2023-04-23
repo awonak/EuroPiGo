@@ -2,15 +2,14 @@ package europi
 
 import (
 	"log"
-	"machine"
-	"math/rand"
 	"os"
 
 	"github.com/heucuva/europi/experimental/displaylogger"
+	"github.com/heucuva/europi/internal/hardware/hal"
 )
 
 var (
-	dispLog *displaylogger.Logger
+	dispLog displaylogger.Logger
 )
 
 func enableDisplayLogger(e *EuroPi) {
@@ -20,13 +19,12 @@ func enableDisplayLogger(e *EuroPi) {
 	}
 
 	log.SetFlags(0)
-	dispLog = &displaylogger.Logger{
-		Display: e.Display,
-	}
+	dispLog = displaylogger.NewLogger(e.Display)
 	log.SetOutput(dispLog)
 }
 
 func disableDisplayLogger(e *EuroPi) {
+	flushDisplayLogger(e)
 	dispLog = nil
 	log.SetOutput(os.Stdout)
 }
@@ -38,10 +36,9 @@ func flushDisplayLogger(e *EuroPi) {
 }
 
 func initRandom(e *EuroPi) {
-	xl, _ := machine.GetRNG()
-	xh, _ := machine.GetRNG()
-	x := int64(xh)<<32 | int64(xl)
-	rand.Seed(x)
+	if e.RND != nil {
+		e.RND.Configure(hal.RandomGeneratorConfig{})
+	}
 }
 
 func uninitRandom(e *EuroPi) {

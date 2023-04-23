@@ -3,8 +3,7 @@ package knobbank
 import (
 	"fmt"
 
-	"github.com/heucuva/europi/input"
-	"github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/lerp"
 )
 
 type KnobOption func(e *knobBankEntry) error
@@ -16,7 +15,26 @@ func InitialPercentageValue(v float32) KnobOption {
 		}
 
 		e.percent = v
-		e.value = math.Lerp[float32](v, input.MinVoltage, input.MaxVoltage)
+		e.vlerp = lerp.NewLerp32[float32](defaultMinInputVoltage, defaultMaxInputVoltage)
+		e.value = e.vlerp.ClampedLerp(v)
+		return nil
+	}
+}
+
+func MinInputVoltage(v float32) KnobOption {
+	return func(e *knobBankEntry) error {
+		e.minVoltage = v
+		e.vlerp = lerp.NewLerp32(e.minVoltage, e.maxVoltage)
+		e.value = e.vlerp.ClampedLerp(e.percent)
+		return nil
+	}
+}
+
+func MaxInputVoltage(v float32) KnobOption {
+	return func(e *knobBankEntry) error {
+		e.maxVoltage = v
+		e.vlerp = lerp.NewLerp32(e.minVoltage, e.maxVoltage)
+		e.value = e.vlerp.ClampedLerp(e.percent)
 		return nil
 	}
 }

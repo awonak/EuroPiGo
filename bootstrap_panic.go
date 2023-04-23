@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/heucuva/europi/output"
+	"github.com/heucuva/europi/experimental/draw"
+	"tinygo.org/x/tinydraw"
 )
 
 // DefaultPanicHandler is the default handler for panics
@@ -15,6 +16,7 @@ var DefaultPanicHandler func(e *EuroPi, reason any)
 func handlePanicOnScreenLog(e *EuroPi, reason any) {
 	if e == nil {
 		// can't do anything if it's not enabled
+		return
 	}
 
 	// force display-logging to enabled
@@ -22,21 +24,26 @@ func handlePanicOnScreenLog(e *EuroPi, reason any) {
 
 	// show the panic on the screen
 	log.Panicln(fmt.Sprint(reason))
+
+	flushDisplayLogger(e)
 }
 
 func handlePanicDisplayCrash(e *EuroPi, reason any) {
 	if e == nil {
 		// can't do anything if it's not enabled
+		return
 	}
 
 	// display a diagonal line pattern through the screen to show that the EuroPi is crashed
-	ymax := int16(output.OLEDHeight) - 1
-	for x := -ymax; x < output.OLEDWidth; x += 4 {
+	disp := e.Display
+	width, height := disp.Size()
+	ymax := height - 1
+	for x := -ymax; x < width; x += 4 {
 		lx, ly := x, int16(0)
 		if x < 0 {
 			lx = 0
 			ly = -x
 		}
-		e.Display.DrawLine(lx, ly, x+ymax, ymax, output.White)
+		tinydraw.Line(e.Display, lx, ly, x+ymax, ymax, draw.White)
 	}
 }

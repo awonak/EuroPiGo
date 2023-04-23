@@ -1,20 +1,21 @@
 package knobbank
 
 import (
-	"github.com/heucuva/europi/input"
-	"github.com/heucuva/europi/math"
-	europim "github.com/heucuva/europi/math"
+	"errors"
+
+	"github.com/heucuva/europi/clamp"
+	"github.com/heucuva/europi/internal/hardware/hal"
 	"github.com/heucuva/europi/units"
 )
 
 type KnobBank struct {
-	knob      input.AnalogReader
+	knob      hal.KnobInput
 	current   int
 	lastValue float32
 	bank      []knobBankEntry
 }
 
-func NewKnobBank(knob input.AnalogReader, opts ...KnobBankOption) (*KnobBank, error) {
+func NewKnobBank(knob hal.KnobInput, opts ...KnobBankOption) (*KnobBank, error) {
 	kb := &KnobBank{
 		knob:      knob,
 		lastValue: knob.ReadVoltage(),
@@ -29,6 +30,12 @@ func NewKnobBank(knob input.AnalogReader, opts ...KnobBankOption) (*KnobBank, er
 	return kb, nil
 }
 
+func (kb *KnobBank) Configure(config hal.AnalogInputConfig) error {
+	// Configure call on a KnobBank is not allowed
+	return errors.New("unsupported")
+	//return kb.knob.Configure(config)
+}
+
 func (kb *KnobBank) CurrentName() string {
 	if len(kb.bank) == 0 {
 		return ""
@@ -40,12 +47,16 @@ func (kb *KnobBank) CurrentIndex() int {
 	return kb.current
 }
 
-func (kb *KnobBank) Current() input.AnalogReader {
+func (kb *KnobBank) Current() hal.KnobInput {
 	return kb
 }
 
-func (kb *KnobBank) Samples(samples uint16) {
-	kb.knob.Samples(samples)
+func (kb *KnobBank) MinVoltage() float32 {
+	return kb.MinVoltage()
+}
+
+func (kb *KnobBank) MaxVoltage() float32 {
+	return kb.MaxVoltage()
 }
 
 func (kb *KnobBank) ReadVoltage() float32 {
@@ -61,7 +72,7 @@ func (kb *KnobBank) ReadVoltage() float32 {
 }
 
 func (kb *KnobBank) ReadCV() units.CV {
-	return units.CV(math.Clamp(kb.Percent(), 0.0, 1.0))
+	return units.CV(clamp.Clamp(kb.Percent(), 0.0, 1.0))
 }
 
 func (kb *KnobBank) ReadVOct() units.VOct {
@@ -80,23 +91,6 @@ func (kb *KnobBank) Percent() float32 {
 	return cur.Percent()
 }
 
-func (kb *KnobBank) Range(steps uint16) uint16 {
-	return kb.knob.Range(steps)
-}
-
-func (kb *KnobBank) Choice(numItems int) int {
-	if len(kb.bank) == 0 {
-		return int(kb.Range(uint16(numItems)))
-	}
-
-	cur := &kb.bank[kb.current]
-	value := kb.knob.ReadVoltage()
-	percent := kb.knob.Percent()
-	kb.lastValue = cur.update(percent, value, kb.lastValue)
-	idx := europim.Lerp(cur.Percent(), 0, 2*numItems+1) / 2
-	return europim.Clamp(idx, 0, numItems-1)
-}
-
 func (kb *KnobBank) Next() {
 	if len(kb.bank) == 0 {
 		kb.current = 0
@@ -111,56 +105,4 @@ func (kb *KnobBank) Next() {
 		kb.current = 0
 	}
 	kb.bank[kb.current].unlock()
-}
-
-type knobBankEntry struct {
-	name       string
-	enabled    bool
-	locked     bool
-	value      float32
-	percent    float32
-	minVoltage float32
-	maxVoltage float32
-	scale      float32
-}
-
-func (e *knobBankEntry) lock(knob input.AnalogReader, lastValue float32) float32 {
-	if e.locked {
-		return lastValue
-	}
-
-	e.locked = true
-	value := knob.ReadVoltage()
-	percent := knob.Percent()
-	return e.update(percent, value, lastValue)
-}
-
-func (e *knobBankEntry) unlock() {
-	if !e.enabled {
-		return
-	}
-
-	e.locked = false
-}
-
-func (e *knobBankEntry) Percent() float32 {
-	return europim.Lerp[float32](e.percent*e.scale, 0, 1)
-}
-
-func (e *knobBankEntry) Value() float32 {
-	return europim.Clamp(e.value*e.scale, e.minVoltage, e.maxVoltage)
-}
-
-func (e *knobBankEntry) update(percent, value, lastValue float32) float32 {
-	if !e.enabled || e.locked {
-		return lastValue
-	}
-
-	if europim.Abs(value-lastValue) < 0.05 {
-		return lastValue
-	}
-
-	e.percent = percent
-	e.value = value
-	return value
 }

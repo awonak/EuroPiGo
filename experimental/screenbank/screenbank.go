@@ -1,21 +1,31 @@
 package screenbank
 
 import (
-	"machine"
 	"time"
 
 	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/output"
+	"github.com/heucuva/europi/experimental/draw"
+	"github.com/heucuva/europi/experimental/fontwriter"
+	"tinygo.org/x/tinyfont/notoemoji"
 )
 
 type ScreenBank struct {
 	screen  europi.UserInterface
 	current int
 	bank    []screenBankEntry
+	writer  fontwriter.Writer
 }
 
+var (
+	DefaultFont = &notoemoji.NotoEmojiRegular12pt
+)
+
 func NewScreenBank(opts ...ScreenBankOption) (*ScreenBank, error) {
-	sb := &ScreenBank{}
+	sb := &ScreenBank{
+		writer: fontwriter.Writer{
+			Font: DefaultFont,
+		},
+	}
 
 	for _, opt := range opts {
 		if err := opt(sb); err != nil {
@@ -90,7 +100,8 @@ func (sb *ScreenBank) PaintLogo(e *europi.EuroPi, deltaTime time.Duration) {
 	cur := &sb.bank[sb.current]
 	cur.lock()
 	if cur.logo != "" {
-		e.Display.WriteEmojiLineInverseAligned(cur.logo, 0, 16, output.AlignRight, output.AlignMiddle)
+		sb.writer.Display = e.Display
+		sb.writer.WriteLineInverseAligned(cur.logo, 0, 16, draw.White, fontwriter.AlignRight, fontwriter.AlignMiddle)
 	}
 	cur.unlock()
 }
@@ -108,37 +119,37 @@ func (sb *ScreenBank) Paint(e *europi.EuroPi, deltaTime time.Duration) {
 	cur.unlock()
 }
 
-func (sb *ScreenBank) Button1Ex(e *europi.EuroPi, p machine.Pin, high bool) {
+func (sb *ScreenBank) Button1Ex(e *europi.EuroPi, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
 	if cur, ok := screen.(europi.UserInterfaceButton1); ok {
-		if !high {
-			cur.Button1(e, p)
+		if !value {
+			cur.Button1(e, deltaTime)
 		}
 	} else if cur, ok := screen.(europi.UserInterfaceButton1Ex); ok {
-		cur.Button1Ex(e, p, high)
+		cur.Button1Ex(e, value, deltaTime)
 	}
 }
 
-func (sb *ScreenBank) Button1Long(e *europi.EuroPi, p machine.Pin) {
+func (sb *ScreenBank) Button1Long(e *europi.EuroPi, deltaTime time.Duration) {
 	if cur, ok := sb.Current().(europi.UserInterfaceButton1Long); ok {
-		cur.Button1Long(e, p)
+		cur.Button1Long(e, deltaTime)
 	} else {
 		// try the short-press
-		sb.Button1Ex(e, p, false)
+		sb.Button1Ex(e, false, deltaTime)
 	}
 }
 
-func (sb *ScreenBank) Button2Ex(e *europi.EuroPi, p machine.Pin, high bool) {
+func (sb *ScreenBank) Button2Ex(e *europi.EuroPi, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
 	if cur, ok := screen.(europi.UserInterfaceButton2); ok {
-		if !high {
-			cur.Button2(e, p)
+		if !value {
+			cur.Button2(e, deltaTime)
 		}
 	} else if cur, ok := screen.(europi.UserInterfaceButton2Ex); ok {
-		cur.Button2Ex(e, p, high)
+		cur.Button2Ex(e, value, deltaTime)
 	}
 }
 
-func (sb *ScreenBank) Button2Long(e *europi.EuroPi, p machine.Pin) {
+func (sb *ScreenBank) Button2Long(e *europi.EuroPi, deltaTime time.Duration) {
 	sb.Next()
 }

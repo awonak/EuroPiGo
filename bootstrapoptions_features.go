@@ -49,3 +49,14 @@ func InitRandom(enabled bool) BootstrapOption {
 		return nil
 	}
 }
+
+func UsingEuroPi(e *EuroPi) BootstrapOption {
+	return func(o *bootstrapConfig) error {
+		if e == nil {
+			return errors.New("europi instance must not be nil")
+		}
+
+		o.europi = e
+		return nil
+	}
+}

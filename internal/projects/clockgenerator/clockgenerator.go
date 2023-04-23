@@ -25,11 +25,11 @@ func startLoop(e *europi.EuroPi) {
 		BPM:          120.0,
 		GateDuration: time.Millisecond * 100,
 		Enabled:      true,
-		ClockOut: func(high bool) {
-			if high {
-				e.CV1.On()
+		ClockOut: func(value bool) {
+			if value {
+				e.CV1.SetCV(1.0)
 			} else {
-				e.CV1.Off()
+				e.CV1.SetCV(0.0)
 			}
 			europi.ForceRepaintUI(e)
 		},

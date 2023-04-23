@@ -1,55 +1,54 @@
 package europi // import "github.com/heucuva/europi"
 
 import (
-	"machine"
-
-	"github.com/heucuva/europi/input"
-	"github.com/heucuva/europi/output"
+	"github.com/heucuva/europi/internal/hardware"
+	"github.com/heucuva/europi/internal/hardware/hal"
 )
 
 // EuroPi is the collection of component wrappers used to interact with the module.
 type EuroPi struct {
-	// Display is a wrapper around ssd1306.Device
-	Display *output.Display
-
-	DI input.DigitalReader
-	AI input.AnalogReader
-
-	B1 input.DigitalReader
-	B2 input.DigitalReader
-
-	K1 input.AnalogReader
-	K2 input.AnalogReader
-
-	CV1 output.Output
-	CV2 output.Output
-	CV3 output.Output
-	CV4 output.Output
-	CV5 output.Output
-	CV6 output.Output
-	CV  [6]output.Output
+	Display hal.DisplayOutput
+	DI      hal.DigitalInput
+	AI      hal.AnalogInput
+	B1      hal.ButtonInput
+	B2      hal.ButtonInput
+	K1      hal.KnobInput
+	K2      hal.KnobInput
+	CV1     hal.VoltageOutput
+	CV2     hal.VoltageOutput
+	CV3     hal.VoltageOutput
+	CV4     hal.VoltageOutput
+	CV5     hal.VoltageOutput
+	CV6     hal.VoltageOutput
+	CV      [6]hal.VoltageOutput
+	RND     hal.RandomGenerator
 }
 
 // New will return a new EuroPi struct.
-func New() *EuroPi {
-	cv1 := output.NewOutput(machine.GPIO21, machine.PWM2)
-	cv2 := output.NewOutput(machine.GPIO20, machine.PWM2)
-	cv3 := output.NewOutput(machine.GPIO16, machine.PWM0)
-	cv4 := output.NewOutput(machine.GPIO17, machine.PWM0)
-	cv5 := output.NewOutput(machine.GPIO18, machine.PWM1)
-	cv6 := output.NewOutput(machine.GPIO19, machine.PWM1)
+func New(opts ...hardware.Revision) *EuroPi {
+	revision := hardware.EuroPi
+	if len(opts) > 0 {
+		revision = opts[0]
+	}
+
+	cv1 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage1Output)
+	cv2 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage2Output)
+	cv3 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage3Output)
+	cv4 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage4Output)
+	cv5 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage5Output)
+	cv6 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage6Output)
 
 	e := &EuroPi{
-		Display: output.NewDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
+		Display: hardware.GetHardware[hal.DisplayOutput](revision, hal.HardwareIdDisplay1Output),
 
-		DI: input.NewDigital(machine.GPIO22),
-		AI: input.NewAnalog(machine.ADC0),
+		DI: hardware.GetHardware[hal.DigitalInput](revision, hal.HardwareIdDigital1Input),
+		AI: hardware.GetHardware[hal.AnalogInput](revision, hal.HardwareIdAnalog1Input),
 
-		B1: input.NewButton(machine.GPIO4),
-		B2: input.NewButton(machine.GPIO5),
+		B1: hardware.GetHardware[hal.ButtonInput](revision, hal.HardwareIdButton1Input),
+		B2: hardware.GetHardware[hal.ButtonInput](revision, hal.HardwareIdButton2Input),
 
-		K1: input.NewKnob(machine.ADC1),
-		K2: input.NewKnob(machine.ADC2),
+		K1: hardware.GetHardware[hal.KnobInput](revision, hal.HardwareIdKnob1Input),
+		K2: hardware.GetHardware[hal.KnobInput](revision, hal.HardwareIdKnob2Input),
 
 		CV1: cv1,
 		CV2: cv2,
@@ -57,7 +56,8 @@ func New() *EuroPi {
 		CV4: cv4,
 		CV5: cv5,
 		CV6: cv5,
-		CV:  [6]output.Output{cv1, cv2, cv3, cv4, cv5, cv6},
+		CV:  [6]hal.VoltageOutput{cv1, cv2, cv3, cv4, cv5, cv6},
+		RND: hardware.GetHardware[hal.RandomGenerator](revision, hal.HardwareIdRandom1Generator),
 	}
 
 	return e

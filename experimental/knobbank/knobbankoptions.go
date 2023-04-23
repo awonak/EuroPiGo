@@ -2,8 +2,6 @@ package knobbank
 
 import (
 	"fmt"
-
-	"github.com/heucuva/europi/input"
 )
 
 type KnobBankOption func(kb *KnobBank) error
@@ -15,14 +13,19 @@ func WithDisabledKnob() KnobBankOption {
 	}
 }
 
+const (
+	defaultMinInputVoltage = 0.0
+	defaultMaxInputVoltage = 10.0
+)
+
 func WithLockedKnob(name string, opts ...KnobOption) KnobBankOption {
 	return func(kb *KnobBank) error {
 		e := knobBankEntry{
 			name:       name,
 			enabled:    true,
 			locked:     true,
-			minVoltage: input.MinVoltage,
-			maxVoltage: input.MaxVoltage,
+			minVoltage: defaultMinInputVoltage,
+			maxVoltage: defaultMaxInputVoltage,
 			scale:      1,
 		}
 

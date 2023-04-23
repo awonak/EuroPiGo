@@ -12,6 +12,7 @@ type bootstrapConfig struct {
 	panicHandler        func(e *EuroPi, reason any)
 	enableDisplayLogger bool
 	initRandom          bool
+	europi              *EuroPi
 
 	// user interface
 	ui            UserInterface

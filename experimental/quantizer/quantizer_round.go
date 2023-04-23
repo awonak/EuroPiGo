@@ -1,9 +1,7 @@
 package quantizer
 
 import (
-	"math"
-
-	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/lerp"
 )
 
 type Round[T any] struct{}
@@ -13,9 +11,7 @@ func (Round[T]) QuantizeToIndex(in float32, length int) int {
 		return -1
 	}
 
-	idx := int(math.Round(float64(length-1) * float64(in)))
-	idx = europim.Clamp(idx, 0, length-1)
-	return idx
+	return lerp.NewLerp32(0, length-1).ClampedLerpRound(in)
 }
 
 func (q Round[T]) QuantizeToValue(in float32, list []T) T {

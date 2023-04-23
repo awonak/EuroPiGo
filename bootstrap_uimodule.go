@@ -2,11 +2,10 @@ package europi
 
 import (
 	"context"
-	"machine"
 	"sync"
 	"time"
 
-	"github.com/heucuva/europi/input"
+	"github.com/heucuva/europi/internal/hardware/hal"
 )
 
 type uiModule struct {
@@ -59,37 +58,32 @@ func (u *uiModule) run(e *EuroPi, interval time.Duration) {
 	}
 }
 
-func (u *uiModule) setupButton(e *EuroPi, btn input.DigitalReader, onShort func(e *EuroPi, p machine.Pin, high bool), onLong func(e *EuroPi, p machine.Pin)) {
+func (u *uiModule) setupButton(e *EuroPi, btn hal.ButtonInput, onShort func(e *EuroPi, value bool, deltaTime time.Duration), onLong func(e *EuroPi, deltaTime time.Duration)) {
 	if onShort == nil && onLong == nil {
 		return
 	}
 
 	if onShort == nil {
 		// no-op
-		onShort = func(e *EuroPi, p machine.Pin, high bool) {}
+		onShort = func(e *EuroPi, value bool, deltaTime time.Duration) {}
 	}
 
 	// if no long-press handler present, just reuse short-press handler
 	if onLong == nil {
-		onLong = func(e *EuroPi, p machine.Pin) {
-			onShort(e, p, false)
+		onLong = func(e *EuroPi, deltaTime time.Duration) {
+			onShort(e, false, deltaTime)
 		}
 	}
 
 	const longDuration = time.Millisecond * 650
 
-	btn.HandlerEx(machine.PinRising|machine.PinFalling, func(p machine.Pin) {
-		high := btn.Value()
-		if high {
-			onShort(e, p, high)
+	btn.HandlerEx(hal.ChangeAny, func(value bool, deltaTime time.Duration) {
+		if value {
+			onShort(e, value, deltaTime)
+		} else if deltaTime < longDuration {
+			onShort(e, value, deltaTime)
 		} else {
-			startDown := btn.LastChange()
-			deltaTime := time.Since(startDown)
-			if deltaTime < longDuration {
-				onShort(e, p, high)
-			} else {
-				onLong(e, p)
-			}
+			onLong(e, deltaTime)
 		}
 	})
 }

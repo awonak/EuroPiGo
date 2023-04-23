@@ -1,4 +1,4 @@
-package output
+package fontwriter
 
 type HorizontalAlignment int
 

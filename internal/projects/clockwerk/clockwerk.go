@@ -33,8 +33,10 @@ import (
 	"time"
 
 	"tinygo.org/x/tinydraw"
+	"tinygo.org/x/tinyfont/proggy"
 
 	"github.com/heucuva/europi"
+	"github.com/heucuva/europi/experimental/fontwriter"
 	europim "github.com/heucuva/europi/math"
 	"github.com/heucuva/europi/output"
 )
@@ -51,6 +53,7 @@ var (
 	// Positive values are multiplications and negative values are divisions.
 	DefaultFactor = [6]int{1, 2, 4, -2, -4, -8}
 	FactorChoices []int
+	DefaultFont   = &proggy.TinySZ8pt7b
 )
 
 func init() {
@@ -76,6 +79,7 @@ type Clockwerk struct {
 	period              time.Duration
 	clocks              [6]int
 	resets              [6]chan uint8
+	writer              fontwriter.Writer
 
 	*europi.EuroPi
 }
@@ -221,6 +225,10 @@ func startLoop(e *europi.EuroPi) {
 	app.EuroPi = e
 	app.clocks = DefaultFactor
 	app.displayShouldUpdate = true
+	app.writer = fontwriter.Writer{
+		Display: e.Display,
+		Font:    DefaultFont,
+	}
 
 	// Lower range value can have lower sample size
 	app.K1.Samples(500)

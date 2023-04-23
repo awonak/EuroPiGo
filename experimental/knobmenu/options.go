@@ -5,6 +5,7 @@ import (
 
 	"github.com/heucuva/europi/experimental/knobbank"
 	"github.com/heucuva/europi/units"
+	"tinygo.org/x/tinyfont"
 )
 
 type KnobMenuOption func(km *KnobMenu) ([]knobbank.KnobBankOption, error)
@@ -41,6 +42,13 @@ func WithPosition(x, y int16) KnobMenuOption {
 func WithYAdvance(yadvance int16) KnobMenuOption {
 	return func(km *KnobMenu) ([]knobbank.KnobBankOption, error) {
 		km.yadvance = yadvance
+		return nil, nil
+	}
+}
+
+func WithFont(font tinyfont.Fonter) KnobMenuOption {
+	return func(km *KnobMenu) ([]knobbank.KnobBankOption, error) {
+		km.writer.Font = font
 		return nil, nil
 	}
 }

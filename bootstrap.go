@@ -20,6 +20,7 @@ func Bootstrap(options ...BootstrapOption) error {
 		panicHandler:        DefaultPanicHandler,
 		enableDisplayLogger: DefaultEnableDisplayLogger,
 		initRandom:          DefaultInitRandom,
+		europi:              nil,
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,
@@ -38,7 +39,10 @@ func Bootstrap(options ...BootstrapOption) error {
 		}
 	}
 
-	e := New()
+	if config.europi == nil {
+		config.europi = New()
+	}
+	e := config.europi
 
 	Pi = e
 	piWantDestroyChan = make(chan struct{}, 1)

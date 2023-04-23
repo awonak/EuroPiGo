@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/clamp"
 )
 
 type ClockGenerator struct {
@@ -74,7 +74,7 @@ func (m *ClockGenerator) SetGateDuration(dur time.Duration) {
 		dur = DefaultGateDuration
 	}
 
-	m.gateDuration = europim.Clamp(dur, time.Microsecond, m.interval-time.Microsecond)
+	m.gateDuration = clamp.Clamp(dur, time.Microsecond, m.interval-time.Microsecond)
 }
 
 func (m *ClockGenerator) GateDuration() time.Duration {

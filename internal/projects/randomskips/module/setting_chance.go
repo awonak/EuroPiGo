@@ -3,7 +3,7 @@ package module
 import (
 	"fmt"
 
-	europim "github.com/heucuva/europi/math"
+	"github.com/heucuva/europi/clamp"
 	"github.com/heucuva/europi/units"
 )
 
@@ -16,5 +16,5 @@ func ChanceToCV(chance float32) units.CV {
 }
 
 func CVToChance(cv units.CV) float32 {
-	return europim.Clamp(cv.ToFloat32(), 0.0, 1.0)
+	return clamp.Clamp(cv.ToFloat32(), 0.0, 1.0)
 }
