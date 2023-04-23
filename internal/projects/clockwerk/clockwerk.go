@@ -28,7 +28,6 @@
 package main
 
 import (
-	"machine"
 	"strconv"
 	"time"
 
@@ -36,9 +35,11 @@ import (
 	"tinygo.org/x/tinyfont/proggy"
 
 	"github.com/heucuva/europi"
+	"github.com/heucuva/europi/clamp"
+	"github.com/heucuva/europi/experimental/draw"
 	"github.com/heucuva/europi/experimental/fontwriter"
-	europim "github.com/heucuva/europi/math"
-	"github.com/heucuva/europi/output"
+	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/heucuva/europi/lerp"
 )
 
 const (
@@ -82,6 +83,8 @@ type Clockwerk struct {
 	writer              fontwriter.Writer
 
 	*europi.EuroPi
+	bpmLerp    lerp.Lerper32[uint16]
+	factorLerp lerp.Lerper32[int]
 }
 
 func (c *Clockwerk) editParams() {
@@ -101,7 +104,7 @@ func (c *Clockwerk) editParams() {
 
 func (c *Clockwerk) readBPM() uint16 {
 	// Provide a range of 59 - 240 bpm. bpm < 60 will switch to external clock.
-	_bpm := c.K1.Range((MaxBPM+1)-(MinBPM-2)) + MinBPM - 1
+	_bpm := c.bpmLerp.ClampedLerpRound(c.K1.Percent())
 	if _bpm < MinBPM {
 		c.external = true
 		_bpm = 0
@@ -116,7 +119,8 @@ func (c *Clockwerk) readBPM() uint16 {
 }
 
 func (c *Clockwerk) readFactor() int {
-	return FactorChoices[c.K2.Range(uint16(len(FactorChoices)))]
+	idx := c.factorLerp.ClampedLerpRound(c.K2.Percent())
+	return FactorChoices[idx]
 }
 
 func (c *Clockwerk) startClocks() {
@@ -158,11 +162,11 @@ func (c *Clockwerk) clock(i uint8, reset chan uint8) {
 
 		high, low := c.clockPulseWidth(c.clocks[i])
 
-		c.CV[i].On()
+		c.CV[i].SetCV(1.0)
 		t = t.Add(high)
 		time.Sleep(t.Sub(time.Now()))
 
-		c.CV[i].Off()
+		c.CV[i].SetCV(0.0)
 		t = t.Add(low)
 		time.Sleep(t.Sub(time.Now()))
 	}
@@ -198,9 +202,11 @@ func (c *Clockwerk) updateDisplay() {
 	if c.external {
 		external = "^"
 	}
-	c.Display.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8)
+	c.writer.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8, draw.White)
 
 	// Display each clock multiplication or division setting.
+	dispWidth, _ := c.Display.Size()
+	divWidth := int(dispWidth) / len(c.clocks)
 	for i, factor := range c.clocks {
 		text := " 1"
 		switch {
@@ -209,12 +215,12 @@ func (c *Clockwerk) updateDisplay() {
 		case factor > 1:
 			text = "x" + strconv.Itoa(factor)
 		}
-		c.Display.WriteLine(text, int16(i*output.OLEDWidth/len(c.clocks))+2, 26)
+		c.writer.WriteLine(text, int16(i*divWidth)+2, 26, draw.White)
 	}
-	xWidth := int16(output.OLEDWidth / len(c.clocks))
+	xWidth := int16(divWidth)
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
-	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, output.White)
+	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, draw.White)
 
 	c.Display.Display()
 }
@@ -229,33 +235,39 @@ func startLoop(e *europi.EuroPi) {
 		Display: e.Display,
 		Font:    DefaultFont,
 	}
+	app.bpmLerp = lerp.NewLerp32[uint16](MinBPM-1, MaxBPM)
+	app.factorLerp = lerp.NewLerp32(0, len(FactorChoices)-1)
 
 	// Lower range value can have lower sample size
-	app.K1.Samples(500)
-	app.K2.Samples(20)
+	app.K1.Configure(hal.AnalogInputConfig{
+		Samples: 500,
+	})
+	app.K2.Configure(hal.AnalogInputConfig{
+		Samples: 20,
+	})
 
-	app.DI.Handler(func(pin machine.Pin) {
+	app.DI.Handler(func(_ bool, deltaTime time.Duration) {
 		// Measure current period between clock pulses.
-		app.period = time.Now().Sub(app.DI.LastInput())
+		app.period = deltaTime
 	})
 
 	// Move clock config option to the left.
-	app.B1.Handler(func(p machine.Pin) {
+	app.B1.Handler(func(_ bool, deltaTime time.Duration) {
 		if app.B2.Value() {
 			app.doClockReset = true
 			return
 		}
-		app.selected = uint8(europim.Clamp(int(app.selected)-1, 0, len(app.clocks)))
+		app.selected = uint8(clamp.Clamp(int(app.selected)-1, 0, len(app.clocks)))
 		app.displayShouldUpdate = true
 	})
 
 	// Move clock config option to the right.
-	app.B2.Handler(func(p machine.Pin) {
+	app.B2.Handler(func(_ bool, deltaTime time.Duration) {
 		if app.B1.Value() {
 			app.doClockReset = true
 			return
 		}
-		app.selected = uint8(europim.Clamp(int(app.selected)+1, 0, len(app.clocks)-1))
+		app.selected = uint8(clamp.Clamp(int(app.selected)+1, 0, len(app.clocks)-1))
 		app.displayShouldUpdate = true
 	})
 
