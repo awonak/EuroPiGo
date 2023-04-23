@@ -27,11 +27,11 @@ func startLoop(e *europi.EuroPi) {
 	myApp.staticCv = 5
 
 	// Demonstrate adding a IRQ handler to B1 and B2.
-	e.B1.Handler(func(value bool, deltaTime time.Duration) {
+	e.B1.Handler(func(_ bool, _ time.Duration) {
 		myApp.knobsDisplayPercent = !myApp.knobsDisplayPercent
 	})
 
-	e.B2.Handler(func(value bool, deltaTime time.Duration) {
+	e.B2.Handler(func(_ bool, _ time.Duration) {
 		myApp.staticCv = (myApp.staticCv + 1) % int(e.K1.MaxVoltage())
 	})
 }
@@ -40,7 +40,7 @@ var (
 	DefaultFont = &proggy.TinySZ8pt7b
 )
 
-func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
+func mainLoop(e *europi.EuroPi) {
 	e.Display.ClearBuffer()
 
 	// Highlight the border of the oled display.
@@ -88,9 +88,10 @@ func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
 }
 
 func main() {
-	europi.Bootstrap(
-		europi.StartLoop(startLoop),
-		europi.MainLoop(mainLoop),
-		europi.MainLoopInterval(time.Millisecond*1),
-	)
+	e := europi.New()
+	startLoop(e)
+	for {
+		mainLoop(e)
+		time.Sleep(time.Millisecond)
+	}
 }
