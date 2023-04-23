@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 type RandomSkips struct {

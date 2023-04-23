@@ -1,6 +1,6 @@
 package hal
 
-import "github.com/heucuva/europi/units"
+import "github.com/awonak/EuroPiGo/units"
 
 type AnalogInput interface {
 	Configure(config AnalogInputConfig) error

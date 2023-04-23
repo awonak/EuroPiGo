@@ -3,8 +3,8 @@ package module
 import (
 	"time"
 
-	"github.com/heucuva/europi/lerp"
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/lerp"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 const (

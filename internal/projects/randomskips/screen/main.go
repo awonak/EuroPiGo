@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
-	clockgenerator "github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	"github.com/heucuva/europi/internal/projects/randomskips/module"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
+	clockgenerator "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/module"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont/proggy"
 )

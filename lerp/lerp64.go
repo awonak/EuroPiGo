@@ -1,6 +1,6 @@
 package lerp
 
-import "github.com/heucuva/europi/clamp"
+import "github.com/awonak/EuroPiGo/clamp"
 
 type lerp64[T Lerpable] struct {
 	b T

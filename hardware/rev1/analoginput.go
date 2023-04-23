@@ -3,10 +3,10 @@ package rev1
 import (
 	"errors"
 
-	"github.com/heucuva/europi/clamp"
-	"github.com/heucuva/europi/internal/hardware/hal"
-	"github.com/heucuva/europi/lerp"
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 const (

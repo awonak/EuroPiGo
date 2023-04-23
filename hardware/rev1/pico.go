@@ -12,7 +12,7 @@ import (
 	"runtime/interrupt"
 	"runtime/volatile"
 
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 	"tinygo.org/x/drivers/ssd1306"
 )
 

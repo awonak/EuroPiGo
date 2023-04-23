@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/heucuva/europi/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/draw"
 	"tinygo.org/x/tinydraw"
 )
 

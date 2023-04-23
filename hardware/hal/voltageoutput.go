@@ -3,7 +3,7 @@ package hal
 import (
 	"time"
 
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 type VoltageOutput interface {

@@ -34,12 +34,12 @@ import (
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont/proggy"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/clamp"
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
-	"github.com/heucuva/europi/internal/hardware/hal"
-	"github.com/heucuva/europi/lerp"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 const (

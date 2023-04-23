@@ -1,8 +1,8 @@
 package hardware
 
 import (
-	"github.com/heucuva/europi/internal/hardware/hal"
-	"github.com/heucuva/europi/internal/hardware/rev1"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 func GetHardware[T any](revision Revision, id hal.HardwareId) T {

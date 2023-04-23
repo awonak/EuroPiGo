@@ -3,7 +3,7 @@ package screenbank
 import (
 	"time"
 
-	"github.com/heucuva/europi"
+	europi "github.com/awonak/EuroPiGo"
 )
 
 type screenBankEntry struct {

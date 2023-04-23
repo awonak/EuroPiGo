@@ -3,7 +3,7 @@ package rev1
 import (
 	"image/color"
 
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 // displayoutput is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.

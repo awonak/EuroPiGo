@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heucuva/europi/clamp"
+	"github.com/awonak/EuroPiGo/clamp"
 )
 
 type ClockGenerator struct {

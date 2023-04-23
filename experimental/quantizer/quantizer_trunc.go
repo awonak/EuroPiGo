@@ -1,7 +1,7 @@
 package quantizer
 
 import (
-	"github.com/heucuva/europi/lerp"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 type Trunc[T any] struct{}

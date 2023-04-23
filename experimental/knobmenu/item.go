@@ -1,6 +1,6 @@
 package knobmenu
 
-import "github.com/heucuva/europi/units"
+import "github.com/awonak/EuroPiGo/units"
 
 type item struct {
 	name     string

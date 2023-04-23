@@ -3,8 +3,8 @@ package rev1
 import (
 	"time"
 
-	"github.com/heucuva/europi/debounce"
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/debounce"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 // digitalinput is a struct for handling reading of the digital input.

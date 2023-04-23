@@ -3,10 +3,10 @@ package screen
 import (
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/knobmenu"
-	"github.com/heucuva/europi/internal/projects/randomskips/module"
-	"github.com/heucuva/europi/units"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/knobmenu"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/module"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 type Settings struct {

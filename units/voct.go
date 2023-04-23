@@ -11,7 +11,6 @@ type VOct float32
 // ToVolts converts a V/Octave value to a value between 0.0 and 10.0 volts
 func (v VOct) ToVolts() float32 {
 	voct := float32(v)
-	range_check(voct, 0, 10, "v/oct")
 	return voct
 }
 

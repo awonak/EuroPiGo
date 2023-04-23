@@ -1,8 +1,8 @@
-package europi // import "github.com/heucuva/europi"
+package europi // import "github.com/awonak/EuroPiGo"
 
 import (
-	"github.com/heucuva/europi/internal/hardware"
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 // EuroPi is the collection of component wrappers used to interact with the module.

@@ -3,7 +3,7 @@ package knobbank
 import (
 	"fmt"
 
-	"github.com/heucuva/europi/lerp"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 type KnobOption func(e *knobBankEntry) error

@@ -1,7 +1,7 @@
 package rev1
 
 import (
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 type randomGenerator struct {

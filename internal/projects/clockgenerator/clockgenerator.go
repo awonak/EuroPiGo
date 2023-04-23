@@ -3,10 +3,10 @@ package main
 import (
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/screenbank"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/screen"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/screenbank"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/screen"
 )
 
 var (

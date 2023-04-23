@@ -4,6 +4,7 @@ import "sync"
 
 type Bus interface {
 	Subscribe(subject string, callback func(msg any))
+	Unsubscribe(subject string)
 	Post(subject string, msg any)
 }
 
@@ -26,6 +27,10 @@ type bus struct {
 
 func (b *bus) Subscribe(subject string, callback func(msg any)) {
 	b.chMap.Store(subject, callback)
+}
+
+func (b *bus) Unsubscribe(subject string) {
+	b.chMap.Delete(subject)
 }
 
 func (b *bus) Post(subject string, msg any) {

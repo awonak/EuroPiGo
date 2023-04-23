@@ -8,9 +8,9 @@ import (
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont/proggy"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
 )
 
 type MyApp struct {

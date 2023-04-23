@@ -4,9 +4,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 	"tinygo.org/x/tinyfont/proggy"
 )
 

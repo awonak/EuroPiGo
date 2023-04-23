@@ -1,4 +1,4 @@
-module github.com/heucuva/europi
+module github.com/awonak/EuroPiGo
 
 go 1.18
 

@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/heucuva/europi/experimental/displaylogger"
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/experimental/displaylogger"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 var (

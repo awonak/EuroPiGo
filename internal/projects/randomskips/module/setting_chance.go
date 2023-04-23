@@ -3,8 +3,8 @@ package module
 import (
 	"fmt"
 
-	"github.com/heucuva/europi/clamp"
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 func ChanceString(chance float32) string {

@@ -3,9 +3,9 @@ package knobbank
 import (
 	"math"
 
-	"github.com/heucuva/europi/clamp"
-	"github.com/heucuva/europi/internal/hardware/hal"
-	"github.com/heucuva/europi/lerp"
+	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 type knobBankEntry struct {

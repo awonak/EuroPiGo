@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 type uiModule struct {

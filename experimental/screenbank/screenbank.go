@@ -3,9 +3,9 @@ package screenbank
 import (
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
 	"tinygo.org/x/tinyfont/notoemoji"
 )
 

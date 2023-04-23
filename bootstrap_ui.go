@@ -3,7 +3,7 @@ package europi
 import (
 	"time"
 
-	"github.com/heucuva/europi/debounce"
+	"github.com/awonak/EuroPiGo/debounce"
 )
 
 type UserInterface interface {

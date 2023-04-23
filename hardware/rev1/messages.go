@@ -1,6 +1,6 @@
 package rev1
 
-import "github.com/heucuva/europi/internal/hardware/hal"
+import "github.com/awonak/EuroPiGo/hardware/hal"
 
 type HwMessageDigitalValue struct {
 	Value bool

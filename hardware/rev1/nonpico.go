@@ -8,8 +8,8 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/heucuva/europi/internal/event"
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/event"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
 var (

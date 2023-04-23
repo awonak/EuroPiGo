@@ -3,8 +3,8 @@ package knobmenu
 import (
 	"fmt"
 
-	"github.com/heucuva/europi/experimental/knobbank"
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/experimental/knobbank"
+	"github.com/awonak/EuroPiGo/units"
 	"tinygo.org/x/tinyfont"
 )
 

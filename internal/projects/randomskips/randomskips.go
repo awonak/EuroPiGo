@@ -3,13 +3,13 @@ package main
 import (
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/screenbank"
-	"github.com/heucuva/europi/internal/hardware/hal"
-	clockgenerator "github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	clockScreen "github.com/heucuva/europi/internal/projects/clockgenerator/screen"
-	"github.com/heucuva/europi/internal/projects/randomskips/module"
-	"github.com/heucuva/europi/internal/projects/randomskips/screen"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/screenbank"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	clockgenerator "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	clockScreen "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/screen"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/module"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/screen"
 )
 
 var (

@@ -3,7 +3,7 @@ package fontwriter
 import (
 	"image/color"
 
-	"github.com/heucuva/europi/internal/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/hal"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
 )

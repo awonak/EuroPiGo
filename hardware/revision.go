@@ -1,6 +1,6 @@
 package hardware
 
-import "github.com/heucuva/europi/internal/hardware/hal"
+import "github.com/awonak/EuroPiGo/hardware/hal"
 
 type Revision = hal.Revision
 

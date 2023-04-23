@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/draw"
-	"github.com/heucuva/europi/experimental/fontwriter"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/module"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont/proggy"
 )
