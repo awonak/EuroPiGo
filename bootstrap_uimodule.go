@@ -59,6 +59,10 @@ func (u *uiModule) run(e *EuroPi, interval time.Duration) {
 }
 
 func (u *uiModule) setupButton(e *EuroPi, btn hal.ButtonInput, onShort func(e *EuroPi, value bool, deltaTime time.Duration), onLong func(e *EuroPi, deltaTime time.Duration)) {
+	if btn == nil {
+		return
+	}
+
 	if onShort == nil && onLong == nil {
 		return
 	}

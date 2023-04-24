@@ -44,6 +44,10 @@ func Bootstrap(options ...BootstrapOption) error {
 	}
 	e := config.europi
 
+	if e == nil {
+		return errors.New("no europi available")
+	}
+
 	Pi = e
 	piWantDestroyChan = make(chan struct{}, 1)
 

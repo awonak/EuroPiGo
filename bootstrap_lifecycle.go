@@ -3,6 +3,10 @@ package europi
 import "time"
 
 func DefaultPostBootstrapInitialization(e *EuroPi) {
+	if e.Display == nil {
+		return
+	}
+
 	e.Display.ClearBuffer()
 	if err := e.Display.Display(); err != nil {
 		panic(err)
@@ -10,6 +14,10 @@ func DefaultPostBootstrapInitialization(e *EuroPi) {
 }
 
 func DefaultBootstrapCompleted(e *EuroPi) {
+	if e.Display == nil {
+		return
+	}
+
 	e.Display.ClearBuffer()
 	if err := e.Display.Display(); err != nil {
 		panic(err)

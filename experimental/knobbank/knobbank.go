@@ -16,6 +16,10 @@ type KnobBank struct {
 }
 
 func NewKnobBank(knob hal.KnobInput, opts ...KnobBankOption) (*KnobBank, error) {
+	if knob == nil {
+		return nil, errors.New("knob is nil")
+	}
+
 	kb := &KnobBank{
 		knob:      knob,
 		lastValue: knob.ReadVoltage(),
