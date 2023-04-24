@@ -30,6 +30,19 @@ type voltageoutput struct {
 	ofs uint16
 }
 
+var (
+	// static check
+	_ hal.VoltageOutput = &voltageoutput{}
+	// silence linter
+	_ = newVoltageOuput
+)
+
+type pwmProvider interface {
+	Configure(config hal.VoltageOutputConfig) error
+	Set(v float32, ofs uint16)
+	Get() float32
+}
+
 // NewOutput returns a new Output interface.
 func newVoltageOuput(pwm pwmProvider) hal.VoltageOutput {
 	o := &voltageoutput{
@@ -47,12 +60,7 @@ func newVoltageOuput(pwm pwmProvider) hal.VoltageOutput {
 	return o
 }
 
-type pwmProvider interface {
-	Configure(config hal.VoltageOutputConfig) error
-	Set(v float32, ofs uint16)
-	Get() float32
-}
-
+// Configure updates the device with various configuration parameters
 func (o *voltageoutput) Configure(config hal.VoltageOutputConfig) error {
 	if err := o.pwm.Configure(config); err != nil {
 		return err
@@ -84,10 +92,12 @@ func (o *voltageoutput) Voltage() float32 {
 	return o.pwm.Get() * MaxOutputVoltage
 }
 
+// MinVoltage returns the minimum voltage this device will output
 func (o *voltageoutput) MinVoltage() float32 {
 	return MinOutputVoltage
 }
 
+// MaxVoltage returns the maximum voltage this device will output
 func (o *voltageoutput) MaxVoltage() float32 {
 	return MaxOutputVoltage
 }

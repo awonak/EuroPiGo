@@ -29,6 +29,13 @@ type analoginput struct {
 	cal     lerp.Lerper32[uint16]
 }
 
+var (
+	// static check
+	_ hal.AnalogInput = &analoginput{}
+	// silence linter
+	_ = newAnalogInput
+)
+
 type adcProvider interface {
 	Get(samples int) uint16
 }
@@ -42,6 +49,7 @@ func newAnalogInput(adc adcProvider) *analoginput {
 	}
 }
 
+// Configure updates the device with various configuration parameters
 func (a *analoginput) Configure(config hal.AnalogInputConfig) error {
 	if config.Samples == 0 {
 		return errors.New("samples must be non-zero")
@@ -84,12 +92,12 @@ func (a *analoginput) ReadVOct() units.VOct {
 	return units.VOct(a.ReadVoltage())
 }
 
-// MinVoltage returns the minimum voltage that that input can ever read
+// MinVoltage returns the minimum voltage that that input can ever read by this device
 func (a *analoginput) MinVoltage() float32 {
 	return MinInputVoltage
 }
 
-// MaxVoltage returns the maximum voltage that the input can ever read
+// MaxVoltage returns the maximum voltage that the input can ever read by this device
 func (a *analoginput) MaxVoltage() float32 {
 	return MaxInputVoltage
 }

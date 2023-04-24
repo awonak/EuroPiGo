@@ -13,6 +13,13 @@ type digitalinput struct {
 	lastChange time.Time
 }
 
+var (
+	// static check
+	_ hal.DigitalInput = &digitalinput{}
+	// silence linter
+	_ = newDigitalInput
+)
+
 type digitalReaderProvider interface {
 	Get() bool
 	SetHandler(changes hal.ChangeFlags, handler func())
@@ -26,6 +33,7 @@ func newDigitalInput(dr digitalReaderProvider) *digitalinput {
 	}
 }
 
+// Configure updates the device with various configuration parameters
 func (d *digitalinput) Configure(config hal.DigitalInputConfig) error {
 	return nil
 }

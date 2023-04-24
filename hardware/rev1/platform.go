@@ -4,6 +4,8 @@ import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
+// These will be configured during `init()` from platform-specific files.
+// See `pico.go` and `nonpico.go` for more information.
 var (
 	RevisionMarker         hal.RevisionMarker
 	InputDigital1          hal.DigitalInput
@@ -22,6 +24,8 @@ var (
 	DeviceRandomGenerator1 hal.RandomGenerator
 )
 
+// GetHardware returns a EuroPi hardware device based on hardware `id`.
+// a `nil` result means that the hardware was not found or some sort of error occurred.
 func GetHardware[T any](hw hal.HardwareId) T {
 	switch hw {
 	case hal.HardwareIdRevisionMarker:

@@ -25,8 +25,8 @@ type EuroPi struct {
 }
 
 // New will return a new EuroPi struct.
-func New(opts ...hardware.Revision) *EuroPi {
-	revision := hardware.EuroPi
+func New(opts ...hal.Revision) *EuroPi {
+	revision := hal.EuroPi
 	if len(opts) > 0 {
 		revision = opts[0]
 	}

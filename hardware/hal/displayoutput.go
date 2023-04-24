@@ -8,3 +8,6 @@ type DisplayOutput interface {
 	SetPixel(x, y int16, c color.RGBA)
 	Display() error
 }
+
+type DisplayOutputConfig struct {
+}
