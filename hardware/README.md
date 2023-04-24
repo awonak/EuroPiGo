@@ -18,7 +18,7 @@ This package is used for obtaining singleton objects for particular hardware, id
 
 Calling `GetHardware()` with a `Revision` (see above) and `HardwareId` (see below) may return a singleton hardware interface. Check to see if the returned value is `nil` before using it; `nil` is considered to be either a revision detection failure, missing hardware, or some other error.
 
-| Identifier | Alias | Interface | Notes |
+| HardwareId | HardwareId Alias | Interface | Notes |
 |----|----|----|----|
 | `HardwareIdInvalid` | | N/A | Always returns a `nil` interface/object |
 | `HardwareIdRevisionMarker` | | `hal.RevisionMarker` | Provides an interface to obtain the `Revision` identifier of the currently detected (or compiled-for) hardware. |
