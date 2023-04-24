@@ -180,7 +180,7 @@ func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, reason any) {
 
 	if e != nil && e.Display != nil {
 		// show the last buffer
-		e.Display.Display()
+		_ = e.Display.Display()
 	}
 
 	close(piWantDestroyChan)

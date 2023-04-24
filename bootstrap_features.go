@@ -37,7 +37,7 @@ func flushDisplayLogger(e *EuroPi) {
 
 func initRandom(e *EuroPi) {
 	if e.RND != nil {
-		e.RND.Configure(hal.RandomGeneratorConfig{})
+		_ = e.RND.Configure(hal.RandomGeneratorConfig{})
 	}
 }
 

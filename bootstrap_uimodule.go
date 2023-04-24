@@ -41,7 +41,7 @@ func (u *uiModule) run(e *EuroPi, interval time.Duration) {
 			u.logoPainter.PaintLogo(e, deltaTime)
 		}
 		u.screen.Paint(e, deltaTime)
-		disp.Display()
+		_ = disp.Display()
 	}
 
 	for {

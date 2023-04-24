@@ -13,6 +13,11 @@ import (
 // Not setting the build flag will set it to `handlePanicDisplayCrash`
 var DefaultPanicHandler func(e *EuroPi, reason any)
 
+var (
+	// silence linter
+	_ = handlePanicOnScreenLog
+)
+
 func handlePanicOnScreenLog(e *EuroPi, reason any) {
 	if e == nil {
 		// can't do anything if it's not enabled

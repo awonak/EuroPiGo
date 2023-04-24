@@ -26,9 +26,17 @@ type EuroPi struct {
 
 // New will return a new EuroPi struct.
 func New(opts ...hal.Revision) *EuroPi {
-	revision := hal.EuroPi
+	var revision hal.Revision
 	if len(opts) > 0 {
 		revision = opts[0]
+	} else {
+		// attempt to detect hardware revision
+		revision = hardware.RevisionDetection()
+	}
+
+	if revision == hal.RevisionUnknown {
+		// could not detect revision
+		return nil
 	}
 
 	cv1 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage1Output)

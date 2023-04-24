@@ -56,7 +56,7 @@ func (w *Writer) WriteLineInverse(text string, x, y int16, c color.RGBA) {
 	outerHeight := int16(w.Font.GetYAdvance())
 	x0, y0 := x, y-outerHeight+2
 	x1, y1 := x+1, y
-	tinydraw.FilledRectangle(w.Display, x0, y0, int16(outerWidth+2), outerHeight, c)
+	_ = tinydraw.FilledRectangle(w.Display, x0, y0, int16(outerWidth+2), outerHeight, c)
 	tinyfont.WriteLine(w.Display, w.Font, x1, y1, text, inverseC)
 }
 
@@ -107,6 +107,6 @@ func (w *Writer) writeLineInverseAligned(text string, font tinyfont.Fonter, x, y
 		B: ^c.B,
 		A: c.A,
 	}
-	tinydraw.FilledRectangle(w.Display, x0, y0, int16(outerWidth+2), outerHeight, c)
+	_ = tinydraw.FilledRectangle(w.Display, x0, y0, int16(outerWidth+2), outerHeight, c)
 	tinyfont.WriteLine(w.Display, w.Font, x1, y1, text, inverseC)
 }
