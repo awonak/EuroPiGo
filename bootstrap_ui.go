@@ -2,8 +2,6 @@ package europi
 
 import (
 	"time"
-
-	"github.com/awonak/EuroPiGo/debounce"
 )
 
 type UserInterface interface {
@@ -52,67 +50,9 @@ var (
 )
 
 func enableUI(e *EuroPi, screen UserInterface, interval time.Duration) {
-	ui.screen = screen
-	if ui.screen == nil {
-		return
-	}
+	ui.setup(e, screen)
 
-	ui.logoPainter, _ = screen.(UserInterfaceLogoPainter)
-
-	ui.repaint = make(chan struct{}, 1)
-
-	var (
-		inputB1  func(e *EuroPi, value bool, deltaTime time.Duration)
-		inputB1L func(e *EuroPi, deltaTime time.Duration)
-	)
-	if in, ok := screen.(UserInterfaceButton1); ok {
-		var debounceDelay time.Duration
-		if db, ok := screen.(UserInterfaceButton1Debounce); ok {
-			debounceDelay = db.Button1Debounce()
-		}
-		inputDB := debounce.NewDebouncer(func(value bool, deltaTime time.Duration) {
-			if !value {
-				in.Button1(e, deltaTime)
-			}
-		}).Debounce(debounceDelay)
-		inputB1 = func(e *EuroPi, value bool, deltaTime time.Duration) {
-			inputDB(value)
-		}
-	} else if in, ok := screen.(UserInterfaceButton1Ex); ok {
-		inputB1 = in.Button1Ex
-	}
-	if in, ok := screen.(UserInterfaceButton1Long); ok {
-		inputB1L = in.Button1Long
-	}
-	ui.setupButton(e, e.B1, inputB1, inputB1L)
-
-	var (
-		inputB2  func(e *EuroPi, value bool, deltaTime time.Duration)
-		inputB2L func(e *EuroPi, deltaTime time.Duration)
-	)
-	if in, ok := screen.(UserInterfaceButton2); ok {
-		var debounceDelay time.Duration
-		if db, ok := screen.(UserInterfaceButton2Debounce); ok {
-			debounceDelay = db.Button2Debounce()
-		}
-		inputDB := debounce.NewDebouncer(func(value bool, deltaTime time.Duration) {
-			if !value {
-				in.Button2(e, deltaTime)
-			}
-		}).Debounce(debounceDelay)
-		inputB2 = func(e *EuroPi, value bool, deltaTime time.Duration) {
-			inputDB(value)
-		}
-	} else if in, ok := screen.(UserInterfaceButton2Ex); ok {
-		inputB2 = in.Button2Ex
-	}
-	if in, ok := screen.(UserInterfaceButton2Long); ok {
-		inputB2L = in.Button2Long
-	}
-	ui.setupButton(e, e.B2, inputB2, inputB2L)
-
-	ui.wg.Add(1)
-	go ui.run(e, interval)
+	ui.start(e, interval)
 }
 
 func startUI(e *EuroPi) {
@@ -125,19 +65,9 @@ func startUI(e *EuroPi) {
 
 // ForceRepaintUI schedules a forced repaint of the UI (if it is configured and running)
 func ForceRepaintUI(e *EuroPi) {
-	if ui.repaint != nil {
-		ui.repaint <- struct{}{}
-	}
+	ui.repaint()
 }
 
 func disableUI(e *EuroPi) {
-	if ui.stop != nil {
-		ui.stop()
-	}
-
-	if ui.repaint != nil {
-		close(ui.repaint)
-	}
-
-	ui.wait()
+	ui.shutdown()
 }

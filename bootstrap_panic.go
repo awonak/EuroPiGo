@@ -3,6 +3,7 @@ package europi
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/awonak/EuroPiGo/experimental/draw"
 	"tinygo.org/x/tinydraw"
@@ -28,9 +29,15 @@ func handlePanicOnScreenLog(e *EuroPi, reason any) {
 	enableDisplayLogger(e)
 
 	// show the panic on the screen
-	log.Panicln(fmt.Sprint(reason))
+	log.Println(fmt.Sprint(reason))
 
 	flushDisplayLogger(e)
+
+	os.Exit(1)
+}
+
+func handlePanicLogger(e *EuroPi, reason any) {
+	log.Panic(reason)
 }
 
 func handlePanicDisplayCrash(e *EuroPi, reason any) {
@@ -39,8 +46,13 @@ func handlePanicDisplayCrash(e *EuroPi, reason any) {
 		return
 	}
 
-	// display a diagonal line pattern through the screen to show that the EuroPi is crashed
 	disp := e.Display
+	if disp == nil {
+		// can't do anything if we don't have a display
+		return
+	}
+
+	// display a diagonal line pattern through the screen to show that the EuroPi is crashed
 	width, height := disp.Size()
 	ymax := height - 1
 	for x := -ymax; x < width; x += 4 {

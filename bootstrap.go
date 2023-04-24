@@ -10,7 +10,7 @@ var (
 	// Pi is a global EuroPi instance constructed by calling the Bootstrap() function
 	Pi *EuroPi
 
-	piWantDestroyChan chan struct{}
+	piWantDestroyChan chan any
 )
 
 // Bootstrap will set up a global runtime environment (see europi.Pi)
@@ -49,7 +49,7 @@ func Bootstrap(options ...BootstrapOption) error {
 	}
 
 	Pi = e
-	piWantDestroyChan = make(chan struct{}, 1)
+	piWantDestroyChan = make(chan any, 1)
 
 	var onceBootstrapDestroy sync.Once
 	panicHandler := config.panicHandler
@@ -85,12 +85,12 @@ func Bootstrap(options ...BootstrapOption) error {
 	return nil
 }
 
-func Shutdown() error {
+func Shutdown(reason any) error {
 	if piWantDestroyChan == nil {
 		return errors.New("cannot shutdown: no available bootstrap")
 	}
 
-	piWantDestroyChan <- struct{}{}
+	piWantDestroyChan <- reason
 	return nil
 }
 
@@ -138,15 +138,18 @@ func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
 }
 
 func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
+	if config.onMainLoopFn == nil {
+		panic(errors.New("no main loop specified"))
+	}
+
 	ticker := time.NewTicker(config.mainLoopInterval)
 	defer ticker.Stop()
 
 	lastTick := time.Now()
-mainLoop:
 	for {
 		select {
-		case <-piWantDestroyChan:
-			break mainLoop
+		case reason := <-piWantDestroyChan:
+			panic(reason)
 
 		case now := <-ticker.C:
 			config.onMainLoopFn(e, now.Sub(lastTick))
@@ -156,12 +159,15 @@ mainLoop:
 }
 
 func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
+	if config.onMainLoopFn == nil {
+		panic(errors.New("no main loop specified"))
+	}
+
 	lastTick := time.Now()
-mainLoop:
 	for {
 		select {
-		case <-piWantDestroyChan:
-			break mainLoop
+		case reason := <-piWantDestroyChan:
+			panic(reason)
 
 		default:
 			now := time.Now()
