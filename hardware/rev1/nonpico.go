@@ -1,5 +1,5 @@
-//go:build !pico && test
-// +build !pico,test
+//go:build !pico && revision1
+// +build !pico,revision1
 
 package rev1
 
