@@ -1,5 +1,5 @@
-//bob //go:build !pico
-//bob // +build !pico
+//go:build !pico
+// +build !pico
 
 package rev1
 
@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
