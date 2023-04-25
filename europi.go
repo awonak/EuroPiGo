@@ -7,6 +7,8 @@ import (
 
 // EuroPi is the collection of component wrappers used to interact with the module.
 type EuroPi struct {
+	Revision hal.Revision
+
 	Display hal.DisplayOutput
 	DI      hal.DigitalInput
 	AI      hal.AnalogInput
@@ -47,6 +49,8 @@ func New(opts ...hal.Revision) *EuroPi {
 	cv6 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage6Output)
 
 	e := &EuroPi{
+		Revision: revision,
+
 		Display: hardware.GetHardware[hal.DisplayOutput](revision, hal.HardwareIdDisplay1Output),
 
 		DI: hardware.GetHardware[hal.DigitalInput](revision, hal.HardwareIdDigital1Input),
