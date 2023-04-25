@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -43,3 +44,9 @@ func initRandom(e *EuroPi) {
 
 func uninitRandom(e *EuroPi) {
 }
+
+// used for non-pico testing of bootstrapped europi apps
+var (
+	activateNonPicoWebSocket   func(e *EuroPi) (context.Context, context.CancelFunc)
+	deactivateNonPicoWebSocket func(e *EuroPi, cancel context.CancelFunc)
+)

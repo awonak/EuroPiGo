@@ -5,7 +5,6 @@ package events
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"sync"
 
@@ -19,27 +18,25 @@ var (
 	voLerp = lerp.NewLerp32[uint16](0, math.MaxUint16)
 )
 
-func SetupVoltageOutputListeners() {
+func SetupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
 	bus := rev1.DefaultEventBus
 
 	for id := hal.HardwareIdVoltage1Output; id <= hal.HardwareIdVoltage6Output; id++ {
 		fn := func(hid hal.HardwareId) func(rev1.HwMessagePwmValue) {
 			return func(msg rev1.HwMessagePwmValue) {
 				v := voLerp.ClampedInverseLerp(msg.Value) * rev1.MaxOutputVoltage
-				log.Printf("CV%d: %v", hid-hal.HardwareIdVoltage1Output+1, v)
+				cb(hid, v)
 			}
 		}(id)
 		event.Subscribe(bus, fmt.Sprintf("hw_pwm_%d", id), fn)
 	}
 }
 
-func SetupDisplayOutputListener() {
+func SetupDisplayOutputListener(cb func(id hal.HardwareId, op rev1.HwDisplayOp, params []int16)) {
 	bus := rev1.DefaultEventBus
-	event.Subscribe(bus, fmt.Sprintf("hw_display_%d", hal.HardwareIdDisplay1Output), func(msg rev1.HwMessageDisplay) {
-		if msg.Op == 1 {
-			return
-		}
-		log.Printf("display: %v(%+v)", msg.Op, msg.Operands)
+	id := hal.HardwareIdDisplay1Output
+	event.Subscribe(bus, fmt.Sprintf("hw_display_%d", id), func(msg rev1.HwMessageDisplay) {
+		cb(id, msg.Op, msg.Operands)
 	})
 
 }

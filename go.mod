@@ -7,3 +7,5 @@ require (
 	tinygo.org/x/tinydraw v0.3.0
 	tinygo.org/x/tinyfont v0.3.0
 )
+
+require github.com/gorilla/websocket v1.5.0 // indirect

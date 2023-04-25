@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -51,7 +52,10 @@ func Bootstrap(options ...BootstrapOption) error {
 	Pi = e
 	piWantDestroyChan = make(chan any, 1)
 
-	var onceBootstrapDestroy sync.Once
+	var (
+		onceBootstrapDestroy sync.Once
+		cancel               context.CancelFunc
+	)
 	panicHandler := config.panicHandler
 	lastDestroyFunc := config.onBeginDestroyFn
 	runBootstrapDestroy := func() {
@@ -65,7 +69,7 @@ func Bootstrap(options ...BootstrapOption) error {
 			}
 		}
 		onceBootstrapDestroy.Do(func() {
-			bootstrapDestroy(&config, e, reason)
+			bootstrapDestroy(&config, e, cancel, reason)
 		})
 	}
 	defer runBootstrapDestroy()
@@ -74,7 +78,7 @@ func Bootstrap(options ...BootstrapOption) error {
 		config.onPostBootstrapConstructionFn(e)
 	}
 
-	bootstrapInitializeComponents(&config, e)
+	cancel = bootstrapInitializeComponents(&config, e)
 
 	if config.onBootstrapCompletedFn != nil {
 		config.onBootstrapCompletedFn(e)
@@ -94,13 +98,18 @@ func Shutdown(reason any) error {
 	return nil
 }
 
-func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
+func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) context.CancelFunc {
 	if config.onPreInitializeComponentsFn != nil {
 		config.onPreInitializeComponentsFn(e)
 	}
 
 	if config.enableDisplayLogger {
 		enableDisplayLogger(e)
+	}
+
+	var cancel context.CancelFunc
+	if config.enableNonPicoWebSocket && activateNonPicoWebSocket != nil {
+		activateNonPicoWebSocket(e)
 	}
 
 	if config.initRandom {
@@ -115,6 +124,8 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
 	if config.onPostInitializeComponentsFn != nil {
 		config.onPostInitializeComponentsFn(e)
 	}
+
+	return cancel
 }
 
 func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
@@ -177,12 +188,16 @@ func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
 	}
 }
 
-func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, reason any) {
+func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, cancel context.CancelFunc, reason any) {
 	if config.onBeginDestroyFn != nil {
 		config.onBeginDestroyFn(e, reason)
 	}
 
 	disableUI(e)
+
+	if config.enableNonPicoWebSocket && deactivateNonPicoWebSocket != nil {
+		deactivateNonPicoWebSocket(e, cancel)
+	}
 
 	disableDisplayLogger(e)
 
