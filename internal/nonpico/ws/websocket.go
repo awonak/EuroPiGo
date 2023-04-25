@@ -86,9 +86,9 @@ func Upgrade(w http.ResponseWriter, r *http.Request) (*WebSocket, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	conn.SetReadLimit(2048)
-	_ = conn.SetReadDeadline(time.Now().Add(pongWait))
+	_ = conn.SetWriteDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(appData string) error {
-		return conn.SetReadDeadline(time.Now().Add(pongWait))
+		return conn.SetWriteDeadline(time.Now().Add(pongWait))
 	})
 
 	ws := &WebSocket{
