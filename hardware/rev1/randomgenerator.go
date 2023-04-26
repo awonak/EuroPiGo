@@ -5,7 +5,7 @@ import (
 )
 
 type randomGenerator struct {
-	rnd rndProvider
+	rnd RNDProvider
 }
 
 var (
@@ -15,13 +15,13 @@ var (
 	_ = newRandomGenerator
 )
 
-func newRandomGenerator(rnd rndProvider) hal.RandomGenerator {
+func newRandomGenerator(rnd RNDProvider) hal.RandomGenerator {
 	return &randomGenerator{
 		rnd: rnd,
 	}
 }
 
-type rndProvider interface {
+type RNDProvider interface {
 	Configure(config hal.RandomGeneratorConfig) error
 }
 

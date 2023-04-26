@@ -9,10 +9,12 @@ import (
 )
 
 func init() {
-	switch hardware.RevisionDetection() {
-	case hal.RevisionUnknown:
-		DefaultPanicHandler = handlePanicLogger
-	default:
-		DefaultPanicHandler = handlePanicDisplayCrash
+	hardware.OnRevisionDetected <- func(revision hal.Revision) {
+		switch revision {
+		case hal.RevisionUnknown:
+			DefaultPanicHandler = handlePanicLogger
+		default:
+			DefaultPanicHandler = handlePanicDisplayCrash
+		}
 	}
 }

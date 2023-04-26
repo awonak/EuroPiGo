@@ -24,7 +24,7 @@ const (
 // Analog is a struct for handling the reading of analogue control voltage.
 // The analogue input allows you to 'read' CV from anywhere between 0 and 12V.
 type analoginput struct {
-	adc     adcProvider
+	adc     ADCProvider
 	samples int
 	cal     lerp.Lerper32[uint16]
 }
@@ -36,12 +36,12 @@ var (
 	_ = newAnalogInput
 )
 
-type adcProvider interface {
+type ADCProvider interface {
 	Get(samples int) uint16
 }
 
 // newAnalogInput creates a new Analog Input
-func newAnalogInput(adc adcProvider) *analoginput {
+func newAnalogInput(adc ADCProvider) *analoginput {
 	return &analoginput{
 		adc:     adc,
 		samples: DefaultSamples,

@@ -8,7 +8,7 @@ import (
 
 // displayoutput is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.
 type displayoutput struct {
-	dp displayProvider
+	dp DisplayProvider
 }
 
 var (
@@ -18,7 +18,7 @@ var (
 	_ = newDisplayOutput
 )
 
-type displayProvider interface {
+type DisplayProvider interface {
 	ClearBuffer()
 	Size() (x, y int16)
 	SetPixel(x, y int16, c color.RGBA)
@@ -26,7 +26,7 @@ type displayProvider interface {
 }
 
 // newDisplayOutput returns a new Display struct.
-func newDisplayOutput(dp displayProvider) hal.DisplayOutput {
+func newDisplayOutput(dp DisplayProvider) hal.DisplayOutput {
 	return &displayoutput{
 		dp: dp,
 	}

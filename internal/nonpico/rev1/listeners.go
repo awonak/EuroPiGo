@@ -1,7 +1,7 @@
-//go:build !pico && revision1
-// +build !pico,revision1
+//go:build !pico
+// +build !pico
 
-package events
+package rev1
 
 import (
 	"fmt"
@@ -15,15 +15,14 @@ import (
 )
 
 var (
+	bus    = event.NewBus()
 	voLerp = lerp.NewLerp32[uint16](0, math.MaxUint16)
 )
 
-func SetupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
-	bus := rev1.DefaultEventBus
-
+func setupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
 	for id := hal.HardwareIdVoltage1Output; id <= hal.HardwareIdVoltage6Output; id++ {
-		fn := func(hid hal.HardwareId) func(rev1.HwMessagePwmValue) {
-			return func(msg rev1.HwMessagePwmValue) {
+		fn := func(hid hal.HardwareId) func(HwMessagePwmValue) {
+			return func(msg HwMessagePwmValue) {
 				v := voLerp.ClampedInverseLerp(msg.Value) * rev1.MaxOutputVoltage
 				cb(hid, v)
 			}
@@ -32,10 +31,10 @@ func SetupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
 	}
 }
 
-func SetupDisplayOutputListener(cb func(id hal.HardwareId, op rev1.HwDisplayOp, params []int16)) {
-	bus := rev1.DefaultEventBus
+func setupDisplayOutputListener(cb func(id hal.HardwareId, op HwDisplayOp, params []int16)) {
+	bus := bus
 	id := hal.HardwareIdDisplay1Output
-	event.Subscribe(bus, fmt.Sprintf("hw_display_%d", id), func(msg rev1.HwMessageDisplay) {
+	event.Subscribe(bus, fmt.Sprintf("hw_display_%d", id), func(msg HwMessageDisplay) {
 		cb(id, msg.Op, msg.Operands)
 	})
 
@@ -45,25 +44,23 @@ var (
 	states sync.Map
 )
 
-func SetDigitalInput(id hal.HardwareId, value bool) {
+func setDigitalInput(id hal.HardwareId, value bool) {
 	prevState, _ := states.Load(id)
 
-	bus := rev1.DefaultEventBus
-
 	states.Store(id, value)
-	bus.Post(fmt.Sprintf("hw_value_%d", id), rev1.HwMessageDigitalValue{
+	bus.Post(fmt.Sprintf("hw_value_%d", id), HwMessageDigitalValue{
 		Value: value,
 	})
 
 	if prevState != value {
 		if value {
 			// rising
-			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), rev1.HwMessageInterrupt{
+			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), HwMessageInterrupt{
 				Change: hal.ChangeRising,
 			})
 		} else {
 			// falling
-			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), rev1.HwMessageInterrupt{
+			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), HwMessageInterrupt{
 				Change: hal.ChangeFalling,
 			})
 		}
@@ -74,10 +71,8 @@ var (
 	aiLerp = lerp.NewLerp32[uint16](rev1.DefaultCalibratedMinAI, rev1.DefaultCalibratedMaxAI)
 )
 
-func SetAnalogInput(id hal.HardwareId, voltage float32) {
-	bus := rev1.DefaultEventBus
-
-	bus.Post(fmt.Sprintf("hw_value_%d", id), rev1.HwMessageADCValue{
+func setAnalogInput(id hal.HardwareId, voltage float32) {
+	bus.Post(fmt.Sprintf("hw_value_%d", id), HwMessageADCValue{
 		Value: aiLerp.Lerp(voltage),
 	})
 }

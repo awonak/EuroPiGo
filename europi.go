@@ -26,20 +26,22 @@ type EuroPi struct {
 	RND     hal.RandomGenerator
 }
 
-// New will return a new EuroPi struct.
-func New(opts ...hal.Revision) *EuroPi {
-	var revision hal.Revision
-	if len(opts) > 0 {
-		revision = opts[0]
-	} else {
-		// attempt to detect hardware revision
-		revision = hardware.RevisionDetection()
-	}
+// New will return a new EuroPi struct based on the detected hardware revision
+func New() *EuroPi {
+	// blocks until revision has been identified
+	revision := hardware.GetRevision()
+	return NewFrom(revision)
+}
 
+// NewFrom will return a new EuroPi struct based on a specific revision
+func NewFrom(revision hal.Revision) *EuroPi {
 	if revision == hal.RevisionUnknown {
-		// could not detect revision
+		// unknown revision
 		return nil
 	}
+
+	// this will block until the hardware components are initialized
+	hardware.WaitForReady()
 
 	cv1 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage1Output)
 	cv2 := hardware.GetHardware[hal.VoltageOutput](revision, hal.HardwareIdVoltage2Output)

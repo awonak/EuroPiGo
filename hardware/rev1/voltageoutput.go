@@ -26,7 +26,7 @@ var defaultPeriod time.Duration = time.Nanosecond * 500
 
 // voltageoutput is struct for interacting with the CV/VOct voltage output jacks.
 type voltageoutput struct {
-	pwm pwmProvider
+	pwm PWMProvider
 	ofs uint16
 }
 
@@ -37,14 +37,14 @@ var (
 	_ = newVoltageOuput
 )
 
-type pwmProvider interface {
+type PWMProvider interface {
 	Configure(config hal.VoltageOutputConfig) error
 	Set(v float32, ofs uint16)
 	Get() float32
 }
 
 // NewOutput returns a new Output interface.
-func newVoltageOuput(pwm pwmProvider) hal.VoltageOutput {
+func newVoltageOuput(pwm PWMProvider) hal.VoltageOutput {
 	o := &voltageoutput{
 		pwm: pwm,
 	}

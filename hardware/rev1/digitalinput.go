@@ -9,7 +9,7 @@ import (
 
 // digitalinput is a struct for handling reading of the digital input.
 type digitalinput struct {
-	dr         digitalReaderProvider
+	dr         DigitalReaderProvider
 	lastChange time.Time
 }
 
@@ -20,13 +20,13 @@ var (
 	_ = newDigitalInput
 )
 
-type digitalReaderProvider interface {
+type DigitalReaderProvider interface {
 	Get() bool
 	SetHandler(changes hal.ChangeFlags, handler func())
 }
 
 // newDigitalInput creates a new digital input struct.
-func newDigitalInput(dr digitalReaderProvider) *digitalinput {
+func newDigitalInput(dr DigitalReaderProvider) *digitalinput {
 	return &digitalinput{
 		dr:         dr,
 		lastChange: time.Now(),

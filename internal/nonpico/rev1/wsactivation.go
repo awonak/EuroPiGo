@@ -14,8 +14,6 @@ import (
 	"strconv"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
-	"github.com/awonak/EuroPiGo/internal/nonpico/rev1/events"
 	"github.com/awonak/EuroPiGo/internal/nonpico/ws"
 )
 
@@ -79,8 +77,8 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer sock.Close()
 
-	events.SetupVoltageOutputListeners(func(id hal.HardwareId, voltage float32) {
-		_ = sock.WriteJSON(voltageOutput{
+	setupVoltageOutputListeners(func(id hal.HardwareId, voltage float32) {
+		_ = sock.WriteJSON(voltageOutputMsg{
 			Kind:       "voltageOutput",
 			HardwareId: id,
 			Voltage:    voltage,
@@ -88,21 +86,21 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	displayWidth, displayHeight := 128, 32
-	displayScreenOutputMsg := displayScreenOuptut{
+	displayScreenOutputMsg := displayScreenOuptutMsg{
 		Kind:   "displayScreenOutput",
 		Width:  displayWidth,
 		Height: displayHeight,
 		Data:   make([]byte, displayWidth*displayHeight*4),
 	}
-	events.SetupDisplayOutputListener(func(id hal.HardwareId, op rev1.HwDisplayOp, params []int16) {
+	setupDisplayOutputListener(func(id hal.HardwareId, op HwDisplayOp, params []int16) {
 		switch a.displayMode {
 		case displayModeCombined:
 			switch op {
-			case rev1.HwDisplayOpClearBuffer:
+			case HwDisplayOpClearBuffer:
 				for i := range displayScreenOutputMsg.Data {
 					displayScreenOutputMsg.Data[i] = 0
 				}
-			case rev1.HwDisplayOpSetPixel:
+			case HwDisplayOpSetPixel:
 				y, x := int(params[1]), int(params[0])
 				if y < 0 || y >= displayHeight || x < 0 || x >= displayWidth {
 					break
@@ -112,13 +110,13 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 				displayScreenOutputMsg.Data[pos+1] = byte(params[3])
 				displayScreenOutputMsg.Data[pos+2] = byte(params[4])
 				displayScreenOutputMsg.Data[pos+3] = byte(params[5])
-			case rev1.HwDisplayOpDisplay:
+			case HwDisplayOpDisplay:
 				_ = sock.WriteJSON(displayScreenOutputMsg)
 			default:
 			}
 
 		default:
-			_ = sock.WriteJSON(displayOutput{
+			_ = sock.WriteJSON(displayOutputMsg{
 				Kind:       "displayOutput",
 				HardwareId: id,
 				Op:         op,
@@ -152,20 +150,20 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch k.Kind {
 		case "setDigitalInput":
-			var di setDigitalInput
+			var di setDigitalInputMsg
 			if err := json.Unmarshal(blob, &di); err != nil {
 				sock.SetError(err)
 				break
 			}
-			events.SetDigitalInput(di.HardwareId, di.Value)
+			setDigitalInput(di.HardwareId, di.Value)
 
 		case "setAnalogInput":
-			var ai setAnalogInput
+			var ai setAnalogInputMsg
 			if err := json.Unmarshal(blob, &ai); err != nil {
 				sock.SetError(err)
 				break
 			}
-			events.SetAnalogInput(ai.HardwareId, ai.Voltage)
+			setAnalogInput(ai.HardwareId, ai.Voltage)
 
 		default:
 			// ignore
