@@ -69,7 +69,7 @@ func NewFrom(revision hal.Revision) *EuroPi {
 		CV3: cv3,
 		CV4: cv4,
 		CV5: cv5,
-		CV6: cv5,
+		CV6: cv6,
 		CV:  [6]hal.VoltageOutput{cv1, cv2, cv3, cv4, cv5, cv6},
 		RND: hardware.GetHardware[hal.RandomGenerator](revision, hal.HardwareIdRandom1Generator),
 	}
