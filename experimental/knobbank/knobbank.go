@@ -56,11 +56,11 @@ func (kb *KnobBank) Current() hal.KnobInput {
 }
 
 func (kb *KnobBank) MinVoltage() float32 {
-	return kb.MinVoltage()
+	return kb.knob.MinVoltage()
 }
 
 func (kb *KnobBank) MaxVoltage() float32 {
-	return kb.MaxVoltage()
+	return kb.knob.MaxVoltage()
 }
 
 func (kb *KnobBank) ReadVoltage() float32 {

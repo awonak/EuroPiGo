@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 	})
 
 	t.Run("Revision1", func(t *testing.T) {
-		if actual := europi.New(hal.Revision1); actual == nil {
+		if actual := europi.NewFrom(hal.Revision1); actual == nil {
 			t.Fatal("EuroPi New: expected[non-nil] actual[nil]")
 		}
 	})
