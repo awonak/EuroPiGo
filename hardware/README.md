@@ -6,11 +6,11 @@ This package is used for obtaining singleton objects for particular hardware, id
 
 **NOTE**: The full revision list may be found under [hal/revision.go](hal/revision.go).
 
-| Identifier | Alias | Notes |
-|----|----|----|
-| `Revision0` | `EuroPiProto` | EuroPi prototype developed before revision 1 design was solidified. Due to lack of examples of this hardware, support is limited or non-existent. |
-| `Revision1` | `EuroPi` | EuroPi 'production' release, revision 1. |
-| `Revision2` | `EuroPiX` | EuroPi X - an improved hardware revision of the EuroPi. Currently in pre-production development hell. |
+| Identifier | Alias | (non-pico) Build Flags | Notes |
+|----|----|----|----|
+| `Revision0` | `EuroPiProto` | | EuroPi prototype developed before revision 1 design was solidified. Due to lack of examples of this hardware, support is limited or non-existent. |
+| `Revision1` | `EuroPi` | `revision1` or `europi` | EuroPi 'production' release, revision 1. |
+| `Revision2` | `EuroPiX` | `revision2` or `europix` | EuroPi X - an improved hardware revision of the EuroPi. Currently in pre-production development hell. |
 
 ## Hardware List
 
