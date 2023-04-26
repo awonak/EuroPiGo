@@ -164,11 +164,11 @@ func (c *Clockwerk) clock(i uint8, reset chan uint8) {
 
 		c.CV[i].SetCV(1.0)
 		t = t.Add(high)
-		time.Sleep(t.Sub(time.Now()))
+		time.Sleep(time.Since(t))
 
 		c.CV[i].SetCV(0.0)
 		t = t.Add(low)
-		time.Sleep(t.Sub(time.Now()))
+		time.Sleep(time.Since(t))
 	}
 }
 
@@ -220,9 +220,9 @@ func (c *Clockwerk) updateDisplay() {
 	xWidth := int16(divWidth)
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
-	tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, draw.White)
+	_ = tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, draw.White)
 
-	c.Display.Display()
+	_ = c.Display.Display()
 }
 
 var app Clockwerk
@@ -239,10 +239,10 @@ func startLoop(e *europi.EuroPi) {
 	app.factorLerp = lerp.NewLerp32(0, len(FactorChoices)-1)
 
 	// Lower range value can have lower sample size
-	app.K1.Configure(hal.AnalogInputConfig{
+	_ = app.K1.Configure(hal.AnalogInputConfig{
 		Samples: 500,
 	})
-	app.K2.Configure(hal.AnalogInputConfig{
+	_ = app.K2.Configure(hal.AnalogInputConfig{
 		Samples: 20,
 	})
 

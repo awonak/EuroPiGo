@@ -54,7 +54,7 @@ func main() {
 
 	// some options shown below are being explicitly set to their defaults
 	// only to showcase their existence.
-	europi.Bootstrap(
+	if err := europi.Bootstrap(
 		europi.EnableDisplayLogger(false),
 		europi.InitRandom(true),
 		europi.StartLoop(startLoop),
@@ -62,5 +62,7 @@ func main() {
 		europi.MainLoopInterval(time.Millisecond*1),
 		europi.UI(ui),
 		europi.UIRefreshRate(time.Millisecond*50),
-	)
+	); err != nil {
+		panic(err)
+	}
 }

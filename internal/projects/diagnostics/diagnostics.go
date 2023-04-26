@@ -44,7 +44,7 @@ func mainLoop(e *europi.EuroPi) {
 	e.Display.ClearBuffer()
 
 	// Highlight the border of the oled display.
-	tinydraw.Rectangle(e.Display, 0, 0, 128, 32, draw.White)
+	_ = tinydraw.Rectangle(e.Display, 0, 0, 128, 32, draw.White)
 
 	writer := fontwriter.Writer{
 		Display: e.Display,
@@ -67,7 +67,7 @@ func mainLoop(e *europi.EuroPi) {
 	// Show current button press state.
 	writer.WriteLine(fmt.Sprintf("B1: %5v  B2: %5v", e.B1.Value(), e.B2.Value()), 3, 28, draw.White)
 
-	e.Display.Display()
+	_ = e.Display.Display()
 
 	// Set voltage values for the 6 CV outputs.
 	if kv := uint16(e.K1.Percent() * float32(1<<12)); kv != myApp.prevK1 {

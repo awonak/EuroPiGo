@@ -10,7 +10,6 @@ import (
 )
 
 type ScreenBank struct {
-	screen  europi.UserInterface
 	current int
 	bank    []screenBankEntry
 	writer  fontwriter.Writer
