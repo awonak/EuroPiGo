@@ -49,3 +49,24 @@ func InitRandom(enabled bool) BootstrapOption {
 		return nil
 	}
 }
+
+// UsingEuroPi sets a specific EuroPi object instance for all operations in the bootstrap
+func UsingEuroPi(e *EuroPi) BootstrapOption {
+	return func(o *bootstrapConfig) error {
+		if e == nil {
+			return errors.New("europi instance must not be nil")
+		}
+
+		o.europi = e
+		return nil
+	}
+}
+
+// AttachNonPicoWS (if enabled and on non-Pico builds with build flags of `-tags=revision1` set)
+// starts up a websocket interface and system debugger on port 8080
+func AttachNonPicoWS(enabled bool) BootstrapOption {
+	return func(o *bootstrapConfig) error {
+		o.enableNonPicoWebSocket = enabled
+		return nil
+	}
+}

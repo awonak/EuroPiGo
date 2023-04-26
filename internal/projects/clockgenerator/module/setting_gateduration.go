@@ -3,8 +3,8 @@ package module
 import (
 	"time"
 
-	europim "github.com/heucuva/europi/math"
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/lerp"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 const (
@@ -12,14 +12,18 @@ const (
 	MaxGateDuration time.Duration = time.Millisecond * 990
 )
 
+var (
+	gateDurationLerp = lerp.NewLerp32(MinGateDuration, MaxGateDuration)
+)
+
 func GateDurationString(dur time.Duration) string {
 	return units.DurationString(dur)
 }
 
 func GateDurationToCV(dur time.Duration) units.CV {
-	return units.CV(europim.InverseLerp(dur, MinGateDuration, MaxGateDuration))
+	return units.CV(gateDurationLerp.ClampedInverseLerp(dur))
 }
 
 func CVToGateDuration(cv units.CV) time.Duration {
-	return europim.Lerp[time.Duration](cv.ToFloat32(), MinGateDuration, MaxGateDuration)
+	return gateDurationLerp.ClampedLerpRound(cv.ToFloat32())
 }

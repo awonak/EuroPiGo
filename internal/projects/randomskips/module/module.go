@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/heucuva/europi/units"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 type RandomSkips struct {
@@ -32,13 +32,13 @@ func (m *RandomSkips) Init(config Config) error {
 func noopGate(high bool) {
 }
 
-func (m *RandomSkips) Gate(high bool) {
+func (m *RandomSkips) Gate(value bool) {
 	prev := m.active
 	lastInput := m.lastInput
 	next := prev
-	m.lastInput = high
+	m.lastInput = value
 
-	if high != lastInput && rand.Float32() < m.ac {
+	if value != lastInput && rand.Float32() < m.ac {
 		next = !prev
 	}
 

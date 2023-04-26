@@ -10,7 +10,7 @@ var (
 	// Pi is a global EuroPi instance constructed by calling the Bootstrap() function
 	Pi *EuroPi
 
-	piWantDestroyChan chan struct{}
+	piWantDestroyChan chan any
 )
 
 // Bootstrap will set up a global runtime environment (see europi.Pi)
@@ -20,6 +20,7 @@ func Bootstrap(options ...BootstrapOption) error {
 		panicHandler:        DefaultPanicHandler,
 		enableDisplayLogger: DefaultEnableDisplayLogger,
 		initRandom:          DefaultInitRandom,
+		europi:              nil,
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,
@@ -38,12 +39,22 @@ func Bootstrap(options ...BootstrapOption) error {
 		}
 	}
 
-	e := New()
+	if config.europi == nil {
+		config.europi = New()
+	}
+	e := config.europi
+
+	if e == nil {
+		return errors.New("no europi available")
+	}
 
 	Pi = e
-	piWantDestroyChan = make(chan struct{}, 1)
+	piWantDestroyChan = make(chan any, 1)
 
-	var onceBootstrapDestroy sync.Once
+	var (
+		onceBootstrapDestroy sync.Once
+		nonPicoWSApi         nonPicoWSActivation
+	)
 	panicHandler := config.panicHandler
 	lastDestroyFunc := config.onBeginDestroyFn
 	runBootstrapDestroy := func() {
@@ -57,7 +68,7 @@ func Bootstrap(options ...BootstrapOption) error {
 			}
 		}
 		onceBootstrapDestroy.Do(func() {
-			bootstrapDestroy(&config, e, reason)
+			bootstrapDestroy(&config, e, nonPicoWSApi, reason)
 		})
 	}
 	defer runBootstrapDestroy()
@@ -66,7 +77,7 @@ func Bootstrap(options ...BootstrapOption) error {
 		config.onPostBootstrapConstructionFn(e)
 	}
 
-	bootstrapInitializeComponents(&config, e)
+	nonPicoWSApi = bootstrapInitializeComponents(&config, e)
 
 	if config.onBootstrapCompletedFn != nil {
 		config.onBootstrapCompletedFn(e)
@@ -77,22 +88,27 @@ func Bootstrap(options ...BootstrapOption) error {
 	return nil
 }
 
-func Shutdown() error {
+func Shutdown(reason any) error {
 	if piWantDestroyChan == nil {
 		return errors.New("cannot shutdown: no available bootstrap")
 	}
 
-	piWantDestroyChan <- struct{}{}
+	piWantDestroyChan <- reason
 	return nil
 }
 
-func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
+func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWSActivation {
 	if config.onPreInitializeComponentsFn != nil {
 		config.onPreInitializeComponentsFn(e)
 	}
 
 	if config.enableDisplayLogger {
 		enableDisplayLogger(e)
+	}
+
+	var nonPicoWSApi nonPicoWSActivation
+	if config.enableNonPicoWebSocket && activateNonPicoWebSocket != nil {
+		nonPicoWSApi = activateNonPicoWebSocket(e)
 	}
 
 	if config.initRandom {
@@ -107,6 +123,8 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) {
 	if config.onPostInitializeComponentsFn != nil {
 		config.onPostInitializeComponentsFn(e)
 	}
+
+	return nonPicoWSApi
 }
 
 func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
@@ -130,15 +148,18 @@ func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
 }
 
 func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
+	if config.onMainLoopFn == nil {
+		panic(errors.New("no main loop specified"))
+	}
+
 	ticker := time.NewTicker(config.mainLoopInterval)
 	defer ticker.Stop()
 
 	lastTick := time.Now()
-mainLoop:
 	for {
 		select {
-		case <-piWantDestroyChan:
-			break mainLoop
+		case reason := <-piWantDestroyChan:
+			panic(reason)
 
 		case now := <-ticker.C:
 			config.onMainLoopFn(e, now.Sub(lastTick))
@@ -148,12 +169,15 @@ mainLoop:
 }
 
 func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
+	if config.onMainLoopFn == nil {
+		panic(errors.New("no main loop specified"))
+	}
+
 	lastTick := time.Now()
-mainLoop:
 	for {
 		select {
-		case <-piWantDestroyChan:
-			break mainLoop
+		case reason := <-piWantDestroyChan:
+			panic(reason)
 
 		default:
 			now := time.Now()
@@ -163,12 +187,16 @@ mainLoop:
 	}
 }
 
-func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, reason any) {
+func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, nonPicoWSApi nonPicoWSActivation, reason any) {
 	if config.onBeginDestroyFn != nil {
 		config.onBeginDestroyFn(e, reason)
 	}
 
 	disableUI(e)
+
+	if config.enableNonPicoWebSocket && deactivateNonPicoWebSocket != nil {
+		deactivateNonPicoWebSocket(e, nonPicoWSApi)
+	}
 
 	disableDisplayLogger(e)
 
@@ -176,7 +204,7 @@ func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, reason any) {
 
 	if e != nil && e.Display != nil {
 		// show the last buffer
-		e.Display.Display()
+		_ = e.Display.Display()
 	}
 
 	close(piWantDestroyChan)

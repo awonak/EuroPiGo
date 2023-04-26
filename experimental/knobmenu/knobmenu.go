@@ -4,10 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/knobbank"
-	"github.com/heucuva/europi/input"
-	europim "github.com/heucuva/europi/math"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/experimental/draw"
+	"github.com/awonak/EuroPiGo/experimental/fontwriter"
+	"github.com/awonak/EuroPiGo/experimental/knobbank"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"tinygo.org/x/tinyfont/proggy"
+)
+
+var (
+	DefaultFont = &proggy.TinySZ8pt7b
 )
 
 type KnobMenu struct {
@@ -18,16 +25,24 @@ type KnobMenu struct {
 	x              int16
 	y              int16
 	yadvance       int16
+	writer         fontwriter.Writer
 }
 
-func NewKnobMenu(knob input.AnalogReader, opts ...KnobMenuOption) (*KnobMenu, error) {
+func NewKnobMenu(knob hal.KnobInput, opts ...KnobMenuOption) (*KnobMenu, error) {
 	km := &KnobMenu{
 		selectedRune:   '*',
 		unselectedRune: ' ',
 		x:              0,
 		y:              11,
 		yadvance:       12,
+		writer: fontwriter.Writer{
+			Display: nil,
+			Font:    DefaultFont,
+		},
 	}
+
+	km.yadvance = int16(km.writer.Font.GetYAdvance())
+	km.y = km.yadvance
 
 	kbopts := []knobbank.KnobBankOption{
 		knobbank.WithDisabledKnob(),
@@ -59,12 +74,12 @@ func (m *KnobMenu) Next() {
 func (m *KnobMenu) Paint(e *europi.EuroPi, deltaTime time.Duration) {
 	m.updateMenu(e)
 
-	disp := e.Display
+	m.writer.Display = e.Display
 
 	y := m.y
 	selectedIdx := m.kb.CurrentIndex() - 1
-	minI := europim.Clamp(selectedIdx-1, 0, len(m.items)-1)
-	maxI := europim.Clamp(minI+1, 0, len(m.items)-1)
+	minI := clamp.Clamp(selectedIdx-1, 0, len(m.items)-1)
+	maxI := clamp.Clamp(minI+1, 0, len(m.items)-1)
 	for i := minI; i <= maxI && i < len(m.items); i++ {
 		it := &m.items[i]
 
@@ -73,7 +88,7 @@ func (m *KnobMenu) Paint(e *europi.EuroPi, deltaTime time.Duration) {
 			selRune = m.selectedRune
 		}
 
-		disp.WriteLine(fmt.Sprintf("%c%s:%s", selRune, it.label, it.stringFn()), m.x, y)
+		m.writer.WriteLine(fmt.Sprintf("%c%s:%s", selRune, it.label, it.stringFn()), m.x, y, draw.White)
 		y += m.yadvance
 	}
 }

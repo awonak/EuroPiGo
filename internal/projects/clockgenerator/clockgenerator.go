@@ -3,10 +3,10 @@ package main
 import (
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/screenbank"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/screen"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/screenbank"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/screen"
 )
 
 var (
@@ -25,11 +25,11 @@ func startLoop(e *europi.EuroPi) {
 		BPM:          120.0,
 		GateDuration: time.Millisecond * 100,
 		Enabled:      true,
-		ClockOut: func(high bool) {
-			if high {
-				e.CV1.On()
+		ClockOut: func(value bool) {
+			if value {
+				e.CV1.SetCV(1.0)
 			} else {
-				e.CV1.Off()
+				e.CV1.SetCV(0.0)
 			}
 			europi.ForceRepaintUI(e)
 		},

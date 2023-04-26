@@ -1,16 +1,15 @@
 package main
 
 import (
-	"machine"
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/screenbank"
-	clockgenerator "github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	clockScreen "github.com/heucuva/europi/internal/projects/clockgenerator/screen"
-	"github.com/heucuva/europi/internal/projects/randomskips/module"
-	"github.com/heucuva/europi/internal/projects/randomskips/screen"
-	"github.com/heucuva/europi/output"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/screenbank"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	clockgenerator "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	clockScreen "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/screen"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/module"
+	"github.com/awonak/EuroPiGo/internal/projects/randomskips/screen"
 )
 
 var (
@@ -30,12 +29,12 @@ var (
 	}
 )
 
-func makeGate(out output.Output) func(high bool) {
-	return func(high bool) {
-		if high {
-			out.On()
+func makeGate(out hal.VoltageOutput) func(value bool) {
+	return func(value bool) {
+		if value {
+			out.SetCV(1.0)
 		} else {
-			out.Off()
+			out.SetCV(0.0)
 		}
 	}
 }
@@ -56,9 +55,8 @@ func startLoop(e *europi.EuroPi) {
 		panic(err)
 	}
 
-	e.DI.HandlerEx(machine.PinRising|machine.PinFalling, func(p machine.Pin) {
-		high := e.DI.Value()
-		skip.Gate(high)
+	e.DI.HandlerEx(hal.ChangeAny, func(value bool, _ time.Duration) {
+		skip.Gate(value)
 	})
 }
 

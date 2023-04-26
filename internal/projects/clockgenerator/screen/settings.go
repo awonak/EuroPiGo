@@ -1,13 +1,12 @@
 package screen
 
 import (
-	"machine"
 	"time"
 
-	"github.com/heucuva/europi"
-	"github.com/heucuva/europi/experimental/knobmenu"
-	"github.com/heucuva/europi/internal/projects/clockgenerator/module"
-	"github.com/heucuva/europi/units"
+	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/experimental/knobmenu"
+	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
+	"github.com/awonak/EuroPiGo/units"
 )
 
 type Settings struct {
@@ -55,7 +54,7 @@ func (m *Settings) Button1Debounce() time.Duration {
 	return time.Millisecond * 200
 }
 
-func (m *Settings) Button1(e *europi.EuroPi, p machine.Pin) {
+func (m *Settings) Button1(e *europi.EuroPi, deltaTime time.Duration) {
 	m.km.Next()
 }
 

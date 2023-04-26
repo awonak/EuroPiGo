@@ -3,6 +3,18 @@
 
 package europi
 
+import (
+	"github.com/awonak/EuroPiGo/hardware"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+)
+
 func init() {
-	DefaultPanicHandler = handlePanicDisplayCrash
+	hardware.OnRevisionDetected <- func(revision hal.Revision) {
+		switch revision {
+		case hal.RevisionUnknown:
+			DefaultPanicHandler = handlePanicLogger
+		default:
+			DefaultPanicHandler = handlePanicDisplayCrash
+		}
+	}
 }
