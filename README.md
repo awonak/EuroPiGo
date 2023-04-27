@@ -114,6 +114,6 @@ go run -tags=revision1 internal/projects/randomskips/randomskips.go
 
 Finally, open up a browser to [localhost:8080](http://localhost:8080/) to see your module in action!
 
-## Why should I use this?
+## Why should I use the TinyGo version of the EuroPi firmware?
 
 You probably shouldn't. This is my passion project because I love Go. You should probably be using the official [EuroPi firmware](https://github.com/Allen-Synthesis/EuroPi). But if you are interested in writing a dedicated script for the EuroPi that requires concurrency and faster performance than MicroPython can offer, then maybe this is the right firmware for you!
