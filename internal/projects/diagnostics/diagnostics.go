@@ -23,7 +23,7 @@ type MyApp struct {
 
 var myApp MyApp
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	myApp.staticCv = 5
 
 	// Demonstrate adding a IRQ handler to B1 and B2.
@@ -89,7 +89,7 @@ func mainLoop(e *europi.EuroPi) {
 
 func main() {
 	e := europi.New()
-	startLoop(e)
+	appStart(e)
 	for {
 		mainLoop(e)
 		time.Sleep(time.Millisecond)

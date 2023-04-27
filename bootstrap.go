@@ -16,25 +16,49 @@ var (
 // Bootstrap will set up a global runtime environment (see europi.Pi)
 func Bootstrap(options ...BootstrapOption) error {
 	config := bootstrapConfig{
-		appMainLoopInterval: DefaultAppMainLoopInterval,
-		panicHandler:        DefaultPanicHandler,
-		enableDisplayLogger: DefaultEnableDisplayLogger,
-		initRandom:          DefaultInitRandom,
-		europi:              nil,
+		panicHandler:           DefaultPanicHandler,
+		enableDisplayLogger:    DefaultEnableDisplayLogger,
+		initRandom:             DefaultInitRandom,
+		enableNonPicoWebSocket: false,
+		europi:                 nil,
+
+		appConfig: bootstrapAppConfig{
+			mainLoopInterval: DefaultAppMainLoopInterval,
+			onAppStartFn:     nil,
+			onAppMainLoopFn:  DefaultMainLoop,
+			onAppEndFn:       nil,
+		},
+
+		uiConfig: bootstrapUIConfig{
+			ui:            nil,
+			uiRefreshRate: DefaultUIRefreshRate,
+		},
 
 		onPostBootstrapConstructionFn: DefaultPostBootstrapInitialization,
 		onPreInitializeComponentsFn:   nil,
 		onPostInitializeComponentsFn:  nil,
 		onBootstrapCompletedFn:        DefaultBootstrapCompleted,
-		onAppStartFn:                  nil,
-		onAppMainLoopFn:               DefaultMainLoop,
-		onAppEndFn:                    nil,
 		onBeginDestroyFn:              nil,
 		onFinishDestroyFn:             nil,
 	}
 
+	// process bootstrap options
 	for _, opt := range options {
 		if err := opt(&config); err != nil {
+			return err
+		}
+	}
+
+	// process app options
+	for _, opt := range config.appConfig.options {
+		if err := opt(&config.appConfig); err != nil {
+			return err
+		}
+	}
+
+	// process ui options
+	for _, opt := range config.uiConfig.options {
+		if err := opt(&config.uiConfig); err != nil {
 			return err
 		}
 	}
@@ -116,8 +140,8 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 	}
 
 	// ui initializaiton is always last
-	if config.ui != nil {
-		enableUI(e, config.ui, config.uiRefreshRate)
+	if config.uiConfig.ui != nil {
+		enableUI(e, config.uiConfig)
 	}
 
 	if config.onPostInitializeComponentsFn != nil {
@@ -128,31 +152,31 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 }
 
 func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
-	if config.onAppStartFn != nil {
-		config.onAppStartFn(e)
+	if config.appConfig.onAppStartFn != nil {
+		config.appConfig.onAppStartFn(e)
 	}
 
 	startUI(e)
 
 	ForceRepaintUI(e)
 
-	if config.appMainLoopInterval > 0 {
+	if config.appConfig.mainLoopInterval > 0 {
 		bootstrapRunLoopWithDelay(config, e)
 	} else {
 		bootstrapRunLoopNoDelay(config, e)
 	}
 
-	if config.onAppEndFn != nil {
-		config.onAppEndFn(e)
+	if config.appConfig.onAppEndFn != nil {
+		config.appConfig.onAppEndFn(e)
 	}
 }
 
 func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
-	if config.onAppMainLoopFn == nil {
+	if config.appConfig.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
 
-	ticker := time.NewTicker(config.appMainLoopInterval)
+	ticker := time.NewTicker(config.appConfig.mainLoopInterval)
 	defer ticker.Stop()
 
 	lastTick := time.Now()
@@ -162,14 +186,14 @@ func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
 			panic(reason)
 
 		case now := <-ticker.C:
-			config.onAppMainLoopFn(e, now.Sub(lastTick))
+			config.appConfig.onAppMainLoopFn(e, now.Sub(lastTick))
 			lastTick = now
 		}
 	}
 }
 
 func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
-	if config.onAppMainLoopFn == nil {
+	if config.appConfig.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
 
@@ -181,7 +205,7 @@ func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
 
 		default:
 			now := time.Now()
-			config.onAppMainLoopFn(e, now.Sub(lastTick))
+			config.appConfig.onAppMainLoopFn(e, now.Sub(lastTick))
 			lastTick = now
 		}
 	}

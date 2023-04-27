@@ -49,10 +49,10 @@ var (
 	ui uiModule
 )
 
-func enableUI(e *EuroPi, screen UserInterface, interval time.Duration) {
-	ui.setup(e, screen)
+func enableUI(e *EuroPi, config bootstrapUIConfig) {
+	ui.setup(e, config.ui)
 
-	ui.start(e, interval)
+	ui.start(e, config.uiRefreshRate)
 }
 
 func startUI(e *EuroPi) {

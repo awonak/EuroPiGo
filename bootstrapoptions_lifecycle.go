@@ -109,7 +109,7 @@ func BootstrapCompleted(fn BootstrapCompletedFunc) BootstrapOption {
 // operating state.
 func AppStart(fn AppStartFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
-		o.onAppStartFn = fn
+		o.appConfig.onAppStartFn = fn
 		return nil
 	}
 }
@@ -122,7 +122,7 @@ func AppMainLoop(fn AppMainLoopFunc) BootstrapOption {
 		if fn == nil {
 			return errors.New("a valid main loop function must be specified")
 		}
-		o.onAppMainLoopFn = fn
+		o.appConfig.onAppMainLoopFn = fn
 		return nil
 	}
 }
@@ -131,7 +131,7 @@ func AppMainLoop(fn AppMainLoopFunc) BootstrapOption {
 // destruction processing is performed.
 func AppEnd(fn AppEndFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
-		o.onAppEndFn = fn
+		o.appConfig.onAppEndFn = fn
 		return nil
 	}
 }

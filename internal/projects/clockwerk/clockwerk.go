@@ -227,7 +227,7 @@ func (c *Clockwerk) updateDisplay() {
 
 var app Clockwerk
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	app.EuroPi = e
 	app.clocks = DefaultFactor
 	app.displayShouldUpdate = true
@@ -288,7 +288,7 @@ func mainLoop() {
 }
 
 func main() {
-	startLoop(europi.New())
+	appStart(europi.New())
 
 	// Check for clock updates every 2 seconds.
 	ticker := time.NewTicker(ResetDelay)

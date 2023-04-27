@@ -9,19 +9,41 @@ import (
 	"github.com/awonak/EuroPiGo/internal/projects/clockgenerator/screen"
 )
 
-var (
-	clock      module.ClockGenerator
-	ui         *screenbank.ScreenBank
-	screenMain = screen.Main{
-		Clock: &clock,
-	}
-	screenSettings = screen.Settings{
-		Clock: &clock,
-	}
-)
+type application struct {
+	clock *module.ClockGenerator
 
-func appStart(e *europi.EuroPi) {
-	if err := clock.Init(module.Config{
+	ui             *screenbank.ScreenBank
+	screenMain     screen.Main
+	screenSettings screen.Settings
+}
+
+func newApplication() (*application, error) {
+	clock := &module.ClockGenerator{}
+	app := &application{
+		clock: clock,
+
+		screenMain: screen.Main{
+			Clock: clock,
+		},
+		screenSettings: screen.Settings{
+			Clock: clock,
+		},
+	}
+
+	var err error
+	app.ui, err = screenbank.NewScreenBank(
+		screenbank.WithScreen("main", "\u2b50", &app.screenMain),
+		screenbank.WithScreen("settings", "\u2611", &app.screenSettings),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+func (app *application) Start(e *europi.EuroPi) {
+	if err := app.clock.Init(module.Config{
 		BPM:          120.0,
 		GateDuration: time.Millisecond * 100,
 		Enabled:      true,
@@ -38,16 +60,12 @@ func appStart(e *europi.EuroPi) {
 	}
 }
 
-func mainLoop(e *europi.EuroPi, deltaTime time.Duration) {
-	clock.Tick(deltaTime)
+func (app *application) MainLoop(e *europi.EuroPi, deltaTime time.Duration) {
+	app.clock.Tick(deltaTime)
 }
 
 func main() {
-	var err error
-	ui, err = screenbank.NewScreenBank(
-		screenbank.WithScreen("main", "\u2b50", &screenMain),
-		screenbank.WithScreen("settings", "\u2611", &screenSettings),
-	)
+	app, err := newApplication()
 	if err != nil {
 		panic(err)
 	}
@@ -57,11 +75,14 @@ func main() {
 	if err := europi.Bootstrap(
 		europi.EnableDisplayLogger(false),
 		europi.InitRandom(true),
-		europi.AppStart(appStart),
-		europi.AppMainLoop(mainLoop),
-		europi.AppMainLoopInterval(time.Millisecond*1),
-		europi.UI(ui),
-		europi.UIRefreshRate(time.Millisecond*50),
+		europi.App(
+			app,
+			europi.AppMainLoopInterval(time.Millisecond*1),
+		),
+		europi.UI(
+			app.ui,
+			europi.UIRefreshRate(time.Millisecond*50),
+		),
 	); err != nil {
 		panic(err)
 	}

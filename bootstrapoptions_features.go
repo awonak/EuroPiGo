@@ -2,23 +2,7 @@ package europi
 
 import (
 	"errors"
-	"time"
 )
-
-const (
-	DefaultAppMainLoopInterval time.Duration = time.Millisecond * 100
-)
-
-// AppMainLoopInterval sets the interval between calls to the configured app main loop function
-func AppMainLoopInterval(interval time.Duration) BootstrapOption {
-	return func(o *bootstrapConfig) error {
-		if interval < 0 {
-			return errors.New("interval must be greater than or equal to 0")
-		}
-		o.appMainLoopInterval = interval
-		return nil
-	}
-}
 
 const (
 	DefaultEnableDisplayLogger bool = false
