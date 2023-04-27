@@ -11,7 +11,7 @@ import (
 func init() {
 	hardware.OnRevisionDetected <- func(revision hal.Revision) {
 		switch revision {
-		case hal.RevisionUnknown:
+		case hal.RevisionUnknown, hal.EuroPiProto:
 			DefaultPanicHandler = handlePanicLogger
 		default:
 			DefaultPanicHandler = handlePanicDisplayCrash
