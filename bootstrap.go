@@ -16,7 +16,7 @@ var (
 // Bootstrap will set up a global runtime environment (see europi.Pi)
 func Bootstrap(options ...BootstrapOption) error {
 	config := bootstrapConfig{
-		mainLoopInterval:    DefaultMainLoopInterval,
+		appMainLoopInterval: DefaultAppMainLoopInterval,
 		panicHandler:        DefaultPanicHandler,
 		enableDisplayLogger: DefaultEnableDisplayLogger,
 		initRandom:          DefaultInitRandom,
@@ -26,9 +26,9 @@ func Bootstrap(options ...BootstrapOption) error {
 		onPreInitializeComponentsFn:   nil,
 		onPostInitializeComponentsFn:  nil,
 		onBootstrapCompletedFn:        DefaultBootstrapCompleted,
-		onStartLoopFn:                 nil,
-		onMainLoopFn:                  DefaultMainLoop,
-		onEndLoopFn:                   nil,
+		onAppStartFn:                  nil,
+		onAppMainLoopFn:               DefaultMainLoop,
+		onAppEndFn:                    nil,
 		onBeginDestroyFn:              nil,
 		onFinishDestroyFn:             nil,
 	}
@@ -128,31 +128,31 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 }
 
 func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
-	if config.onStartLoopFn != nil {
-		config.onStartLoopFn(e)
+	if config.onAppStartFn != nil {
+		config.onAppStartFn(e)
 	}
 
 	startUI(e)
 
 	ForceRepaintUI(e)
 
-	if config.mainLoopInterval > 0 {
+	if config.appMainLoopInterval > 0 {
 		bootstrapRunLoopWithDelay(config, e)
 	} else {
 		bootstrapRunLoopNoDelay(config, e)
 	}
 
-	if config.onEndLoopFn != nil {
-		config.onEndLoopFn(e)
+	if config.onAppEndFn != nil {
+		config.onAppEndFn(e)
 	}
 }
 
 func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
-	if config.onMainLoopFn == nil {
+	if config.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
 
-	ticker := time.NewTicker(config.mainLoopInterval)
+	ticker := time.NewTicker(config.appMainLoopInterval)
 	defer ticker.Stop()
 
 	lastTick := time.Now()
@@ -162,14 +162,14 @@ func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
 			panic(reason)
 
 		case now := <-ticker.C:
-			config.onMainLoopFn(e, now.Sub(lastTick))
+			config.onAppMainLoopFn(e, now.Sub(lastTick))
 			lastTick = now
 		}
 	}
 }
 
 func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
-	if config.onMainLoopFn == nil {
+	if config.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
 
@@ -181,7 +181,7 @@ func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
 
 		default:
 			now := time.Now()
-			config.onMainLoopFn(e, now.Sub(lastTick))
+			config.onAppMainLoopFn(e, now.Sub(lastTick))
 			lastTick = now
 		}
 	}

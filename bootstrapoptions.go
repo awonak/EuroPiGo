@@ -8,7 +8,7 @@ import (
 type BootstrapOption func(o *bootstrapConfig) error
 
 type bootstrapConfig struct {
-	mainLoopInterval       time.Duration
+	appMainLoopInterval    time.Duration
 	panicHandler           func(e *EuroPi, reason any)
 	enableDisplayLogger    bool
 	initRandom             bool
@@ -24,9 +24,9 @@ type bootstrapConfig struct {
 	onPreInitializeComponentsFn   PreInitializeComponentsFunc
 	onPostInitializeComponentsFn  PostInitializeComponentsFunc
 	onBootstrapCompletedFn        BootstrapCompletedFunc
-	onStartLoopFn                 StartLoopFunc
-	onMainLoopFn                  MainLoopFunc
-	onEndLoopFn                   EndLoopFunc
+	onAppStartFn                  AppStartFunc
+	onAppMainLoopFn               AppMainLoopFunc
+	onAppEndFn                    AppEndFunc
 	onBeginDestroyFn              BeginDestroyFunc
 	onFinishDestroyFn             FinishDestroyFunc
 }

@@ -6,16 +6,16 @@ import (
 )
 
 const (
-	DefaultMainLoopInterval time.Duration = time.Millisecond * 100
+	DefaultAppMainLoopInterval time.Duration = time.Millisecond * 100
 )
 
-// MainLoopInterval sets the interval between calls to the configured main loop function
-func MainLoopInterval(interval time.Duration) BootstrapOption {
+// AppMainLoopInterval sets the interval between calls to the configured app main loop function
+func AppMainLoopInterval(interval time.Duration) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		if interval < 0 {
 			return errors.New("interval must be greater than or equal to 0")
 		}
-		o.mainLoopInterval = interval
+		o.appMainLoopInterval = interval
 		return nil
 	}
 }

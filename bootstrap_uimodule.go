@@ -9,6 +9,11 @@ import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
+// LongPressDuration is the amount of time a button is in a held/pressed state before
+// it is considered to be a 'long' press.
+// TODO: This is eventually intended to be a persisted setting, configurable by the user.
+const LongPressDuration = time.Millisecond * 650
+
 type uiModule struct {
 	screen      UserInterface
 	logoPainter UserInterfaceLogoPainter
@@ -172,12 +177,10 @@ func (u *uiModule) setupButton(e *EuroPi, btn hal.ButtonInput, onShort func(e *E
 		}
 	}
 
-	const longDuration = time.Millisecond * 650
-
 	btn.HandlerEx(hal.ChangeAny, func(value bool, deltaTime time.Duration) {
 		if value {
 			onShort(e, value, deltaTime)
-		} else if deltaTime < longDuration {
+		} else if deltaTime < LongPressDuration {
 			onShort(e, value, deltaTime)
 		} else {
 			onLong(e, deltaTime)

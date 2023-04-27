@@ -30,18 +30,18 @@ Callback: BootstrapCompleted
 Bootstrap: runLoop
 		|
 		V
-	Callback: StartLoop
+	Callback: AppStart
 		|
 		V
-	Callback(on tick): MainLoop
+	Callback(on tick): AppMainLoop
 		|
 		V
-	Callback: EndLoop
+	Callback: AppEnd
 		|
 		V
 Bootstrap: destroyBootstrap
-    |
-	V
+	    |
+		V
 	Callback: BeginDestroy
 		|
 		V
@@ -53,15 +53,16 @@ type (
 	PreInitializeComponentsFunc   func(e *EuroPi)
 	PostInitializeComponentsFunc  func(e *EuroPi)
 	BootstrapCompletedFunc        func(e *EuroPi)
-	StartLoopFunc                 func(e *EuroPi)
-	MainLoopFunc                  func(e *EuroPi, deltaTime time.Duration)
-	EndLoopFunc                   func(e *EuroPi)
+	AppStartFunc                  func(e *EuroPi)
+	AppMainLoopFunc               func(e *EuroPi, deltaTime time.Duration)
+	AppEndFunc                    func(e *EuroPi)
 	BeginDestroyFunc              func(e *EuroPi, reason any)
 	FinishDestroyFunc             func(e *EuroPi)
 )
 
-// PostBootstrapConstruction runs immediately after primary EuroPi bootstrap has finished,
-// but before components have been initialized
+// PostBootstrapConstruction sets the function that runs immediately after primary EuroPi bootstrap
+// has finished, but before components have been initialized. Nearly none of the functionality of
+// the bootstrap is ready or configured at this point.
 func PostBootstrapConstruction(fn PostBootstrapConstructionFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onPostBootstrapConstructionFn = fn
@@ -69,6 +70,9 @@ func PostBootstrapConstruction(fn PostBootstrapConstructionFunc) BootstrapOption
 	}
 }
 
+// PreInitializeComponents sets the function that recevies notification of when components of the
+// bootstrap are about to start their initialization phase and the bootstrap is getting ready.
+// Most operational functionality of the bootstrap is definitely not configured at this point.
 func PreInitializeComponents(fn PreInitializeComponentsFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onPreInitializeComponentsFn = fn
@@ -76,6 +80,9 @@ func PreInitializeComponents(fn PreInitializeComponentsFunc) BootstrapOption {
 	}
 }
 
+// PostInitializeComponents sets the function that recevies notification of when components of the
+// bootstrap have completed their initialization phase and the bootstrap is nearly ready for full
+// operation. Some operational functionality of the bootstrap might not be configured at this point.
 func PostInitializeComponents(fn PostInitializeComponentsFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onPostInitializeComponentsFn = fn
@@ -83,6 +90,9 @@ func PostInitializeComponents(fn PostInitializeComponentsFunc) BootstrapOption {
 	}
 }
 
+// BootstrapCompleted sets the function that receives notification of critical bootstrap
+// operations being complete - this is the first point where functions within the bootstrap
+// may be used without fear of there being an incomplete operating state.
 func BootstrapCompleted(fn BootstrapCompletedFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onBootstrapCompletedFn = fn
@@ -90,33 +100,48 @@ func BootstrapCompleted(fn BootstrapCompletedFunc) BootstrapOption {
 	}
 }
 
-func StartLoop(fn StartLoopFunc) BootstrapOption {
+// TODO: consider secondary bootloader support functionality here once internal flash support
+// becomes a reality.
+
+// AppStart sets the application function to be called before the main operating loop
+// processing begins. At this point, the bootstrap configuration has completed and
+// all bootstrap functionality may be used without fear of there being an incomplete
+// operating state.
+func AppStart(fn AppStartFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
-		o.onStartLoopFn = fn
+		o.onAppStartFn = fn
 		return nil
 	}
 }
 
-// MainLoop sets the main loop function to be called on interval.
-// nil is not allowed - if you want to set the default, either do not specify a MainLoop() option
+// AppMainLoop sets the application main loop function to be called on interval.
+// nil is not allowed - if you want to set the default, either do not specify a AppMainLoop() option
 // or specify europi.DefaultMainLoop
-func MainLoop(fn MainLoopFunc) BootstrapOption {
+func AppMainLoop(fn AppMainLoopFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		if fn == nil {
 			return errors.New("a valid main loop function must be specified")
 		}
-		o.onMainLoopFn = fn
+		o.onAppMainLoopFn = fn
 		return nil
 	}
 }
 
-func EndLoop(fn EndLoopFunc) BootstrapOption {
+// AppEnd sets the application function that's called right before the bootstrap
+// destruction processing is performed.
+func AppEnd(fn AppEndFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
-		o.onEndLoopFn = fn
+		o.onAppEndFn = fn
 		return nil
 	}
 }
 
+// BeginDestroy sets the function that receives the notification of shutdown of the bootstrap and
+// is also the first stop within the `panic()` handler functionality. If the `reason` parameter
+// is non-nil, then a critical failure has been detected and the bootstrap is in the last stages of
+// complete destruction. If it is nil, then it can be assumed that proper functionality of the
+// bootstrap is still available, but heading towards the last steps of unavailability once the
+// function exits.
 func BeginDestroy(fn BeginDestroyFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onBeginDestroyFn = fn
@@ -124,6 +149,8 @@ func BeginDestroy(fn BeginDestroyFunc) BootstrapOption {
 	}
 }
 
+// FinishDestroy sets the function that receives the final notification of shutdown of the bootstrap.
+// The entire bootstrap is disabled, all timers, queues, and components are considered deactivated.
 func FinishDestroy(fn FinishDestroyFunc) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.onFinishDestroyFn = fn

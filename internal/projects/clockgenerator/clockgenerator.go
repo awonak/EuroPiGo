@@ -20,7 +20,7 @@ var (
 	}
 )
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	if err := clock.Init(module.Config{
 		BPM:          120.0,
 		GateDuration: time.Millisecond * 100,
@@ -57,9 +57,9 @@ func main() {
 	if err := europi.Bootstrap(
 		europi.EnableDisplayLogger(false),
 		europi.InitRandom(true),
-		europi.StartLoop(startLoop),
-		europi.MainLoop(mainLoop),
-		europi.MainLoopInterval(time.Millisecond*1),
+		europi.AppStart(appStart),
+		europi.AppMainLoop(mainLoop),
+		europi.AppMainLoopInterval(time.Millisecond*1),
 		europi.UI(ui),
 		europi.UIRefreshRate(time.Millisecond*50),
 	); err != nil {

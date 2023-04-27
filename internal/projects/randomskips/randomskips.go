@@ -39,7 +39,7 @@ func makeGate(out hal.VoltageOutput) func(value bool) {
 	}
 }
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	if err := skip.Init(module.Config{
 		Gate:   makeGate(e.CV1),
 		Chance: 0.5,
@@ -81,9 +81,9 @@ func main() {
 	if err := europi.Bootstrap(
 		europi.EnableDisplayLogger(false),
 		europi.InitRandom(true),
-		europi.StartLoop(startLoop),
-		europi.MainLoop(mainLoop),
-		europi.MainLoopInterval(time.Millisecond*1),
+		europi.AppStart(appStart),
+		europi.AppMainLoop(mainLoop),
+		europi.AppMainLoopInterval(time.Millisecond*1),
 		europi.UI(ui),
 		europi.UIRefreshRate(time.Millisecond*50),
 	); err != nil {
