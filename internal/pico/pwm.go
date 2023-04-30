@@ -10,6 +10,7 @@ import (
 	"runtime/interrupt"
 	"runtime/volatile"
 
+	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
@@ -19,6 +20,7 @@ type picoPwm struct {
 	pin machine.Pin
 	ch  uint8
 	v   uint32
+	cal envelope.Map[float32, uint16]
 }
 
 // pwmGroup is an interface for interacting with a machine.pwmGroup
@@ -36,6 +38,16 @@ func newPicoPwm(pwm pwmGroup, pin machine.Pin) rev1.PWMProvider {
 	p := &picoPwm{
 		pwm: pwm,
 		pin: pin,
+		cal: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
+			{
+				Input:  rev1.MinOutputVoltage,
+				Output: rev1.CalibratedTop,
+			},
+			{
+				Input:  rev1.MaxOutputVoltage,
+				Output: rev1.CalibratedOffset,
+			},
+		}),
 	}
 	return p
 }
@@ -51,7 +63,11 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 		return fmt.Errorf("pwm Configure error: %w", err)
 	}
 
-	p.pwm.SetTop(uint32(config.Top))
+	if config.Calibration != nil {
+		p.cal = config.Calibration
+	}
+
+	p.pwm.SetTop(uint32(p.cal.OutputMaximum()))
 	ch, err := p.pwm.Channel(p.pin)
 	if err != nil {
 		return fmt.Errorf("pwm Channel error: %w", err)
@@ -61,10 +77,8 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 	return nil
 }
 
-func (p *picoPwm) Set(v float32, ofs uint16) {
-	invertedV := v * float32(p.pwm.Top())
-	// volts := (float32(o.pwm.Top()) - invertedCv) - o.ofs
-	volts := invertedV - float32(ofs)
+func (p *picoPwm) Set(v float32) {
+	volts := p.cal.Remap(v)
 	state := interrupt.Disable()
 	p.pwm.Set(p.ch, uint32(volts))
 	interrupt.Restore(state)
@@ -73,4 +87,12 @@ func (p *picoPwm) Set(v float32, ofs uint16) {
 
 func (p *picoPwm) Get() float32 {
 	return math.Float32frombits(volatile.LoadUint32(&p.v))
+}
+
+func (p *picoPwm) MinVoltage() float32 {
+	return p.cal.InputMinimum()
+}
+
+func (p *picoPwm) MaxVoltage() float32 {
+	return p.cal.InputMaximum()
 }

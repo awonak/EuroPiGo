@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/lerp"
 	"github.com/awonak/EuroPiGo/units"
 )
 
@@ -26,7 +26,7 @@ const (
 type analoginput struct {
 	adc     ADCProvider
 	samples int
-	cal     lerp.Lerper32[uint16]
+	cal     envelope.Map[uint16, float32]
 }
 
 var (
@@ -45,7 +45,16 @@ func newAnalogInput(adc ADCProvider) *analoginput {
 	return &analoginput{
 		adc:     adc,
 		samples: DefaultSamples,
-		cal:     lerp.NewLerp32[uint16](DefaultCalibratedMinAI, DefaultCalibratedMaxAI),
+		cal: envelope.NewMap32([]envelope.MapEntry[uint16, float32]{
+			{
+				Input:  DefaultCalibratedMinAI,
+				Output: MinInputVoltage,
+			},
+			{
+				Input:  DefaultCalibratedMaxAI,
+				Output: MaxInputVoltage,
+			},
+		}),
 	}
 }
 
@@ -55,36 +64,45 @@ func (a *analoginput) Configure(config hal.AnalogInputConfig) error {
 		return errors.New("samples must be non-zero")
 	}
 
-	if config.CalibratedMinAI != 0 || config.CalibratedMaxAI != 0 {
-		if config.CalibratedMinAI == config.CalibratedMaxAI {
-			return errors.New("calibratedminai and calibratedmaxai must be different")
-		} else if config.CalibratedMinAI > config.CalibratedMaxAI {
-			return errors.New("calibtatedminai must be less than calibratedmaxai")
-		}
-		a.cal = lerp.NewLerp32(config.CalibratedMinAI, config.CalibratedMaxAI)
+	if config.Calibration != nil {
+		a.cal = config.Calibration
 	}
 
 	a.samples = config.Samples
 	return nil
 }
 
+// ReadRawVoltage returns the current smoothed value from the analog input device.
+func (a *analoginput) ReadRawVoltage() uint16 {
+	return a.adc.Get(a.samples)
+}
+
 // ReadVoltage returns the current percentage read between 0.0 and 1.0.
 func (a *analoginput) Percent() float32 {
-	return a.cal.InverseLerp(a.adc.Get(a.samples))
+	return a.ReadVoltage() / MaxInputVoltage
 }
 
 // ReadVoltage returns the current read voltage between 0.0 and 10.0 volts.
 func (a *analoginput) ReadVoltage() float32 {
-	// NOTE: if MinInputVoltage ever becomes non-zero, then we need to use a lerp instead
-	return a.Percent() * MaxInputVoltage
+	rawVoltage := a.ReadRawVoltage()
+	return a.cal.Remap(rawVoltage)
 }
 
 // ReadCV returns the current read voltage as a CV value.
 func (a *analoginput) ReadCV() units.CV {
-	// we can't use a.Percent() here, because we might get over 5.0 volts input
-	// just clamp it
 	v := a.ReadVoltage()
+	// CV is ranged over 0.0V .. +5.0V and stores the values as a normalized
+	// version (0.0 .. +1.0), so to convert our input voltage to that, we just
+	// normalize the voltage (divide it by 5) and clamp the result.
 	return clamp.Clamp(units.CV(v/5.0), 0.0, 1.0)
+}
+
+func (a *analoginput) ReadBipolarCV() units.BipolarCV {
+	v := a.ReadVoltage()
+	// BipolarCV is ranged over -5.0V .. +5.0V and stores the values as a normalized
+	// version (-1.0 .. +1.0), so to convert our input voltage to that, we just
+	// normalize the voltage (divide it by 5) and clamp the result.
+	return clamp.Clamp(units.BipolarCV(v/5.0), -1.0, 1.0)
 }
 
 // ReadCV returns the current read voltage as a V/Octave value.
@@ -94,10 +112,10 @@ func (a *analoginput) ReadVOct() units.VOct {
 
 // MinVoltage returns the minimum voltage that that input can ever read by this device
 func (a *analoginput) MinVoltage() float32 {
-	return MinInputVoltage
+	return a.cal.OutputMinimum()
 }
 
 // MaxVoltage returns the maximum voltage that the input can ever read by this device
 func (a *analoginput) MaxVoltage() float32 {
-	return MaxInputVoltage
+	return a.cal.OutputMaximum()
 }

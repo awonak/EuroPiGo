@@ -26,53 +26,39 @@ var (
 // GetHardware returns a EuroPi hardware device based on hardware `id`.
 // a `nil` result means that the hardware was not found or some sort of error occurred.
 func GetHardware[T any](hw hal.HardwareId) T {
+	var t T
 	switch hw {
 	case hal.HardwareIdDigital1Input:
-		t, _ := InputDigital1.(T)
-		return t
+		t, _ = InputDigital1.(T)
 	case hal.HardwareIdAnalog1Input:
-		t, _ := InputAnalog1.(T)
-		return t
+		t, _ = InputAnalog1.(T)
 	case hal.HardwareIdDisplay1Output:
-		t, _ := OutputDisplay1.(T)
-		return t
+		t, _ = OutputDisplay1.(T)
 	case hal.HardwareIdButton1Input:
-		t, _ := InputButton1.(T)
-		return t
+		t, _ = InputButton1.(T)
 	case hal.HardwareIdButton2Input:
-		t, _ := InputButton2.(T)
-		return t
+		t, _ = InputButton2.(T)
 	case hal.HardwareIdKnob1Input:
-		t, _ := InputKnob1.(T)
-		return t
+		t, _ = InputKnob1.(T)
 	case hal.HardwareIdKnob2Input:
-		t, _ := InputKnob2.(T)
-		return t
+		t, _ = InputKnob2.(T)
 	case hal.HardwareIdVoltage1Output:
-		t, _ := OutputVoltage1.(T)
-		return t
+		t, _ = OutputVoltage1.(T)
 	case hal.HardwareIdVoltage2Output:
-		t, _ := OutputVoltage2.(T)
-		return t
+		t, _ = OutputVoltage2.(T)
 	case hal.HardwareIdVoltage3Output:
-		t, _ := OutputVoltage3.(T)
-		return t
+		t, _ = OutputVoltage3.(T)
 	case hal.HardwareIdVoltage4Output:
-		t, _ := OutputVoltage4.(T)
-		return t
+		t, _ = OutputVoltage4.(T)
 	case hal.HardwareIdVoltage5Output:
-		t, _ := OutputVoltage5.(T)
-		return t
+		t, _ = OutputVoltage5.(T)
 	case hal.HardwareIdVoltage6Output:
-		t, _ := OutputVoltage6.(T)
-		return t
+		t, _ = OutputVoltage6.(T)
 	case hal.HardwareIdRandom1Generator:
-		t, _ := DeviceRandomGenerator1.(T)
-		return t
+		t, _ = DeviceRandomGenerator1.(T)
 	default:
-		var none T
-		return none
 	}
+	return t
 }
 
 // Initialize sets up the hardware

@@ -7,8 +7,6 @@ import (
 	"machine"
 	"runtime/interrupt"
 	"sync"
-
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 var (
@@ -19,7 +17,7 @@ type picoAdc struct {
 	adc machine.ADC
 }
 
-func newPicoAdc(pin machine.Pin) rev1.ADCProvider {
+func newPicoAdc(pin machine.Pin) *picoAdc {
 	adcOnce.Do(machine.InitADC)
 
 	adc := &picoAdc{

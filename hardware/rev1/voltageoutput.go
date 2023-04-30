@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/awonak/EuroPiGo/clamp"
+	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/units"
 )
@@ -27,7 +27,6 @@ var defaultPeriod time.Duration = time.Nanosecond * 500
 // voltageoutput is struct for interacting with the CV/VOct voltage output jacks.
 type voltageoutput struct {
 	pwm PWMProvider
-	ofs uint16
 }
 
 var (
@@ -39,8 +38,10 @@ var (
 
 type PWMProvider interface {
 	Configure(config hal.VoltageOutputConfig) error
-	Set(v float32, ofs uint16)
+	Set(v float32)
 	Get() float32
+	MinVoltage() float32
+	MaxVoltage() float32
 }
 
 // NewOutput returns a new Output interface.
@@ -50,8 +51,16 @@ func newVoltageOuput(pwm PWMProvider) hal.VoltageOutput {
 	}
 	err := o.Configure(hal.VoltageOutputConfig{
 		Period: defaultPeriod,
-		Offset: CalibratedOffset,
-		Top:    CalibratedTop,
+		Calibration: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
+			{
+				Input:  MinOutputVoltage,
+				Output: CalibratedTop,
+			},
+			{
+				Input:  MaxOutputVoltage,
+				Output: CalibratedOffset,
+			},
+		}),
 	})
 	if err != nil {
 		panic(fmt.Errorf("configuration error: %v", err.Error()))
@@ -66,19 +75,21 @@ func (o *voltageoutput) Configure(config hal.VoltageOutputConfig) error {
 		return err
 	}
 
-	o.ofs = config.Offset
-
 	return nil
 }
 
 // SetVoltage sets the current output voltage within a range of 0.0 to 10.0.
 func (o *voltageoutput) SetVoltage(v float32) {
-	v = clamp.Clamp(v, MinOutputVoltage, MaxOutputVoltage)
-	o.pwm.Set(v/MaxOutputVoltage, o.ofs)
+	o.pwm.Set(v)
 }
 
 // SetCV sets the current output voltage based on a CV value
 func (o *voltageoutput) SetCV(cv units.CV) {
+	o.SetVoltage(cv.ToVolts())
+}
+
+// SetBipolarCV sets the current output voltage based on a BipolarCV value
+func (o *voltageoutput) SetBipolarCV(cv units.BipolarCV) {
 	o.SetVoltage(cv.ToVolts())
 }
 
@@ -89,15 +100,15 @@ func (o *voltageoutput) SetVOct(voct units.VOct) {
 
 // Voltage returns the current voltage
 func (o *voltageoutput) Voltage() float32 {
-	return o.pwm.Get() * MaxOutputVoltage
+	return o.pwm.Get()
 }
 
 // MinVoltage returns the minimum voltage this device will output
 func (o *voltageoutput) MinVoltage() float32 {
-	return MinOutputVoltage
+	return o.pwm.MinVoltage()
 }
 
 // MaxVoltage returns the maximum voltage this device will output
 func (o *voltageoutput) MaxVoltage() float32 {
-	return MaxOutputVoltage
+	return o.pwm.MaxVoltage()
 }

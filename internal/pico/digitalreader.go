@@ -8,14 +8,13 @@ import (
 	"runtime/interrupt"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type picoDigitalReader struct {
 	pin machine.Pin
 }
 
-func newPicoDigitalReader(pin machine.Pin) rev1.DigitalReaderProvider {
+func newPicoDigitalReader(pin machine.Pin) *picoDigitalReader {
 	dr := &picoDigitalReader{
 		pin: pin,
 	}
