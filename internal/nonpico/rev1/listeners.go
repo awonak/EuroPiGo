@@ -18,6 +18,30 @@ var (
 	bus = event.NewBus()
 )
 
+func setupDefaultState() {
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdDigital1Input), common.HwMessageDigitalValue{
+		Value: false,
+	})
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdAnalog1Input), common.HwMessageADCValue{
+		Value: rev1.DefaultCalibratedMaxAI,
+	})
+
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdButton1Input), common.HwMessageDigitalValue{
+		Value: false,
+	})
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdButton2Input), common.HwMessageDigitalValue{
+		Value: false,
+	})
+
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdKnob1Input), common.HwMessageADCValue{
+		Value: aiLerp.Lerp(0.5),
+	})
+
+	bus.Post(fmt.Sprintf("hw_value_%d", rev1.HardwareIdKnob2Input), common.HwMessageADCValue{
+		Value: aiLerp.Lerp(0.5),
+	})
+}
+
 func setupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
 	for id := hal.HardwareIdVoltage1Output; id <= hal.HardwareIdVoltage6Output; id++ {
 		fn := func(hid hal.HardwareId) func(common.HwMessagePwmValue) {

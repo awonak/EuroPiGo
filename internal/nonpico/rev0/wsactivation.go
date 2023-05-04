@@ -42,6 +42,9 @@ var nonPicoSiteContent embed.FS
 func (a *WSActivation) Start(ctx context.Context) {
 	a.ctx, a.cancel = context.WithCancel(ctx)
 
+	// initialize default state
+	setupDefaultState()
+
 	go func() {
 		defer a.cancel()
 

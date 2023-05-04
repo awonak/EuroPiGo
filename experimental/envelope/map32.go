@@ -76,13 +76,13 @@ func (m *envMap32[TIn, TOut]) Unmap(value TOut) TIn {
 		if outMin < outMax {
 			if value < outMin {
 				return r.InputMinimum()
-			} else if value < outMax {
+			} else if value <= outMax {
 				return r.Unmap(value)
 			}
 		} else {
 			if value < outMax {
 				return r.InputMinimum()
-			} else if value < outMin {
+			} else if value <= outMin {
 				return r.Unmap(value)
 			}
 		}
