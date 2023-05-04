@@ -6,6 +6,7 @@ type Remapable interface {
 
 type Remapper[TIn, TOut Remapable, F Float] interface {
 	Remap(value TIn) TOut
+	Unmap(value TOut) TIn
 	MCoeff() F
 	InputMinimum() TIn
 	InputMaximum() TIn

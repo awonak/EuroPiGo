@@ -71,10 +71,13 @@ func (m *KnobMenu) Next() {
 	m.kb.Next()
 }
 
-func (m *KnobMenu) Paint(e *europi.EuroPi, deltaTime time.Duration) {
+func (m *KnobMenu) Paint(e europi.Hardware, deltaTime time.Duration) {
 	m.updateMenu(e)
 
-	m.writer.Display = e.Display
+	m.writer.Display = europi.Display(e)
+	if m.writer.Display == nil {
+		return
+	}
 
 	y := m.y
 	selectedIdx := m.kb.CurrentIndex() - 1
@@ -93,7 +96,7 @@ func (m *KnobMenu) Paint(e *europi.EuroPi, deltaTime time.Duration) {
 	}
 }
 
-func (m *KnobMenu) updateMenu(e *europi.EuroPi) {
+func (m *KnobMenu) updateMenu(e europi.Hardware) {
 	cur := m.kb.CurrentName()
 	for _, it := range m.items {
 		if it.name == cur {

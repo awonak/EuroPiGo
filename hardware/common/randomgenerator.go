@@ -1,22 +1,22 @@
-package rev1
+package common
 
 import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
-type randomGenerator struct {
+type RandomGenerator struct {
 	rnd RNDProvider
 }
 
 var (
 	// static check
-	_ hal.RandomGenerator = &randomGenerator{}
+	_ hal.RandomGenerator = (*RandomGenerator)(nil)
 	// silence linter
-	_ = newRandomGenerator
+	_ = NewRandomGenerator
 )
 
-func newRandomGenerator(rnd RNDProvider) hal.RandomGenerator {
-	return &randomGenerator{
+func NewRandomGenerator(rnd RNDProvider) *RandomGenerator {
+	return &RandomGenerator{
 		rnd: rnd,
 	}
 }
@@ -26,7 +26,7 @@ type RNDProvider interface {
 }
 
 // Configure updates the device with various configuration parameters
-func (r *randomGenerator) Configure(config hal.RandomGeneratorConfig) error {
+func (r *RandomGenerator) Configure(config hal.RandomGeneratorConfig) error {
 	if r.rnd != nil {
 		if err := r.rnd.Configure(config); err != nil {
 			return err

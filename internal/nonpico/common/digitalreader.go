@@ -1,14 +1,14 @@
 //go:build !pico
 // +build !pico
 
-package rev1
+package common
 
 import (
 	"fmt"
 
 	"github.com/awonak/EuroPiGo/event"
+	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type nonPicoDigitalReader struct {
@@ -17,13 +17,19 @@ type nonPicoDigitalReader struct {
 	value bool
 }
 
-func newNonPicoDigitalReader(bus event.Bus, id hal.HardwareId) rev1.DigitalReaderProvider {
+var (
+	// static check
+	_ common.DigitalReaderProvider = (*nonPicoDigitalReader)(nil)
+)
+
+func NewNonPicoDigitalReader(bus event.Bus, id hal.HardwareId) *nonPicoDigitalReader {
 	dr := &nonPicoDigitalReader{
-		bus: bus,
-		id:  id,
+		bus:   bus,
+		id:    id,
+		value: true, // start off in high, as that's actually read as low
 	}
 	event.Subscribe(bus, fmt.Sprintf("hw_value_%d", id), func(msg HwMessageDigitalValue) {
-		dr.value = msg.Value
+		dr.value = !msg.Value
 	})
 	return dr
 }

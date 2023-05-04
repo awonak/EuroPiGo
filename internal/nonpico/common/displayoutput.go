@@ -1,15 +1,15 @@
 //go:build !pico
 // +build !pico
 
-package rev1
+package common
 
 import (
 	"fmt"
 	"image/color"
 
 	"github.com/awonak/EuroPiGo/event"
+	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 const (
@@ -24,7 +24,12 @@ type nonPicoDisplayOutput struct {
 	height int16
 }
 
-func newNonPicoDisplayOutput(bus event.Bus, id hal.HardwareId) rev1.DisplayProvider {
+var (
+	// static check
+	_ common.DisplayProvider = (*nonPicoDisplayOutput)(nil)
+)
+
+func NewNonPicoDisplayOutput(bus event.Bus, id hal.HardwareId) *nonPicoDisplayOutput {
 	dp := &nonPicoDisplayOutput{
 		bus:    bus,
 		id:     id,

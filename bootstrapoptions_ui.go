@@ -6,7 +6,7 @@ import (
 )
 
 // UI sets the user interface handler interface
-func UI(ui UserInterface, opts ...BootstrapUIOption) BootstrapOption {
+func UI(ui UserInterface[Hardware], opts ...BootstrapUIOption) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		if ui == nil {
 			return errors.New("ui must not be nil")
@@ -25,7 +25,7 @@ const (
 type BootstrapUIOption func(o *bootstrapUIConfig) error
 
 type bootstrapUIConfig struct {
-	ui            UserInterface
+	ui            UserInterface[Hardware]
 	uiRefreshRate time.Duration
 
 	options []BootstrapUIOption

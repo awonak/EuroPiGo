@@ -14,19 +14,20 @@ import (
 	"strconv"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/internal/nonpico/common"
 	"github.com/awonak/EuroPiGo/internal/nonpico/ws"
 )
 
 type WSActivation struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
-	displayMode displayMode
+	displayMode common.DisplayMode
 }
 
-func ActivateWebSocket() *WSActivation {
+func ActivateWebSocket(ctx context.Context) *WSActivation {
 	a := &WSActivation{}
 
-	a.Start(context.Background())
+	a.Start(ctx)
 
 	return a
 }
@@ -66,7 +67,7 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	dm, _ := strconv.Atoi(q.Get("displayMode"))
-	a.displayMode = displayMode(dm)
+	a.displayMode = common.DisplayMode(dm)
 
 	sock, err := ws.Upgrade(w, r)
 	if err != nil {
@@ -92,15 +93,15 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 		Height: displayHeight,
 		Data:   make([]byte, displayWidth*displayHeight*4),
 	}
-	setupDisplayOutputListener(func(id hal.HardwareId, op HwDisplayOp, params []int16) {
+	setupDisplayOutputListener(func(id hal.HardwareId, op common.HwDisplayOp, params []int16) {
 		switch a.displayMode {
-		case displayModeCombined:
+		case common.DisplayModeCombined:
 			switch op {
-			case HwDisplayOpClearBuffer:
+			case common.HwDisplayOpClearBuffer:
 				for i := range displayScreenOutputMsg.Data {
 					displayScreenOutputMsg.Data[i] = 0
 				}
-			case HwDisplayOpSetPixel:
+			case common.HwDisplayOpSetPixel:
 				y, x := int(params[1]), int(params[0])
 				if y < 0 || y >= displayHeight || x < 0 || x >= displayWidth {
 					break
@@ -110,7 +111,7 @@ func (a *WSActivation) apiHandler(w http.ResponseWriter, r *http.Request) {
 				displayScreenOutputMsg.Data[pos+1] = byte(params[3])
 				displayScreenOutputMsg.Data[pos+2] = byte(params[4])
 				displayScreenOutputMsg.Data[pos+3] = byte(params[5])
-			case HwDisplayOpDisplay:
+			case common.HwDisplayOpDisplay:
 				_ = sock.WriteJSON(displayScreenOutputMsg)
 			default:
 			}

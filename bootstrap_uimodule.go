@@ -15,28 +15,31 @@ import (
 const LongPressDuration = time.Millisecond * 650
 
 type uiModule struct {
-	screen      UserInterface
-	logoPainter UserInterfaceLogoPainter
+	screen      UserInterface[Hardware]
+	logoPainter UserInterfaceLogoPainter[Hardware]
 	repaintCh   chan struct{}
 	stop        context.CancelFunc
 	wg          sync.WaitGroup
 }
 
-func (u *uiModule) setup(e *EuroPi, screen UserInterface) {
+func (u *uiModule) setup(e Hardware, screen UserInterface[Hardware]) {
+	b1 := Button(e, 0)
+	b2 := Button(e, 1)
+
 	ui.screen = screen
 	if ui.screen == nil {
 		return
 	}
 
-	ui.logoPainter, _ = screen.(UserInterfaceLogoPainter)
+	ui.logoPainter, _ = screen.(UserInterfaceLogoPainter[Hardware])
 
 	ui.repaintCh = make(chan struct{}, 1)
 
 	var (
-		inputB1  func(e *EuroPi, value bool, deltaTime time.Duration)
-		inputB1L func(e *EuroPi, deltaTime time.Duration)
+		inputB1  func(e Hardware, value bool, deltaTime time.Duration)
+		inputB1L func(e Hardware, deltaTime time.Duration)
 	)
-	if in, ok := screen.(UserInterfaceButton1); ok {
+	if in, ok := screen.(UserInterfaceButton1[Hardware]); ok {
 		var debounceDelay time.Duration
 		if db, ok := screen.(UserInterfaceButton1Debounce); ok {
 			debounceDelay = db.Button1Debounce()
@@ -46,22 +49,22 @@ func (u *uiModule) setup(e *EuroPi, screen UserInterface) {
 				in.Button1(e, deltaTime)
 			}
 		}).Debounce(debounceDelay)
-		inputB1 = func(e *EuroPi, value bool, deltaTime time.Duration) {
+		inputB1 = func(e Hardware, value bool, deltaTime time.Duration) {
 			inputDB(value)
 		}
-	} else if in, ok := screen.(UserInterfaceButton1Ex); ok {
+	} else if in, ok := screen.(UserInterfaceButton1Ex[Hardware]); ok {
 		inputB1 = in.Button1Ex
 	}
-	if in, ok := screen.(UserInterfaceButton1Long); ok {
+	if in, ok := screen.(UserInterfaceButton1Long[Hardware]); ok {
 		inputB1L = in.Button1Long
 	}
-	ui.setupButton(e, e.B1, inputB1, inputB1L)
+	ui.setupButton(e, b1, inputB1, inputB1L)
 
 	var (
-		inputB2  func(e *EuroPi, value bool, deltaTime time.Duration)
-		inputB2L func(e *EuroPi, deltaTime time.Duration)
+		inputB2  func(e Hardware, value bool, deltaTime time.Duration)
+		inputB2L func(e Hardware, deltaTime time.Duration)
 	)
-	if in, ok := screen.(UserInterfaceButton2); ok {
+	if in, ok := screen.(UserInterfaceButton2[Hardware]); ok {
 		var debounceDelay time.Duration
 		if db, ok := screen.(UserInterfaceButton2Debounce); ok {
 			debounceDelay = db.Button2Debounce()
@@ -71,21 +74,21 @@ func (u *uiModule) setup(e *EuroPi, screen UserInterface) {
 				in.Button2(e, deltaTime)
 			}
 		}).Debounce(debounceDelay)
-		inputB2 = func(e *EuroPi, value bool, deltaTime time.Duration) {
+		inputB2 = func(e Hardware, value bool, deltaTime time.Duration) {
 			inputDB(value)
 		}
-	} else if in, ok := screen.(UserInterfaceButton2Ex); ok {
+	} else if in, ok := screen.(UserInterfaceButton2Ex[Hardware]); ok {
 		inputB2 = in.Button2Ex
 	}
-	if in, ok := screen.(UserInterfaceButton2Long); ok {
+	if in, ok := screen.(UserInterfaceButton2Long[Hardware]); ok {
 		inputB2L = in.Button2Long
 	}
-	ui.setupButton(e, e.B2, inputB2, inputB2L)
+	ui.setupButton(e, b2, inputB2, inputB2L)
 }
 
-func (u *uiModule) start(e *EuroPi, interval time.Duration) {
+func (u *uiModule) start(ctx context.Context, e Hardware, interval time.Duration) {
 	ui.wg.Add(1)
-	go ui.run(e, interval)
+	go ui.run(ctx, e, interval)
 }
 
 func (u *uiModule) wait() {
@@ -110,17 +113,17 @@ func (u *uiModule) shutdown() {
 	ui.wait()
 }
 
-func (u *uiModule) run(e *EuroPi, interval time.Duration) {
+func (u *uiModule) run(ctx context.Context, e Hardware, interval time.Duration) {
 	defer u.wg.Done()
 
-	disp := e.Display
+	disp := Display(e)
 	if disp == nil {
 		// no display means no ui
 		// TODO: make uiModule work when any user input/output is specified, not just display
 		return
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	myCtx, cancel := context.WithCancel(ctx)
 	ui.stop = cancel
 	defer ui.stop()
 
@@ -139,7 +142,7 @@ func (u *uiModule) run(e *EuroPi, interval time.Duration) {
 	lastTime := time.Now()
 	for {
 		select {
-		case <-ctx.Done():
+		case <-myCtx.Done():
 			return
 
 		case <-ui.repaintCh:
@@ -156,7 +159,7 @@ func (u *uiModule) run(e *EuroPi, interval time.Duration) {
 	}
 }
 
-func (u *uiModule) setupButton(e *EuroPi, btn hal.ButtonInput, onShort func(e *EuroPi, value bool, deltaTime time.Duration), onLong func(e *EuroPi, deltaTime time.Duration)) {
+func (u *uiModule) setupButton(e Hardware, btn hal.ButtonInput, onShort func(e Hardware, value bool, deltaTime time.Duration), onLong func(e Hardware, deltaTime time.Duration)) {
 	if btn == nil {
 		return
 	}
@@ -167,12 +170,12 @@ func (u *uiModule) setupButton(e *EuroPi, btn hal.ButtonInput, onShort func(e *E
 
 	if onShort == nil {
 		// no-op
-		onShort = func(e *EuroPi, value bool, deltaTime time.Duration) {}
+		onShort = func(e Hardware, value bool, deltaTime time.Duration) {}
 	}
 
 	// if no long-press handler present, just reuse short-press handler
 	if onLong == nil {
-		onLong = func(e *EuroPi, deltaTime time.Duration) {
+		onLong = func(e Hardware, deltaTime time.Duration) {
 			onShort(e, false, deltaTime)
 		}
 	}

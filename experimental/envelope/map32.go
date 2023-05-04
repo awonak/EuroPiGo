@@ -7,8 +7,9 @@ import (
 )
 
 type envMap32[TIn, TOut lerp.Lerpable] struct {
-	rem    []lerp.Remapper32[TIn, TOut]
-	outMax TOut
+	rem     []remapList[TIn, TOut, float32]
+	outMax  TOut
+	outRoot *remapList[TIn, TOut, float32]
 }
 
 func NewMap32[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TOut] {
@@ -22,22 +23,37 @@ func NewMap32[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TO
 	// ensure it's sorted
 	sort.Sort(p)
 
-	var outMax TOut
-	var rem []lerp.Remapper32[TIn, TOut]
-	if len(p) == 1 {
-		cur := p[0]
-		outMax = cur.Output
-		rem = append(rem, lerp.NewRemapPoint[TIn, TOut, float32](cur.Input, cur.Output))
-	} else {
+	var rem []remapList[TIn, TOut, float32]
+	if len(p) > 1 {
 		for pos := 0; pos < len(p)-1; pos++ {
 			cur, next := p[pos], p[pos+1]
-			outMax = next.Output
-			rem = append(rem, lerp.NewRemap32(cur.Input, next.Input, cur.Output, next.Output))
+			rem = append(rem, remapList[TIn, TOut, float32]{
+				Remapper: lerp.NewRemap32(cur.Input, next.Input, cur.Output, next.Output),
+			})
 		}
 	}
+	last := &p[len(p)-1]
+	rem = append(rem, remapList[TIn, TOut, float32]{
+		Remapper: lerp.NewRemapPoint[TIn, TOut, float32](last.Input, last.Output),
+	})
+
+	outSort := make(MapEntryList[TOut, int], len(rem))
+	for i, e := range rem {
+		outSort[i].Input = e.OutputMinimum()
+		outSort[i].Output = i
+	}
+	sort.Sort(outSort)
+	rootIdx := outSort[0].Output
+	outRoot := &rem[rootIdx]
+	for pos := 0; pos < len(rem)-1; pos++ {
+		cur, next := outSort[pos].Output, outSort[pos+1].Output
+		rem[cur].nextOut = &rem[next]
+	}
+
 	return &envMap32[TIn, TOut]{
-		rem:    rem,
-		outMax: outMax,
+		rem:     rem,
+		outMax:  last.Output,
+		outRoot: outRoot,
 	}
 }
 
@@ -51,6 +67,28 @@ func (m *envMap32[TIn, TOut]) Remap(value TIn) TOut {
 	}
 
 	return m.outMax
+}
+
+func (m *envMap32[TIn, TOut]) Unmap(value TOut) TIn {
+	for r := m.outRoot; r != nil; r = r.nextOut {
+		outMin := r.OutputMinimum()
+		outMax := r.OutputMaximum()
+		if outMin < outMax {
+			if value < outMin {
+				return r.InputMinimum()
+			} else if value < outMax {
+				return r.Unmap(value)
+			}
+		} else {
+			if value < outMax {
+				return r.InputMinimum()
+			} else if value < outMin {
+				return r.Unmap(value)
+			}
+		}
+	}
+
+	return m.InputMaximum()
 }
 
 func (m *envMap32[TIn, TOut]) InputMinimum() TIn {

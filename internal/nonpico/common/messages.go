@@ -1,4 +1,4 @@
-package rev1
+package common
 
 import "github.com/awonak/EuroPiGo/hardware/hal"
 
@@ -19,7 +19,8 @@ type HwMessageInterrupt struct {
 
 // HwMessagePwmValue represents a pulse width modulator value update
 type HwMessagePwmValue struct {
-	Value uint16
+	Value   uint16
+	Voltage float32
 }
 
 // HwMessageDisplay represents a display update.

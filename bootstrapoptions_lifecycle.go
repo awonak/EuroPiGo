@@ -49,15 +49,15 @@ Bootstrap: destroyBootstrap
 */
 
 type (
-	PostBootstrapConstructionFunc func(e *EuroPi)
-	PreInitializeComponentsFunc   func(e *EuroPi)
-	PostInitializeComponentsFunc  func(e *EuroPi)
-	BootstrapCompletedFunc        func(e *EuroPi)
-	AppStartFunc                  func(e *EuroPi)
-	AppMainLoopFunc               func(e *EuroPi, deltaTime time.Duration)
-	AppEndFunc                    func(e *EuroPi)
-	BeginDestroyFunc              func(e *EuroPi, reason any)
-	FinishDestroyFunc             func(e *EuroPi)
+	PostBootstrapConstructionFunc func(e Hardware)
+	PreInitializeComponentsFunc   func(e Hardware)
+	PostInitializeComponentsFunc  func(e Hardware)
+	BootstrapCompletedFunc        func(e Hardware)
+	AppStartFunc                  func(e Hardware)
+	AppMainLoopFunc               func(e Hardware, deltaTime time.Duration)
+	AppEndFunc                    func(e Hardware)
+	BeginDestroyFunc              func(e Hardware, reason any)
+	FinishDestroyFunc             func(e Hardware)
 )
 
 // PostBootstrapConstruction sets the function that runs immediately after primary EuroPi bootstrap

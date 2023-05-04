@@ -12,6 +12,9 @@ import (
 // a `nil` result means that the hardware was not found or some sort of error occurred.
 func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 	switch revision {
+	case hal.Revision0:
+		return rev1.GetHardware[T](id)
+
 	case hal.Revision1:
 		return rev1.GetHardware[T](id)
 

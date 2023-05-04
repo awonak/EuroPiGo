@@ -1,5 +1,5 @@
-//go:build onscreenpanic
-// +build onscreenpanic
+//go:build pico && onscreenpanic
+// +build pico,onscreenpanic
 
 package europi
 

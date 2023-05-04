@@ -18,6 +18,7 @@ type VoltageOutput interface {
 }
 
 type VoltageOutputConfig struct {
-	Period      time.Duration
-	Calibration envelope.Map[float32, uint16]
+	Period          time.Duration
+	PerformWavefold bool
+	Calibration     envelope.Map[float32, uint16]
 }

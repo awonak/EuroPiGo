@@ -9,18 +9,21 @@ import (
 	"math"
 	"runtime/interrupt"
 	"runtime/volatile"
+	"time"
 
 	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
+	"github.com/awonak/EuroPiGo/hardware/rev0"
 )
 
 type picoPwm struct {
-	pwm pwmGroup
-	pin machine.Pin
-	ch  uint8
-	v   uint32
-	cal envelope.Map[float32, uint16]
+	pwm      pwmGroup
+	pin      machine.Pin
+	ch       uint8
+	v        uint32
+	period   time.Duration
+	wavefold bool
+	cal      envelope.Map[float32, uint16]
 }
 
 // pwmGroup is an interface for interacting with a machine.pwmGroup
@@ -34,18 +37,27 @@ type pwmGroup interface {
 	SetPeriod(period uint64) error
 }
 
-func newPicoPwm(pwm pwmGroup, pin machine.Pin) rev1.PWMProvider {
+type picoPwmMode int
+
+const (
+	picoPwmModeAnalogRevision0 = picoPwmMode(iota)
+	picoPwmModeDigitalRevision0
+	picoPwmModeAnalogRevision1
+)
+
+func newPicoPwm(pwm pwmGroup, pin machine.Pin, mode picoPwmMode) *picoPwm {
 	p := &picoPwm{
-		pwm: pwm,
-		pin: pin,
+		pwm:    pwm,
+		pin:    pin,
+		period: rev0.DefaultPWMPeriod,
 		cal: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
 			{
-				Input:  rev1.MinOutputVoltage,
-				Output: rev1.CalibratedTop,
+				Input:  rev0.MinOutputVoltage,
+				Output: rev0.CalibratedTop,
 			},
 			{
-				Input:  rev1.MaxOutputVoltage,
-				Output: rev1.CalibratedOffset,
+				Input:  rev0.MaxOutputVoltage,
+				Output: rev0.CalibratedOffset,
 			},
 		}),
 	}
@@ -56,8 +68,12 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 	state := interrupt.Disable()
 	defer interrupt.Restore(state)
 
+	if config.Period != 0 {
+		p.period = config.Period
+	}
+
 	err := p.pwm.Configure(machine.PWMConfig{
-		Period: uint64(config.Period.Nanoseconds()),
+		Period: uint64(p.period.Nanoseconds()),
 	})
 	if err != nil {
 		return fmt.Errorf("pwm Configure error: %w", err)
@@ -74,10 +90,17 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 	}
 	p.ch = ch
 
+	p.wavefold = config.PerformWavefold
+
 	return nil
 }
 
 func (p *picoPwm) Set(v float32) {
+	if p.wavefold {
+		if v < 0.0 {
+			v = -v
+		}
+	}
 	volts := p.cal.Remap(v)
 	state := interrupt.Disable()
 	p.pwm.Set(p.ch, uint32(volts))

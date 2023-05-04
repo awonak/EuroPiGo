@@ -4,10 +4,10 @@ package europi
 type BootstrapOption func(o *bootstrapConfig) error
 
 type bootstrapConfig struct {
-	panicHandler           func(e *EuroPi, reason any)
+	panicHandler           func(e Hardware, reason any)
 	enableDisplayLogger    bool
 	initRandom             bool
-	europi                 *EuroPi
+	europi                 Hardware
 	enableNonPicoWebSocket bool
 
 	// application

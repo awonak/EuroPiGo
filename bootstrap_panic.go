@@ -12,14 +12,14 @@ import (
 // DefaultPanicHandler is the default handler for panics
 // This will be set by the build flag `onscreenpanic` to `handlePanicOnScreenLog`
 // Not setting the build flag will set it to `handlePanicDisplayCrash`
-var DefaultPanicHandler func(e *EuroPi, reason any)
+var DefaultPanicHandler func(e Hardware, reason any)
 
 var (
 	// silence linter
 	_ = handlePanicOnScreenLog
 )
 
-func handlePanicOnScreenLog(e *EuroPi, reason any) {
+func handlePanicOnScreenLog(e Hardware, reason any) {
 	if e == nil {
 		// can't do anything if it's not enabled
 		return
@@ -36,24 +36,19 @@ func handlePanicOnScreenLog(e *EuroPi, reason any) {
 	os.Exit(1)
 }
 
-func handlePanicLogger(e *EuroPi, reason any) {
+func handlePanicLogger(e Hardware, reason any) {
 	log.Panic(reason)
 }
 
-func handlePanicDisplayCrash(e *EuroPi, reason any) {
-	if e == nil {
-		// can't do anything if it's not enabled
-		return
-	}
-
-	disp := e.Display
-	if disp == nil {
+func handlePanicDisplayCrash(e Hardware, reason any) {
+	display := Display(e)
+	if display == nil {
 		// can't do anything if we don't have a display
 		return
 	}
 
 	// display a diagonal line pattern through the screen to show that the EuroPi is crashed
-	width, height := disp.Size()
+	width, height := display.Size()
 	ymax := height - 1
 	for x := -ymax; x < width; x += 4 {
 		lx, ly := x, int16(0)
@@ -61,6 +56,6 @@ func handlePanicDisplayCrash(e *EuroPi, reason any) {
 			lx = 0
 			ly = -x
 		}
-		tinydraw.Line(e.Display, lx, ly, x+ymax, ymax, draw.White)
+		tinydraw.Line(display, lx, ly, x+ymax, ymax, draw.White)
 	}
 }

@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -8,7 +9,7 @@ import (
 
 var (
 	// Pi is a global EuroPi instance constructed by calling the Bootstrap() function
-	Pi *EuroPi
+	Pi Hardware
 
 	piWantDestroyChan chan any
 )
@@ -77,14 +78,16 @@ func Bootstrap(options ...BootstrapOption) error {
 
 	var (
 		onceBootstrapDestroy sync.Once
-		nonPicoWSApi         nonPicoWSActivation
+		nonPicoWSApi         NonPicoWSActivation
 	)
 	panicHandler := config.panicHandler
 	lastDestroyFunc := config.onBeginDestroyFn
+	ctx, cancel := context.WithCancel(context.TODO())
 	runBootstrapDestroy := func() {
 		reason := recover()
+		cancel()
 		if reason != nil && panicHandler != nil {
-			config.onBeginDestroyFn = func(e *EuroPi, reason any) {
+			config.onBeginDestroyFn = func(e Hardware, reason any) {
 				if lastDestroyFunc != nil {
 					lastDestroyFunc(e, reason)
 				}
@@ -101,7 +104,7 @@ func Bootstrap(options ...BootstrapOption) error {
 		config.onPostBootstrapConstructionFn(e)
 	}
 
-	nonPicoWSApi = bootstrapInitializeComponents(&config, e)
+	nonPicoWSApi = bootstrapInitializeComponents(ctx, &config, e)
 
 	if config.onBootstrapCompletedFn != nil {
 		config.onBootstrapCompletedFn(e)
@@ -121,7 +124,7 @@ func Shutdown(reason any) error {
 	return nil
 }
 
-func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWSActivation {
+func bootstrapInitializeComponents(ctx context.Context, config *bootstrapConfig, e Hardware) NonPicoWSActivation {
 	if config.onPreInitializeComponentsFn != nil {
 		config.onPreInitializeComponentsFn(e)
 	}
@@ -130,9 +133,9 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 		enableDisplayLogger(e)
 	}
 
-	var nonPicoWSApi nonPicoWSActivation
-	if config.enableNonPicoWebSocket && activateNonPicoWebSocket != nil {
-		nonPicoWSApi = activateNonPicoWebSocket(e)
+	var nonPicoWSApi NonPicoWSActivation
+	if config.enableNonPicoWebSocket {
+		nonPicoWSApi = ActivateNonPicoWS(ctx, e)
 	}
 
 	if config.initRandom {
@@ -141,7 +144,7 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 
 	// ui initializaiton is always last
 	if config.uiConfig.ui != nil {
-		enableUI(e, config.uiConfig)
+		enableUI(ctx, e, config.uiConfig)
 	}
 
 	if config.onPostInitializeComponentsFn != nil {
@@ -151,7 +154,7 @@ func bootstrapInitializeComponents(config *bootstrapConfig, e *EuroPi) nonPicoWS
 	return nonPicoWSApi
 }
 
-func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
+func bootstrapRunLoop(config *bootstrapConfig, e Hardware) {
 	if config.appConfig.onAppStartFn != nil {
 		config.appConfig.onAppStartFn(e)
 	}
@@ -171,7 +174,7 @@ func bootstrapRunLoop(config *bootstrapConfig, e *EuroPi) {
 	}
 }
 
-func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
+func bootstrapRunLoopWithDelay(config *bootstrapConfig, e Hardware) {
 	if config.appConfig.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
@@ -192,7 +195,7 @@ func bootstrapRunLoopWithDelay(config *bootstrapConfig, e *EuroPi) {
 	}
 }
 
-func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
+func bootstrapRunLoopNoDelay(config *bootstrapConfig, e Hardware) {
 	if config.appConfig.onAppMainLoopFn == nil {
 		panic(errors.New("no main loop specified"))
 	}
@@ -211,7 +214,7 @@ func bootstrapRunLoopNoDelay(config *bootstrapConfig, e *EuroPi) {
 	}
 }
 
-func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, nonPicoWSApi nonPicoWSActivation, reason any) {
+func bootstrapDestroy(config *bootstrapConfig, e Hardware, nonPicoWSApi NonPicoWSActivation, reason any) {
 	if config.onBeginDestroyFn != nil {
 		config.onBeginDestroyFn(e, reason)
 	}
@@ -226,9 +229,9 @@ func bootstrapDestroy(config *bootstrapConfig, e *EuroPi, nonPicoWSApi nonPicoWS
 
 	uninitRandom(e)
 
-	if e != nil && e.Display != nil {
+	if display := Display(e); display != nil {
 		// show the last buffer
-		_ = e.Display.Display()
+		_ = display.Display()
 	}
 
 	close(piWantDestroyChan)

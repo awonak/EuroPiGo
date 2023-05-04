@@ -1,4 +1,4 @@
-package rev1
+package common
 
 import (
 	"image/color"
@@ -6,16 +6,16 @@ import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
-// displayoutput is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.
-type displayoutput struct {
+// DisplayOutput is a wrapper around `ssd1306.Device` for drawing graphics and text to the OLED.
+type DisplayOutput struct {
 	dp DisplayProvider
 }
 
 var (
 	// static check
-	_ hal.DisplayOutput = &displayoutput{}
+	_ hal.DisplayOutput = (*DisplayOutput)(nil)
 	// silence linter
-	_ = newDisplayOutput
+	_ = NewDisplayOutput
 )
 
 type DisplayProvider interface {
@@ -25,35 +25,38 @@ type DisplayProvider interface {
 	Display() error
 }
 
-// newDisplayOutput returns a new Display struct.
-func newDisplayOutput(dp DisplayProvider) hal.DisplayOutput {
-	return &displayoutput{
+// NewDisplayOutput returns a new Display struct.
+func NewDisplayOutput(dp DisplayProvider) *DisplayOutput {
+	if dp == nil {
+		return nil
+	}
+	return &DisplayOutput{
 		dp: dp,
 	}
 }
 
 // Configure updates the device with various configuration parameters
-func (d *displayoutput) Configure(config hal.DisplayOutputConfig) error {
+func (d *DisplayOutput) Configure(config hal.DisplayOutputConfig) error {
 	return nil
 }
 
 // ClearBuffer clears the internal display buffer for the device
-func (d *displayoutput) ClearBuffer() {
+func (d *DisplayOutput) ClearBuffer() {
 	d.dp.ClearBuffer()
 }
 
 // Size returns the display resolution for the device
-func (d *displayoutput) Size() (x, y int16) {
+func (d *DisplayOutput) Size() (x, y int16) {
 	return d.dp.Size()
 }
 
 // SetPixel sets a specific pixel at coordinates (`x`,`y`) to color `c`.
-func (d *displayoutput) SetPixel(x, y int16, c color.RGBA) {
+func (d *DisplayOutput) SetPixel(x, y int16, c color.RGBA) {
 	d.dp.SetPixel(x, y, c)
 }
 
 // Display commits the internal buffer to the display device.
 // This will update the physical content displayed on the device.
-func (d *displayoutput) Display() error {
+func (d *DisplayOutput) Display() error {
 	return d.dp.Display()
 }

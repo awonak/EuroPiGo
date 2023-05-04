@@ -1,25 +1,36 @@
 package rev1
 
 import (
-	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
+	"github.com/awonak/EuroPiGo/internal/nonpico/common"
 )
 
 func DoInit() {
+	cvCalMap := envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
+		{
+			Input:  rev1.MinOutputVoltage,
+			Output: rev1.CalibratedTop,
+		},
+		{
+			Input:  rev1.MaxOutputVoltage,
+			Output: rev1.CalibratedOffset,
+		},
+	})
 	rev1.Initialize(rev1.InitializationParameters{
-		InputDigital1:          newNonPicoDigitalReader(bus, hal.HardwareIdDigital1Input),
-		InputAnalog1:           newNonPicoAdc(bus, hal.HardwareIdAnalog1Input),
-		OutputDisplay1:         newNonPicoDisplayOutput(bus, hal.HardwareIdDisplay1Output),
-		InputButton1:           newNonPicoDigitalReader(bus, hal.HardwareIdButton1Input),
-		InputButton2:           newNonPicoDigitalReader(bus, hal.HardwareIdButton2Input),
-		InputKnob1:             newNonPicoAdc(bus, hal.HardwareIdKnob1Input),
-		InputKnob2:             newNonPicoAdc(bus, hal.HardwareIdKnob2Input),
-		OutputVoltage1:         newNonPicoPwm(bus, hal.HardwareIdVoltage1Output),
-		OutputVoltage2:         newNonPicoPwm(bus, hal.HardwareIdVoltage2Output),
-		OutputVoltage3:         newNonPicoPwm(bus, hal.HardwareIdVoltage3Output),
-		OutputVoltage4:         newNonPicoPwm(bus, hal.HardwareIdVoltage4Output),
-		OutputVoltage5:         newNonPicoPwm(bus, hal.HardwareIdVoltage5Output),
-		OutputVoltage6:         newNonPicoPwm(bus, hal.HardwareIdVoltage6Output),
+		InputDigital1:          common.NewNonPicoDigitalReader(bus, rev1.HardwareIdDigital1Input),
+		InputAnalog1:           common.NewNonPicoAdc(bus, rev1.HardwareIdAnalog1Input),
+		OutputDisplay1:         common.NewNonPicoDisplayOutput(bus, rev1.HardwareIdDisplay1Output),
+		InputButton1:           common.NewNonPicoDigitalReader(bus, rev1.HardwareIdButton1Input),
+		InputButton2:           common.NewNonPicoDigitalReader(bus, rev1.HardwareIdButton2Input),
+		InputKnob1:             common.NewNonPicoAdc(bus, rev1.HardwareIdKnob1Input),
+		InputKnob2:             common.NewNonPicoAdc(bus, rev1.HardwareIdKnob2Input),
+		OutputVoltage1:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV1Output, cvCalMap),
+		OutputVoltage2:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV2Output, cvCalMap),
+		OutputVoltage3:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV3Output, cvCalMap),
+		OutputVoltage4:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV4Output, cvCalMap),
+		OutputVoltage5:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV5Output, cvCalMap),
+		OutputVoltage6:         common.NewNonPicoPwm(bus, rev1.HardwareIdCV6Output, cvCalMap),
 		DeviceRandomGenerator1: nil,
 	})
 }

@@ -3,14 +3,18 @@
 
 package europi
 
-import "github.com/awonak/EuroPiGo/internal/nonpico"
+import (
+	"context"
 
-func nonPicoActivateWebSocket(e *EuroPi) nonPicoWSActivation {
-	nonPicoWSApi := nonpico.ActivateWebSocket(e.Revision)
+	"github.com/awonak/EuroPiGo/internal/nonpico"
+)
+
+func nonPicoActivateWebSocket(ctx context.Context, e Hardware) NonPicoWSActivation {
+	nonPicoWSApi := nonpico.ActivateWebSocket(ctx, e.Revision())
 	return nonPicoWSApi
 }
 
-func nonPicoDeactivateWebSocket(e *EuroPi, nonPicoWSApi nonPicoWSActivation) {
+func nonPicoDeactivateWebSocket(e Hardware, nonPicoWSApi NonPicoWSActivation) {
 	if nonPicoWSApi != nil {
 		if err := nonPicoWSApi.Shutdown(); err != nil {
 			panic(err)

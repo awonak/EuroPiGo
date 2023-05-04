@@ -58,6 +58,35 @@ func TestRemapPoint(t *testing.T) {
 		})
 	})
 
+	t.Run("Unmap", func(t *testing.T) {
+		t.Run("InRange", func(t *testing.T) {
+			in, out := 0, float32(math.Pi)
+			l := lerp.NewRemapPoint32(in, out)
+			if expected, actual := in, l.Unmap(out); actual != expected {
+				t.Fatalf("RemapPoint[%v, %v] Remap: expected[%v] actual[%v]", in, out, expected, actual)
+			}
+		})
+
+		t.Run("OutOfRange", func(t *testing.T) {
+			// Unmap() will work just reply with the "in" point when operating out of range
+			t.Run("BelowMin", func(t *testing.T) {
+				in, out := 0, float32(math.Pi)
+				l := lerp.NewRemapPoint32(in, out)
+				if expected, actual := in, l.Unmap(out-2); actual != expected {
+					t.Fatalf("RemapPoint[%v, %v] Remap: expected[%v] actual[%v]", in, out, expected, actual)
+				}
+			})
+
+			t.Run("AboveMax", func(t *testing.T) {
+				in, out := 0, float32(math.Pi)
+				l := lerp.NewRemapPoint32(in, out)
+				if expected, actual := in, l.Unmap(out+2); actual != expected {
+					t.Fatalf("RemapPoint[%v, %v] Remap: expected[%v] actual[%v]", in, out, expected, actual)
+				}
+			})
+		})
+	})
+
 	t.Run("MCoeff", func(t *testing.T) {
 		in, out := 0, float32(math.Pi)
 		l := lerp.NewRemapPoint32(in, out)

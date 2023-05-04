@@ -1,15 +1,15 @@
 //go:build !pico
 // +build !pico
 
-package rev1
+package common
 
 import (
 	"fmt"
 
 	"github.com/awonak/EuroPiGo/event"
 	"github.com/awonak/EuroPiGo/experimental/envelope"
+	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type nonPicoPwm struct {
@@ -19,20 +19,16 @@ type nonPicoPwm struct {
 	v   float32
 }
 
-func newNonPicoPwm(bus event.Bus, id hal.HardwareId) rev1.PWMProvider {
+var (
+	// static check
+	_ common.PWMProvider = (*nonPicoPwm)(nil)
+)
+
+func NewNonPicoPwm(bus event.Bus, id hal.HardwareId, cal envelope.Map[float32, uint16]) *nonPicoPwm {
 	p := &nonPicoPwm{
 		bus: bus,
 		id:  id,
-		cal: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
-			{
-				Input:  rev1.MinOutputVoltage,
-				Output: rev1.CalibratedTop,
-			},
-			{
-				Input:  rev1.MaxOutputVoltage,
-				Output: rev1.CalibratedOffset,
-			},
-		}),
+		cal: cal,
 	}
 	return p
 }
@@ -42,10 +38,11 @@ func (p *nonPicoPwm) Configure(config hal.VoltageOutputConfig) error {
 }
 
 func (p *nonPicoPwm) Set(v float32) {
-	volts := p.cal.Remap(v)
-	p.v = v
+	pulseWidth := p.cal.Remap(v)
+	p.v = p.cal.Unmap(pulseWidth)
 	p.bus.Post(fmt.Sprintf("hw_pwm_%d", p.id), HwMessagePwmValue{
-		Value: uint16(volts),
+		Value:   pulseWidth,
+		Voltage: p.v,
 	})
 }
 

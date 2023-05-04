@@ -1,61 +1,62 @@
 package europi
 
 import (
+	"context"
 	"time"
 )
 
-type UserInterface interface {
-	Start(e *EuroPi)
-	Paint(e *EuroPi, deltaTime time.Duration)
+type UserInterface[THardware Hardware] interface {
+	Start(e THardware)
+	Paint(e THardware, deltaTime time.Duration)
 }
 
-type UserInterfaceLogoPainter interface {
-	PaintLogo(e *EuroPi, deltaTime time.Duration)
+type UserInterfaceLogoPainter[THardware Hardware] interface {
+	PaintLogo(e THardware, deltaTime time.Duration)
 }
 
-type UserInterfaceButton1 interface {
-	Button1(e *EuroPi, deltaTime time.Duration)
+type UserInterfaceButton1[THardware Hardware] interface {
+	Button1(e THardware, deltaTime time.Duration)
 }
 
 type UserInterfaceButton1Debounce interface {
 	Button1Debounce() time.Duration
 }
 
-type UserInterfaceButton1Ex interface {
-	Button1Ex(e *EuroPi, value bool, deltaTime time.Duration)
+type UserInterfaceButton1Ex[THardware Hardware] interface {
+	Button1Ex(e THardware, value bool, deltaTime time.Duration)
 }
 
-type UserInterfaceButton1Long interface {
-	Button1Long(e *EuroPi, deltaTime time.Duration)
+type UserInterfaceButton1Long[THardware Hardware] interface {
+	Button1Long(e THardware, deltaTime time.Duration)
 }
 
-type UserInterfaceButton2 interface {
-	Button2(e *EuroPi, deltaTime time.Duration)
+type UserInterfaceButton2[THardware Hardware] interface {
+	Button2(e THardware, deltaTime time.Duration)
 }
 
 type UserInterfaceButton2Debounce interface {
 	Button2Debounce() time.Duration
 }
 
-type UserInterfaceButton2Ex interface {
-	Button2Ex(e *EuroPi, value bool, deltaTime time.Duration)
+type UserInterfaceButton2Ex[THardware Hardware] interface {
+	Button2Ex(e THardware, value bool, deltaTime time.Duration)
 }
 
-type UserInterfaceButton2Long interface {
-	Button2Long(e *EuroPi, deltaTime time.Duration)
+type UserInterfaceButton2Long[THardware Hardware] interface {
+	Button2Long(e THardware, deltaTime time.Duration)
 }
 
 var (
 	ui uiModule
 )
 
-func enableUI(e *EuroPi, config bootstrapUIConfig) {
+func enableUI(ctx context.Context, e Hardware, config bootstrapUIConfig) {
 	ui.setup(e, config.ui)
 
-	ui.start(e, config.uiRefreshRate)
+	ui.start(ctx, e, config.uiRefreshRate)
 }
 
-func startUI(e *EuroPi) {
+func startUI(e Hardware) {
 	if ui.screen == nil {
 		return
 	}
@@ -64,10 +65,10 @@ func startUI(e *EuroPi) {
 }
 
 // ForceRepaintUI schedules a forced repaint of the UI (if it is configured and running)
-func ForceRepaintUI(e *EuroPi) {
+func ForceRepaintUI(e Hardware) {
 	ui.repaint()
 }
 
-func disableUI(e *EuroPi) {
+func disableUI(e Hardware) {
 	ui.shutdown()
 }

@@ -1,14 +1,14 @@
 //go:build !pico
 // +build !pico
 
-package rev1
+package common
 
 import (
 	"fmt"
 
 	"github.com/awonak/EuroPiGo/event"
+	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type nonPicoAdc struct {
@@ -17,7 +17,12 @@ type nonPicoAdc struct {
 	value uint16
 }
 
-func newNonPicoAdc(bus event.Bus, id hal.HardwareId) rev1.ADCProvider {
+var (
+	// static check
+	_ common.ADCProvider = (*nonPicoAdc)(nil)
+)
+
+func NewNonPicoAdc(bus event.Bus, id hal.HardwareId) *nonPicoAdc {
 	adc := &nonPicoAdc{
 		bus: bus,
 		id:  id,

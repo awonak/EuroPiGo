@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -12,44 +13,57 @@ var (
 	dispLog displaylogger.Logger
 )
 
-func enableDisplayLogger(e *EuroPi) {
+func enableDisplayLogger(e Hardware) {
 	if dispLog != nil {
 		// already enabled - can happen when panicking
 		return
 	}
 
+	display := Display(e)
+	if display == nil {
+		// no display, can't continue
+		return
+	}
+
 	log.SetFlags(0)
-	dispLog = displaylogger.NewLogger(e.Display)
+	dispLog = displaylogger.NewLogger(display)
 	log.SetOutput(dispLog)
 }
 
-func disableDisplayLogger(e *EuroPi) {
+func disableDisplayLogger(e Hardware) {
 	flushDisplayLogger(e)
 	dispLog = nil
 	log.SetOutput(os.Stdout)
 }
 
-func flushDisplayLogger(e *EuroPi) {
+func flushDisplayLogger(e Hardware) {
 	if dispLog != nil {
 		dispLog.Flush()
 	}
 }
 
-func initRandom(e *EuroPi) {
-	if e.RND != nil {
-		_ = e.RND.Configure(hal.RandomGeneratorConfig{})
+func initRandom(e Hardware) {
+	if rnd := e.Random(); rnd != nil {
+		_ = rnd.Configure(hal.RandomGeneratorConfig{})
 	}
 }
 
-func uninitRandom(e *EuroPi) {
+func uninitRandom(e Hardware) {
 }
 
 // used for non-pico testing of bootstrapped europi apps
 var (
-	activateNonPicoWebSocket   func(e *EuroPi) nonPicoWSActivation
-	deactivateNonPicoWebSocket func(e *EuroPi, api nonPicoWSActivation)
+	activateNonPicoWebSocket   func(ctx context.Context, e Hardware) NonPicoWSActivation
+	deactivateNonPicoWebSocket func(e Hardware, api NonPicoWSActivation)
 )
 
-type nonPicoWSActivation interface {
+type NonPicoWSActivation interface {
 	Shutdown() error
+}
+
+func ActivateNonPicoWS(ctx context.Context, e Hardware) NonPicoWSActivation {
+	if activateNonPicoWebSocket == nil {
+		return nil
+	}
+	return activateNonPicoWebSocket(ctx, e)
 }

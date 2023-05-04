@@ -5,6 +5,7 @@ package rev1
 
 import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/internal/nonpico/common"
 )
 
 type voltageOutputMsg struct {
@@ -15,10 +16,10 @@ type voltageOutputMsg struct {
 
 // displayMode = displayModeSeparate (0)
 type displayOutputMsg struct {
-	Kind       string         `json:"kind"`
-	HardwareId hal.HardwareId `json:"hardwareId"`
-	Op         HwDisplayOp    `json:"op"`
-	Params     []int16        `json:"params"`
+	Kind       string             `json:"kind"`
+	HardwareId hal.HardwareId     `json:"hardwareId"`
+	Op         common.HwDisplayOp `json:"op"`
+	Params     []int16            `json:"params"`
 }
 
 // displayMode = displayModeCombined (1)

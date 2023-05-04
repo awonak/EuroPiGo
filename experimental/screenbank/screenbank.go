@@ -42,7 +42,7 @@ func (sb *ScreenBank) CurrentName() string {
 	return sb.bank[sb.current].name
 }
 
-func (sb *ScreenBank) Current() europi.UserInterface {
+func (sb *ScreenBank) Current() *screenBankEntryDetails {
 	if len(sb.bank) == 0 {
 		return nil
 	}
@@ -80,7 +80,7 @@ func (sb *ScreenBank) Next() {
 	sb.transitionTo(sb.current + 1)
 }
 
-func (sb *ScreenBank) Start(e *europi.EuroPi) {
+func (sb *ScreenBank) Start(e europi.Hardware) {
 	for i := range sb.bank {
 		s := &sb.bank[i]
 
@@ -91,21 +91,22 @@ func (sb *ScreenBank) Start(e *europi.EuroPi) {
 	}
 }
 
-func (sb *ScreenBank) PaintLogo(e *europi.EuroPi, deltaTime time.Duration) {
-	if sb.current >= len(sb.bank) {
+func (sb *ScreenBank) PaintLogo(e europi.Hardware, deltaTime time.Duration) {
+	display := europi.Display(e)
+	if sb.current >= len(sb.bank) || display == nil {
 		return
 	}
 
 	cur := &sb.bank[sb.current]
 	cur.lock()
 	if cur.logo != "" {
-		sb.writer.Display = e.Display
+		sb.writer.Display = display
 		sb.writer.WriteLineInverseAligned(cur.logo, 0, 16, draw.White, fontwriter.AlignRight, fontwriter.AlignMiddle)
 	}
 	cur.unlock()
 }
 
-func (sb *ScreenBank) Paint(e *europi.EuroPi, deltaTime time.Duration) {
+func (sb *ScreenBank) Paint(e europi.Hardware, deltaTime time.Duration) {
 	if sb.current >= len(sb.bank) {
 		return
 	}
@@ -118,19 +119,20 @@ func (sb *ScreenBank) Paint(e *europi.EuroPi, deltaTime time.Duration) {
 	cur.unlock()
 }
 
-func (sb *ScreenBank) Button1Ex(e *europi.EuroPi, value bool, deltaTime time.Duration) {
+func (sb *ScreenBank) Button1Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
-	if cur, ok := screen.(europi.UserInterfaceButton1); ok {
+	if cur := screen.UserInterfaceButton1; cur != nil {
 		if !value {
 			cur.Button1(e, deltaTime)
 		}
-	} else if cur, ok := screen.(europi.UserInterfaceButton1Ex); ok {
+	} else if cur := screen.UserInterfaceButton1Ex; cur != nil {
 		cur.Button1Ex(e, value, deltaTime)
 	}
 }
 
-func (sb *ScreenBank) Button1Long(e *europi.EuroPi, deltaTime time.Duration) {
-	if cur, ok := sb.Current().(europi.UserInterfaceButton1Long); ok {
+func (sb *ScreenBank) Button1Long(e europi.Hardware, deltaTime time.Duration) {
+	screen := sb.Current()
+	if cur := screen.UserInterfaceButton1Long; cur != nil {
 		cur.Button1Long(e, deltaTime)
 	} else {
 		// try the short-press
@@ -138,17 +140,17 @@ func (sb *ScreenBank) Button1Long(e *europi.EuroPi, deltaTime time.Duration) {
 	}
 }
 
-func (sb *ScreenBank) Button2Ex(e *europi.EuroPi, value bool, deltaTime time.Duration) {
+func (sb *ScreenBank) Button2Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
-	if cur, ok := screen.(europi.UserInterfaceButton2); ok {
+	if cur := screen.UserInterfaceButton2; cur != nil {
 		if !value {
 			cur.Button2(e, deltaTime)
 		}
-	} else if cur, ok := screen.(europi.UserInterfaceButton2Ex); ok {
+	} else if cur := screen.UserInterfaceButton2Ex; cur != nil {
 		cur.Button2Ex(e, value, deltaTime)
 	}
 }
 
-func (sb *ScreenBank) Button2Long(e *europi.EuroPi, deltaTime time.Duration) {
+func (sb *ScreenBank) Button2Long(e europi.Hardware, deltaTime time.Duration) {
 	sb.Next()
 }

@@ -2,28 +2,32 @@ package europi
 
 import "time"
 
-func DefaultPostBootstrapInitialization(e *EuroPi) {
-	if e.Display == nil {
+func DefaultPostBootstrapInitialization(e Hardware) {
+	display := Display(e)
+	if display == nil {
+		// no display, can't continue
 		return
 	}
 
-	e.Display.ClearBuffer()
-	if err := e.Display.Display(); err != nil {
+	display.ClearBuffer()
+	if err := display.Display(); err != nil {
 		panic(err)
 	}
 }
 
-func DefaultBootstrapCompleted(e *EuroPi) {
-	if e.Display == nil {
+func DefaultBootstrapCompleted(e Hardware) {
+	display := Display(e)
+	if display == nil {
+		// no display, can't continue
 		return
 	}
 
-	e.Display.ClearBuffer()
-	if err := e.Display.Display(); err != nil {
+	display.ClearBuffer()
+	if err := display.Display(); err != nil {
 		panic(err)
 	}
 }
 
 // DefaultMainLoop is the default main loop used if a new one is not specified to Bootstrap()
-func DefaultMainLoop(e *EuroPi, deltaTime time.Duration) {
+func DefaultMainLoop(e Hardware, deltaTime time.Duration) {
 }

@@ -35,7 +35,7 @@ func InitRandom(enabled bool) BootstrapOption {
 }
 
 // UsingEuroPi sets a specific EuroPi object instance for all operations in the bootstrap
-func UsingEuroPi(e *EuroPi) BootstrapOption {
+func UsingEuroPi(e Hardware) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		if e == nil {
 			return errors.New("europi instance must not be nil")

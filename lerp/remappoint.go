@@ -27,6 +27,11 @@ func (r remapPoint[TIn, TOut, TFloat]) Remap(value TIn) TOut {
 	return r.out
 }
 
+func (r remapPoint[TIn, TOut, TFloat]) Unmap(value TOut) TIn {
+	// `value` isn't used here - just return `in`
+	return r.in
+}
+
 func (r remapPoint[TIn, TOut, TFloat]) MCoeff() TFloat {
 	return 0.0
 }

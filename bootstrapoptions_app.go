@@ -5,16 +5,16 @@ import (
 	"time"
 )
 
-type ApplicationStart interface {
-	Start(e *EuroPi)
+type ApplicationStart[THardware Hardware] interface {
+	Start(e THardware)
 }
 
-type ApplicationMainLoop interface {
-	MainLoop(e *EuroPi, deltaTime time.Duration)
+type ApplicationMainLoop[THardware Hardware] interface {
+	MainLoop(e THardware, deltaTime time.Duration)
 }
 
-type ApplicationEnd interface {
-	End(e *EuroPi)
+type ApplicationEnd[THardware Hardware] interface {
+	End(e THardware)
 }
 
 // App sets the application handler interface with optional parameters
@@ -23,23 +23,17 @@ func App(app any, opts ...BootstrapAppOption) BootstrapOption {
 		if app == nil {
 			return errors.New("app must not be nil")
 		}
-		start, _ := app.(ApplicationStart)
-		mainLoop, _ := app.(ApplicationMainLoop)
-		end, _ := app.(ApplicationEnd)
+
+		// automatically divine the functions for the app
+		start, mainLoop, end := getAppFuncs(app)
 
 		if start == nil && mainLoop == nil && end == nil {
 			return errors.New("app must provide at least one application function interface (ApplicationStart, ApplicationMainLoop, ApplicationEnd)")
 		}
 
-		if start != nil {
-			o.appConfig.onAppStartFn = start.Start
-		}
-		if mainLoop != nil {
-			o.appConfig.onAppMainLoopFn = mainLoop.MainLoop
-		}
-		if end != nil {
-			o.appConfig.onAppEndFn = end.End
-		}
+		o.appConfig.onAppStartFn = start
+		o.appConfig.onAppMainLoopFn = mainLoop
+		o.appConfig.onAppEndFn = end
 
 		o.appConfig.options = opts
 		return nil
