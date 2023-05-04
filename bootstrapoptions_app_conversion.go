@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"errors"
 	"time"
 )
 
@@ -81,6 +82,9 @@ func (a *appWrapper[THardware]) ApplicationStart() AppStartFunc {
 
 func (a *appWrapper[THardware]) doStart(e Hardware) {
 	pi, _ := e.(THardware)
+	if any(pi) == nil {
+		panic(errors.New("incorrect hardware type conversion"))
+	}
 	a.start.Start(pi)
 }
 
@@ -93,6 +97,9 @@ func (a *appWrapper[THardware]) ApplicationMainLoop() AppMainLoopFunc {
 
 func (a *appWrapper[THardware]) doMainLoop(e Hardware, deltaTime time.Duration) {
 	pi, _ := e.(THardware)
+	if any(pi) == nil {
+		panic(errors.New("incorrect hardware type conversion"))
+	}
 	a.mainLoop.MainLoop(pi, deltaTime)
 }
 
@@ -104,8 +111,9 @@ func (a *appWrapper[THardware]) ApplicationEnd() AppEndFunc {
 }
 
 func (a *appWrapper[THardware]) doEnd(e Hardware) {
-	if a.end != nil {
-		pi, _ := e.(THardware)
-		a.end.End(pi)
+	pi, _ := e.(THardware)
+	if any(pi) == nil {
+		panic(errors.New("incorrect hardware type conversion"))
 	}
+	a.end.End(pi)
 }
