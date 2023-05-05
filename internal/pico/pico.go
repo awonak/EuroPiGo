@@ -8,25 +8,25 @@ import (
 
 	"github.com/awonak/EuroPiGo/hardware"
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/rev0"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 // EuroPi Prototype
-// Rev0 leverages Rev1 layout and functions
 func initRevision0() {
-	rev1.Initialize(rev1.InitializationParameters{
+	rev0.Initialize(rev0.InitializationParameters{
 		InputButton1:           newPicoDigitalReader(machine.GPIO15),
 		InputButton2:           newPicoDigitalReader(machine.GPIO18),
 		InputKnob1:             newPicoAdc(machine.ADC2),
 		InputKnob2:             newPicoAdc(machine.ADC1),
-		OutputVoltage1:         newPicoPwm(machine.PWM2, machine.GPIO21, picoPwmModeDigitalRevision0),
-		OutputVoltage2:         newPicoPwm(machine.PWM3, machine.GPIO22, picoPwmModeDigitalRevision0),
-		OutputVoltage3:         newPicoPwm(machine.PWM1, machine.GPIO19, picoPwmModeDigitalRevision0),
-		OutputVoltage4:         newPicoPwm(machine.PWM2, machine.GPIO20, picoPwmModeDigitalRevision0),
-		OutputVoltage5:         newPicoPwm(machine.PWM7, machine.GPIO14, picoPwmModeAnalogRevision0),
-		OutputVoltage6:         newPicoPwm(machine.PWM5, machine.GPIO11, picoPwmModeAnalogRevision0),
-		OutputVoltage7:         newPicoPwm(machine.PWM5, machine.GPIO10, picoPwmModeAnalogRevision0),
-		OutputVoltage8:         newPicoPwm(machine.PWM3, machine.GPIO7, picoPwmModeAnalogRevision0),
+		OutputAnalog1:          newPicoPwm(machine.PWM2, machine.GPIO21, picoPwmModeDigitalRevision0),
+		OutputAnalog2:          newPicoPwm(machine.PWM3, machine.GPIO22, picoPwmModeDigitalRevision0),
+		OutputAnalog3:          newPicoPwm(machine.PWM1, machine.GPIO19, picoPwmModeDigitalRevision0),
+		OutputAnalog4:          newPicoPwm(machine.PWM2, machine.GPIO20, picoPwmModeDigitalRevision0),
+		OutputDigital1:         newPicoPwm(machine.PWM7, machine.GPIO14, picoPwmModeAnalogRevision0),
+		OutputDigital2:         newPicoPwm(machine.PWM5, machine.GPIO11, picoPwmModeAnalogRevision0),
+		OutputDigital3:         newPicoPwm(machine.PWM5, machine.GPIO10, picoPwmModeAnalogRevision0),
+		OutputDigital4:         newPicoPwm(machine.PWM3, machine.GPIO7, picoPwmModeAnalogRevision0),
 		DeviceRandomGenerator1: &picoRnd{},
 	})
 }

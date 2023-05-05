@@ -21,6 +21,7 @@ func ActivateWebSocket(ctx context.Context, revision hal.Revision) WSActivation 
 		return rev0.ActivateWebSocket(ctx)
 	case hal.Revision1:
 		return rev1.ActivateWebSocket(ctx)
+	// TODO: add rev2
 	default:
 		return nil
 	}

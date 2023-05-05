@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/rev0"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
@@ -13,14 +14,15 @@ import (
 func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 	switch revision {
 	case hal.Revision0:
-		return rev1.GetHardware[T](id)
+		return rev0.GetHardware[T](id)
 
 	case hal.Revision1:
 		return rev1.GetHardware[T](id)
 
 	case hal.Revision2:
 		// TODO: implement hardware design of rev2
-		return rev1.GetHardware[T](id)
+		//return rev2.GetHardware[T](id)
+		fallthrough
 
 	default:
 		var none T
