@@ -7,7 +7,6 @@ import (
 	"machine"
 	"runtime/interrupt"
 
-	"github.com/awonak/EuroPiGo/hardware"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
@@ -42,6 +41,9 @@ func DetectRevision() hal.Revision {
 	revBits := GetDetectedRevisionBits()
 	switch revBits {
 	case 0: // 0000
+		if rev1AsRev0 {
+			return hal.Revision0
+		}
 		return hal.Revision1
 	case 1: // 0001
 		return hal.Revision2
@@ -50,7 +52,4 @@ func DetectRevision() hal.Revision {
 	}
 }
 
-func init() {
-	rev := DetectRevision()
-	hardware.SetDetectedRevision(rev)
-}
+var rev1AsRev0 bool

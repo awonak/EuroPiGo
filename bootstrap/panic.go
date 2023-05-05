@@ -1,10 +1,11 @@
-package europi
+package bootstrap
 
 import (
 	"fmt"
 	"log"
 	"os"
 
+	europi "github.com/awonak/EuroPiGo"
 	"github.com/awonak/EuroPiGo/experimental/draw"
 	"tinygo.org/x/tinydraw"
 )
@@ -12,14 +13,14 @@ import (
 // DefaultPanicHandler is the default handler for panics
 // This will be set by the build flag `onscreenpanic` to `handlePanicOnScreenLog`
 // Not setting the build flag will set it to `handlePanicDisplayCrash`
-var DefaultPanicHandler func(e Hardware, reason any)
+var DefaultPanicHandler func(e europi.Hardware, reason any)
 
 var (
 	// silence linter
 	_ = handlePanicOnScreenLog
 )
 
-func handlePanicOnScreenLog(e Hardware, reason any) {
+func handlePanicOnScreenLog(e europi.Hardware, reason any) {
 	if e == nil {
 		// can't do anything if it's not enabled
 		return
@@ -36,12 +37,12 @@ func handlePanicOnScreenLog(e Hardware, reason any) {
 	os.Exit(1)
 }
 
-func handlePanicLogger(e Hardware, reason any) {
+func handlePanicLogger(e europi.Hardware, reason any) {
 	log.Panic(reason)
 }
 
-func handlePanicDisplayCrash(e Hardware, reason any) {
-	display := Display(e)
+func handlePanicDisplayCrash(e europi.Hardware, reason any) {
+	display := europi.Display(e)
 	if display == nil {
 		// can't do anything if we don't have a display
 		return

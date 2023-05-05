@@ -46,7 +46,7 @@ func (sb *ScreenBank) Current() *screenBankEntryDetails {
 	if len(sb.bank) == 0 {
 		return nil
 	}
-	return sb.bank[sb.current].screen
+	return &sb.bank[sb.current].screen
 }
 
 func (sb *ScreenBank) transitionTo(idx int) {
@@ -85,7 +85,7 @@ func (sb *ScreenBank) Start(e europi.Hardware) {
 		s := &sb.bank[i]
 
 		s.lock()
-		s.screen.Start(e)
+		s.screen.screen.Start(e)
 		s.lastUpdate = time.Now()
 		s.unlock()
 	}
@@ -114,25 +114,25 @@ func (sb *ScreenBank) Paint(e europi.Hardware, deltaTime time.Duration) {
 	cur := &sb.bank[sb.current]
 	cur.lock()
 	now := time.Now()
-	cur.screen.Paint(e, now.Sub(cur.lastUpdate))
+	cur.screen.screen.Paint(e, now.Sub(cur.lastUpdate))
 	cur.lastUpdate = now
 	cur.unlock()
 }
 
 func (sb *ScreenBank) Button1Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
-	if cur := screen.UserInterfaceButton1; cur != nil {
+	if cur := screen.button1; cur != nil {
 		if !value {
 			cur.Button1(e, deltaTime)
 		}
-	} else if cur := screen.UserInterfaceButton1Ex; cur != nil {
+	} else if cur := screen.button1Ex; cur != nil {
 		cur.Button1Ex(e, value, deltaTime)
 	}
 }
 
 func (sb *ScreenBank) Button1Long(e europi.Hardware, deltaTime time.Duration) {
 	screen := sb.Current()
-	if cur := screen.UserInterfaceButton1Long; cur != nil {
+	if cur := screen.button1Long; cur != nil {
 		cur.Button1Long(e, deltaTime)
 	} else {
 		// try the short-press
@@ -142,11 +142,11 @@ func (sb *ScreenBank) Button1Long(e europi.Hardware, deltaTime time.Duration) {
 
 func (sb *ScreenBank) Button2Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
 	screen := sb.Current()
-	if cur := screen.UserInterfaceButton2; cur != nil {
+	if cur := screen.button2; cur != nil {
 		if !value {
 			cur.Button2(e, deltaTime)
 		}
-	} else if cur := screen.UserInterfaceButton2Ex; cur != nil {
+	} else if cur := screen.button2Ex; cur != nil {
 		cur.Button2Ex(e, value, deltaTime)
 	}
 }

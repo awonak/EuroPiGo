@@ -35,6 +35,7 @@ import (
 	"tinygo.org/x/tinyfont/proggy"
 
 	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/bootstrap"
 	"github.com/awonak/EuroPiGo/clamp"
 	"github.com/awonak/EuroPiGo/experimental/draw"
 	"github.com/awonak/EuroPiGo/experimental/fontwriter"
@@ -291,6 +292,13 @@ func main() {
 	e, _ := europi.New().(*europi.EuroPi)
 	if e == nil {
 		panic("europi not detected")
+	}
+
+	// since we're not using a full bootstrap, manually activate the webservice (this is a no-op on pico)
+	if ws := bootstrap.ActivateNonPicoWS(e.Context(), e); ws != nil {
+		defer func() {
+			_ = ws.Shutdown()
+		}()
 	}
 
 	appStart(e)

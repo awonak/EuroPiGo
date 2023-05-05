@@ -22,6 +22,12 @@ func initRevision2() {
 	//TODO: rev2.DoInit()
 }
 
+var detectedRevision hal.Revision
+
+func DetectRevision() hal.Revision {
+	return detectedRevision
+}
+
 func init() {
 	hardware.OnRevisionDetected <- func(revision hal.Revision) {
 		switch revision {

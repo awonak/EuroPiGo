@@ -1,6 +1,8 @@
 package rev0
 
 import (
+	"context"
+
 	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
@@ -15,6 +17,8 @@ var (
 )
 
 type EuroPiPrototype struct {
+	common.ContextPi
+
 	// B1 is the Button 1 input on a EuroPi Prototype
 	B1 hal.ButtonInput
 	// B2 is the Button 2 input on a EuroPi Prototype
@@ -43,12 +47,20 @@ type EuroPiPrototype struct {
 	RND hal.RandomGenerator
 }
 
+func (e *EuroPiPrototype) Context() context.Context {
+	return e
+}
+
 func (e *EuroPiPrototype) Revision() hal.Revision {
 	return hal.Revision0
 }
 
 func (e *EuroPiPrototype) Random() hal.RandomGenerator {
 	return e.RND
+}
+
+func (e *EuroPiPrototype) String() string {
+	return "EuroPi Prototype"
 }
 
 func (e *EuroPiPrototype) AJ() [4]hal.VoltageOutput {

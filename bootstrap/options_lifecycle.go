@@ -1,8 +1,10 @@
-package europi
+package bootstrap
 
 import (
 	"errors"
 	"time"
+
+	europi "github.com/awonak/EuroPiGo"
 )
 
 /* Order of lifecycle calls:
@@ -49,15 +51,15 @@ Bootstrap: destroyBootstrap
 */
 
 type (
-	PostBootstrapConstructionFunc func(e Hardware)
-	PreInitializeComponentsFunc   func(e Hardware)
-	PostInitializeComponentsFunc  func(e Hardware)
-	BootstrapCompletedFunc        func(e Hardware)
-	AppStartFunc                  func(e Hardware)
-	AppMainLoopFunc               func(e Hardware, deltaTime time.Duration)
-	AppEndFunc                    func(e Hardware)
-	BeginDestroyFunc              func(e Hardware, reason any)
-	FinishDestroyFunc             func(e Hardware)
+	PostBootstrapConstructionFunc func(e europi.Hardware)
+	PreInitializeComponentsFunc   func(e europi.Hardware)
+	PostInitializeComponentsFunc  func(e europi.Hardware)
+	BootstrapCompletedFunc        func(e europi.Hardware)
+	AppStartFunc                  func(e europi.Hardware)
+	AppMainLoopFunc               func(e europi.Hardware, deltaTime time.Duration)
+	AppEndFunc                    func(e europi.Hardware)
+	BeginDestroyFunc              func(e europi.Hardware, reason any)
+	FinishDestroyFunc             func(e europi.Hardware)
 )
 
 // PostBootstrapConstruction sets the function that runs immediately after primary EuroPi bootstrap

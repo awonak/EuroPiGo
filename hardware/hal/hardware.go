@@ -1,5 +1,7 @@
 package hal
 
+import "context"
+
 // HardwareId defines an identifier for specific hardware. See the README.md in the hardware directory for more details.
 type HardwareId int
 
@@ -32,6 +34,7 @@ const (
 
 // Hardware is the collection of component wrappers used to interact with the module.
 type Hardware interface {
+	Context() context.Context
 	Revision() Revision
 	Random() RandomGenerator
 	Button(idx int) ButtonInput

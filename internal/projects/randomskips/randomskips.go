@@ -4,6 +4,7 @@ import (
 	"time"
 
 	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/bootstrap"
 	"github.com/awonak/EuroPiGo/experimental/screenbank"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	clockgenerator "github.com/awonak/EuroPiGo/internal/projects/clockgenerator/module"
@@ -96,18 +97,21 @@ func main() {
 		panic(err)
 	}
 
+	pi := europi.New()
+
 	// some options shown below are being explicitly set to their defaults
 	// only to showcase their existence.
-	if err := europi.Bootstrap(
-		europi.EnableDisplayLogger(false),
-		europi.InitRandom(true),
-		europi.App(
+	if err := bootstrap.Bootstrap(
+		pi,
+		bootstrap.EnableDisplayLogger(false),
+		bootstrap.InitRandom(true),
+		bootstrap.App(
 			app,
-			europi.AppMainLoopInterval(time.Millisecond*1),
+			bootstrap.AppMainLoopInterval(time.Millisecond*1),
 		),
-		europi.UI(
+		bootstrap.UI(
 			app.ui,
-			europi.UIRefreshRate(time.Millisecond*50),
+			bootstrap.UIRefreshRate(time.Millisecond*50),
 		),
 	); err != nil {
 		panic(err)

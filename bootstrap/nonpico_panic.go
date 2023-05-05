@@ -1,7 +1,7 @@
 //go:build !pico
 // +build !pico
 
-package europi
+package bootstrap
 
 func init() {
 	DefaultPanicHandler = handlePanicLogger

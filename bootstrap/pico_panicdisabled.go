@@ -1,7 +1,7 @@
 //go:build pico && !onscreenpanic
 // +build pico,!onscreenpanic
 
-package europi
+package bootstrap
 
 import (
 	"github.com/awonak/EuroPiGo/hardware"

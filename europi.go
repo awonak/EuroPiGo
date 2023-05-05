@@ -20,6 +20,9 @@ type (
 
 // New will return a new EuroPi struct based on the detected hardware revision
 func New() Hardware {
+	// ensure our hardware has been identified
+	EnsureHardware()
+
 	// blocks until revision has been identified
 	revision := hardware.GetRevision()
 	return NewFrom(revision)

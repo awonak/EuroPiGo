@@ -1,6 +1,8 @@
 package rev1
 
 import (
+	"context"
+
 	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
@@ -10,6 +12,8 @@ import (
 var Pi *EuroPi
 
 type EuroPi struct {
+	common.ContextPi
+
 	// DI is the Digital Input on a EuroPi
 	DI hal.DigitalInput
 	// AI is the Analogue Input on a EuroPi
@@ -40,12 +44,20 @@ type EuroPi struct {
 	RND hal.RandomGenerator
 }
 
+func (e *EuroPi) Context() context.Context {
+	return e
+}
+
 func (e *EuroPi) Revision() hal.Revision {
 	return hal.Revision1
 }
 
 func (e *EuroPi) Random() hal.RandomGenerator {
 	return e.RND
+}
+
+func (e *EuroPi) String() string {
+	return "EuroPi"
 }
 
 func (e *EuroPi) CV() [6]hal.VoltageOutput {

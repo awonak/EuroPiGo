@@ -1,13 +1,15 @@
-package europi
+package bootstrap
 
 import (
 	"errors"
 	"time"
+
+	europi "github.com/awonak/EuroPiGo"
 )
 
 // appHardwareWrapper sets up a wrapper around an app that expects a particular hardware interface
 // this is for automated parameter interpretation
-func appHardwareWrapper[THardware Hardware](app any) any {
+func appHardwareWrapper[THardware europi.Hardware](app any) any {
 	start, _ := app.(ApplicationStart[THardware])
 	mainLoop, _ := app.(ApplicationMainLoop[THardware])
 	end, _ := app.(ApplicationEnd[THardware])
@@ -18,28 +20,29 @@ func appHardwareWrapper[THardware Hardware](app any) any {
 	}
 }
 
-func getAppFuncs(app any) (start AppStartFunc, mainLoop AppMainLoopFunc, end AppEndFunc) {
-	if appStart, _ := app.(ApplicationStart[Hardware]); appStart != nil {
+func getAppFuncs(e europi.Hardware, app any) (start AppStartFunc, mainLoop AppMainLoopFunc, end AppEndFunc) {
+	if appStart, _ := app.(ApplicationStart[europi.Hardware]); appStart != nil {
 		start = appStart.Start
 	}
-	if appMainLoop, _ := app.(ApplicationMainLoop[Hardware]); appMainLoop != nil {
+	if appMainLoop, _ := app.(ApplicationMainLoop[europi.Hardware]); appMainLoop != nil {
 		mainLoop = appMainLoop.MainLoop
 	}
-	if appEnd, _ := app.(ApplicationEnd[Hardware]); appEnd != nil {
+	if appEnd, _ := app.(ApplicationEnd[europi.Hardware]); appEnd != nil {
 		end = appEnd.End
 	}
 
-	if start == nil && mainLoop == nil && end == nil {
-		start, mainLoop, end = getWrappedAppFuncs[*EuroPiPrototype](app)
+	switch e.(type) {
+	case *europi.EuroPiPrototype:
+		start, mainLoop, end = getWrappedAppFuncs[*europi.EuroPiPrototype](app)
+	case *europi.EuroPi:
+		start, mainLoop, end = getWrappedAppFuncs[*europi.EuroPi](app)
+		// TODO: add rev2
 	}
 
-	if start == nil && mainLoop == nil && end == nil {
-		start, mainLoop, end = getWrappedAppFuncs[*EuroPi](app)
-	}
 	return
 }
 
-func getWrappedAppFuncs[THardware Hardware](app any) (start AppStartFunc, mainLoop AppMainLoopFunc, end AppEndFunc) {
+func getWrappedAppFuncs[THardware europi.Hardware](app any) (start AppStartFunc, mainLoop AppMainLoopFunc, end AppEndFunc) {
 	appWrapper := appHardwareWrapper[THardware](app)
 	if getStart, _ := appWrapper.(applicationStartProvider); getStart != nil {
 		start = getStart.ApplicationStart()
@@ -67,7 +70,7 @@ type applicationEndProvider interface {
 	ApplicationEnd() AppEndFunc
 }
 
-type appWrapper[THardware Hardware] struct {
+type appWrapper[THardware europi.Hardware] struct {
 	start    ApplicationStart[THardware]
 	mainLoop ApplicationMainLoop[THardware]
 	end      ApplicationEnd[THardware]
@@ -80,9 +83,9 @@ func (a *appWrapper[THardware]) ApplicationStart() AppStartFunc {
 	return a.doStart
 }
 
-func (a *appWrapper[THardware]) doStart(e Hardware) {
-	pi, _ := e.(THardware)
-	if any(pi) == nil {
+func (a *appWrapper[THardware]) doStart(e europi.Hardware) {
+	pi, ok := e.(THardware)
+	if !ok {
 		panic(errors.New("incorrect hardware type conversion"))
 	}
 	a.start.Start(pi)
@@ -95,9 +98,9 @@ func (a *appWrapper[THardware]) ApplicationMainLoop() AppMainLoopFunc {
 	return a.doMainLoop
 }
 
-func (a *appWrapper[THardware]) doMainLoop(e Hardware, deltaTime time.Duration) {
-	pi, _ := e.(THardware)
-	if any(pi) == nil {
+func (a *appWrapper[THardware]) doMainLoop(e europi.Hardware, deltaTime time.Duration) {
+	pi, ok := e.(THardware)
+	if !ok {
 		panic(errors.New("incorrect hardware type conversion"))
 	}
 	a.mainLoop.MainLoop(pi, deltaTime)
@@ -110,9 +113,9 @@ func (a *appWrapper[THardware]) ApplicationEnd() AppEndFunc {
 	return a.doEnd
 }
 
-func (a *appWrapper[THardware]) doEnd(e Hardware) {
-	pi, _ := e.(THardware)
-	if any(pi) == nil {
+func (a *appWrapper[THardware]) doEnd(e europi.Hardware) {
+	pi, ok := e.(THardware)
+	if !ok {
 		panic(errors.New("incorrect hardware type conversion"))
 	}
 	a.end.End(pi)

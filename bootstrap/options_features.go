@@ -1,8 +1,4 @@
-package europi
-
-import (
-	"errors"
-)
+package bootstrap
 
 const (
 	DefaultEnableDisplayLogger bool = false
@@ -30,18 +26,6 @@ const (
 func InitRandom(enabled bool) BootstrapOption {
 	return func(o *bootstrapConfig) error {
 		o.initRandom = enabled
-		return nil
-	}
-}
-
-// UsingEuroPi sets a specific EuroPi object instance for all operations in the bootstrap
-func UsingEuroPi(e Hardware) BootstrapOption {
-	return func(o *bootstrapConfig) error {
-		if e == nil {
-			return errors.New("europi instance must not be nil")
-		}
-
-		o.europi = e
 		return nil
 	}
 }

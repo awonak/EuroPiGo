@@ -1,9 +1,13 @@
-package europi
+package bootstrap
 
-import "time"
+import (
+	"time"
 
-func DefaultPostBootstrapInitialization(e Hardware) {
-	display := Display(e)
+	europi "github.com/awonak/EuroPiGo"
+)
+
+func DefaultPostBootstrapInitialization(e europi.Hardware) {
+	display := europi.Display(e)
 	if display == nil {
 		// no display, can't continue
 		return
@@ -15,8 +19,8 @@ func DefaultPostBootstrapInitialization(e Hardware) {
 	}
 }
 
-func DefaultBootstrapCompleted(e Hardware) {
-	display := Display(e)
+func DefaultBootstrapCompleted(e europi.Hardware) {
+	display := europi.Display(e)
 	if display == nil {
 		// no display, can't continue
 		return
@@ -29,5 +33,5 @@ func DefaultBootstrapCompleted(e Hardware) {
 }
 
 // DefaultMainLoop is the default main loop used if a new one is not specified to Bootstrap()
-func DefaultMainLoop(e Hardware, deltaTime time.Duration) {
+func DefaultMainLoop(e europi.Hardware, deltaTime time.Duration) {
 }

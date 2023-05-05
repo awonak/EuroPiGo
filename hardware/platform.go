@@ -30,34 +30,8 @@ func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 	}
 }
 
-var (
-	onRevisionDetected                                    = make(chan func(revision hal.Revision), 10)
-	OnRevisionDetected chan<- func(revision hal.Revision) = onRevisionDetected
-	revisionWgDone     sync.Once
-	hardwareReady      atomic.Value
-	hardwareReadyMu    sync.Mutex
-	hardwareReadyCond  = sync.NewCond(&hardwareReadyMu)
-)
-
-func SetDetectedRevision(opts ...hal.Revision) {
-	// need to be sure it's ready before we can done() it
-	hal.RevisionMark = hal.NewRevisionMark(opts...)
-	revisionWgDone.Do(func() {
-		go func() {
-			for fn := range onRevisionDetected {
-				if fn != nil {
-					fn(hal.RevisionMark.Revision())
-				}
-			}
-		}()
-	})
-}
-
-func SetReady() {
-	hardwareReady.Store(true)
-	hardwareReadyCond.Broadcast()
-}
-
+// WaitForReady awaits the readiness of the hardware initialization.
+// This will block until every aspect of hardware initialization has completed.
 func WaitForReady() {
 	hardwareReadyCond.L.Lock()
 	for {
@@ -70,14 +44,15 @@ func WaitForReady() {
 	hardwareReadyCond.L.Unlock()
 }
 
-func GetRevision() hal.Revision {
-	var waitForDetect sync.WaitGroup
-	waitForDetect.Add(1)
-	var detectedRevision hal.Revision
-	OnRevisionDetected <- func(revision hal.Revision) {
-		detectedRevision = revision
-		waitForDetect.Done()
-	}
-	waitForDetect.Wait()
-	return detectedRevision
+var (
+	hardwareReady     atomic.Value
+	hardwareReadyMu   sync.Mutex
+	hardwareReadyCond = sync.NewCond(&hardwareReadyMu)
+)
+
+// SetReady is used by the hardware initialization code.
+// Do not call this function directly.
+func SetReady() {
+	hardwareReady.Store(true)
+	hardwareReadyCond.Broadcast()
 }

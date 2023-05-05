@@ -4,12 +4,13 @@ import (
 	"time"
 
 	europi "github.com/awonak/EuroPiGo"
+	"github.com/awonak/EuroPiGo/bootstrap"
 )
 
 type screenBankEntry struct {
 	name       string
 	logo       string
-	screen     *screenBankEntryDetails
+	screen     screenBankEntryDetails
 	enabled    bool
 	locked     bool
 	lastUpdate time.Time
@@ -32,10 +33,10 @@ func (e *screenBankEntry) unlock() {
 }
 
 type screenBankEntryDetails struct {
-	europi.UserInterface[europi.Hardware]
-	europi.UserInterfaceButton1[europi.Hardware]
-	europi.UserInterfaceButton1Long[europi.Hardware]
-	europi.UserInterfaceButton1Ex[europi.Hardware]
-	europi.UserInterfaceButton2[europi.Hardware]
-	europi.UserInterfaceButton2Ex[europi.Hardware]
+	screen      bootstrap.UserInterface[europi.Hardware]
+	button1     bootstrap.UserInterfaceButton1[europi.Hardware]
+	button1Long bootstrap.UserInterfaceButton1Long[europi.Hardware]
+	button1Ex   bootstrap.UserInterfaceButton1Ex[europi.Hardware]
+	button2     bootstrap.UserInterfaceButton2[europi.Hardware]
+	button2Ex   bootstrap.UserInterfaceButton2Ex[europi.Hardware]
 }

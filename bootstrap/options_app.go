@@ -1,19 +1,21 @@
-package europi
+package bootstrap
 
 import (
 	"errors"
 	"time"
+
+	europi "github.com/awonak/EuroPiGo"
 )
 
-type ApplicationStart[THardware Hardware] interface {
+type ApplicationStart[THardware europi.Hardware] interface {
 	Start(e THardware)
 }
 
-type ApplicationMainLoop[THardware Hardware] interface {
+type ApplicationMainLoop[THardware europi.Hardware] interface {
 	MainLoop(e THardware, deltaTime time.Duration)
 }
 
-type ApplicationEnd[THardware Hardware] interface {
+type ApplicationEnd[THardware europi.Hardware] interface {
 	End(e THardware)
 }
 
@@ -25,7 +27,7 @@ func App(app any, opts ...BootstrapAppOption) BootstrapOption {
 		}
 
 		// automatically divine the functions for the app
-		start, mainLoop, end := getAppFuncs(app)
+		start, mainLoop, end := getAppFuncs(o.europi, app)
 
 		if start == nil && mainLoop == nil && end == nil {
 			return errors.New("app must provide at least one application function interface (ApplicationStart, ApplicationMainLoop, ApplicationEnd)")

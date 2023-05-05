@@ -16,11 +16,11 @@ const (
 
 	MaxOutputVoltage = 10.0
 	MinOutputVoltage = 0.0
-)
 
-// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
-// Set a period of 500ns.
-var DefaultPWMPeriod time.Duration = time.Nanosecond * 500
+	// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
+	// Set a period of 500ns.
+	DefaultPWMPeriod time.Duration = time.Nanosecond * 500
+)
 
 var (
 	cvInitialConfig = hal.VoltageOutputConfig{
