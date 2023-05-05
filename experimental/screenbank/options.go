@@ -18,7 +18,7 @@ func WithScreen(name string, logo string, screen any) ScreenBankOption {
 		if !ok {
 			return fmt.Errorf("screen %q does not implement a variant of bootstrap.UserInterface", name)
 		}
-		e := screenBankEntry{
+		e := entry{
 			name:       name,
 			logo:       logo,
 			screen:     details,
@@ -32,7 +32,7 @@ func WithScreen(name string, logo string, screen any) ScreenBankOption {
 	}
 }
 
-func getScreen(screen any) (details screenBankEntryDetails, ok bool) {
+func getScreen(screen any) (details entryWrapper[europi.Hardware], ok bool) {
 	if s, _ := screen.(bootstrap.UserInterface[europi.Hardware]); s != nil {
 		details.screen = s
 		details.button1, _ = screen.(bootstrap.UserInterfaceButton1[europi.Hardware])
@@ -58,13 +58,13 @@ func getScreen(screen any) (details screenBankEntryDetails, ok bool) {
 	return
 }
 
-func getScreenForHardware[THardware europi.Hardware](screen any) (details screenBankEntryDetails, ok bool) {
+func getScreenForHardware[THardware europi.Hardware](screen any) (details entryWrapper[europi.Hardware], ok bool) {
 	s, _ := screen.(bootstrap.UserInterface[THardware])
 	if s == nil {
 		return
 	}
 
-	wrapper := &screenHardwareWrapper[THardware]{
+	wrapper := &entryWrapper[THardware]{
 		screen: s,
 	}
 
@@ -88,69 +88,4 @@ func getScreenForHardware[THardware europi.Hardware](screen any) (details screen
 
 	ok = true
 	return
-}
-
-type screenHardwareWrapper[THardware europi.Hardware] struct {
-	screen      bootstrap.UserInterface[THardware]
-	button1     bootstrap.UserInterfaceButton1[THardware]
-	button1Ex   bootstrap.UserInterfaceButton1Ex[THardware]
-	button1Long bootstrap.UserInterfaceButton1Long[THardware]
-	button2     bootstrap.UserInterfaceButton2[THardware]
-	button2Ex   bootstrap.UserInterfaceButton2Ex[THardware]
-}
-
-func (w *screenHardwareWrapper[THardware]) Start(e europi.Hardware) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.screen.Start(pi)
-}
-
-func (w *screenHardwareWrapper[THardware]) Paint(e europi.Hardware, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.screen.Paint(pi, deltaTime)
-}
-
-func (w *screenHardwareWrapper[THardware]) Button1(e europi.Hardware, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.button1.Button1(pi, deltaTime)
-}
-
-func (w *screenHardwareWrapper[THardware]) Button1Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.button1Ex.Button1Ex(pi, value, deltaTime)
-}
-
-func (w *screenHardwareWrapper[THardware]) Button1Long(e europi.Hardware, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.button1Long.Button1Long(pi, deltaTime)
-}
-
-func (w *screenHardwareWrapper[THardware]) Button2(e europi.Hardware, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.button2.Button2(pi, deltaTime)
-}
-
-func (w *screenHardwareWrapper[THardware]) Button2Ex(e europi.Hardware, value bool, deltaTime time.Duration) {
-	pi, ok := e.(THardware)
-	if !ok {
-		panic("incorrect hardware type conversion")
-	}
-	w.button2Ex.Button2Ex(pi, value, deltaTime)
 }

@@ -11,7 +11,7 @@ import (
 
 type ScreenBank struct {
 	current int
-	bank    []screenBankEntry
+	bank    []entry
 	writer  fontwriter.Writer
 }
 
@@ -42,7 +42,7 @@ func (sb *ScreenBank) CurrentName() string {
 	return sb.bank[sb.current].name
 }
 
-func (sb *ScreenBank) Current() *screenBankEntryDetails {
+func (sb *ScreenBank) Current() *entryWrapper[europi.Hardware] {
 	if len(sb.bank) == 0 {
 		return nil
 	}
