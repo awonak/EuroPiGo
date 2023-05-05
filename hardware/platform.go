@@ -33,6 +33,7 @@ func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 // WaitForReady awaits the readiness of the hardware initialization.
 // This will block until every aspect of hardware initialization has completed.
 func WaitForReady() {
+	ensureHardwareReady()
 	hardwareReadyCond.L.Lock()
 	for {
 		ready := hardwareReady.Load()
@@ -47,12 +48,20 @@ func WaitForReady() {
 var (
 	hardwareReady     atomic.Value
 	hardwareReadyMu   sync.Mutex
-	hardwareReadyCond = sync.NewCond(&hardwareReadyMu)
+	hardwareReadyOnce sync.Once
+	hardwareReadyCond *sync.Cond
 )
+
+func ensureHardwareReady() {
+	hardwareReadyOnce.Do(func() {
+		hardwareReadyCond = sync.NewCond(&hardwareReadyMu)
+	})
+}
 
 // SetReady is used by the hardware initialization code.
 // Do not call this function directly.
 func SetReady() {
+	ensureHardwareReady()
 	hardwareReady.Store(true)
 	hardwareReadyCond.Broadcast()
 }

@@ -17,7 +17,7 @@ var DefaultPanicHandler func(e europi.Hardware, reason any)
 
 var (
 	// silence linter
-	_ = handlePanicOnScreenLog
+	_, _ = handlePanicOnScreenLog, handlePanicDisplayCrash
 )
 
 func handlePanicOnScreenLog(e europi.Hardware, reason any) {

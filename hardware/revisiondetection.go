@@ -7,11 +7,13 @@ import (
 )
 
 // GetRevision returns the currently detected hardware revision.
+// If the current revision hasn't been detected, yet, then this call
+// will block until it is.
 func GetRevision() hal.Revision {
 	var waitForDetect sync.WaitGroup
 	waitForDetect.Add(1)
 	var detectedRevision hal.Revision
-	OnRevisionDetected <- func(revision hal.Revision) {
+	OnRevisionDetected() <- func(revision hal.Revision) {
 		detectedRevision = revision
 		waitForDetect.Done()
 	}
@@ -20,14 +22,26 @@ func GetRevision() hal.Revision {
 }
 
 var (
-	onRevisionDetected                                    = make(chan func(revision hal.Revision), 10)
-	OnRevisionDetected chan<- func(revision hal.Revision) = onRevisionDetected
-	revisionWgDone     sync.Once
+	onRevisionDetected  chan func(revision hal.Revision)
+	revisionChannelInit sync.Once
+	revisionWgDone      sync.Once
 )
+
+func ensureOnRevisionDetection() {
+	revisionChannelInit.Do(func() {
+		onRevisionDetected = make(chan func(revision hal.Revision), 10)
+	})
+}
+
+func OnRevisionDetected() chan<- func(revision hal.Revision) {
+	ensureOnRevisionDetection()
+	return onRevisionDetected
+}
 
 // SetDetectedRevision sets the currently detected hardware revision.
 // This should not be called directly.
 func SetDetectedRevision(opts ...hal.Revision) {
+	ensureOnRevisionDetection()
 	// need to be sure it's ready before we can done() it
 	hal.RevisionMark = hal.NewRevisionMark(opts...)
 	revisionWgDone.Do(func() {
