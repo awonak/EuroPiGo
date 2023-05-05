@@ -35,6 +35,7 @@ const (
 // Hardware is the collection of component wrappers used to interact with the module.
 type Hardware interface {
 	Context() context.Context
+	Shutdown(reason any) error
 	Revision() Revision
 	Random() RandomGenerator
 	Button(idx int) ButtonInput

@@ -133,6 +133,9 @@ func GetHardware[T any](hw hal.HardwareId) T {
 // This is only to be called by the automatic platform initialization functions
 func Initialize(params InitializationParameters) {
 	Pi = &EuroPi{
+		ContextPi: common.ContextPi{
+			Context: context.Background(),
+		},
 		DI:   common.NewDigitalInput(params.InputDigital1),
 		AI:   common.NewAnalogInput(params.InputAnalog1, aiInitialConfig),
 		OLED: common.NewDisplayOutput(params.OutputDisplay1),

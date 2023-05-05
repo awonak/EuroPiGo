@@ -9,13 +9,6 @@ import (
 	europi "github.com/awonak/EuroPiGo"
 )
 
-var (
-	// Pi is a global EuroPi instance constructed by calling the Bootstrap() function
-	Pi europi.Hardware
-
-	piWantDestroyChan chan any
-)
-
 // Bootstrap will set up a global runtime environment (see europi.Pi)
 func Bootstrap(pi europi.Hardware, options ...BootstrapOption) error {
 	e := pi
@@ -71,19 +64,16 @@ func Bootstrap(pi europi.Hardware, options ...BootstrapOption) error {
 		}
 	}
 
-	Pi = e
-	piWantDestroyChan = make(chan any, 1)
-
 	var (
 		onceBootstrapDestroy sync.Once
 		nonPicoWSApi         NonPicoWSActivation
 	)
 	panicHandler := config.panicHandler
 	lastDestroyFunc := config.onBeginDestroyFn
-	ctx, cancel := context.WithCancel(e.Context())
+	ctx := e.Context()
 	runBootstrapDestroy := func() {
 		reason := recover()
-		cancel()
+		_ = e.Shutdown(reason)
 		if reason != nil && panicHandler != nil {
 			config.onBeginDestroyFn = func(e europi.Hardware, reason any) {
 				if lastDestroyFunc != nil {
@@ -113,13 +103,8 @@ func Bootstrap(pi europi.Hardware, options ...BootstrapOption) error {
 	return nil
 }
 
-func Shutdown(reason any) error {
-	if piWantDestroyChan == nil {
-		return errors.New("cannot shutdown: no available bootstrap")
-	}
-
-	piWantDestroyChan <- reason
-	return nil
+func Shutdown(e europi.Hardware, reason any) error {
+	return e.Shutdown(reason)
 }
 
 func bootstrapInitializeComponents(ctx context.Context, config *bootstrapConfig, e europi.Hardware) NonPicoWSActivation {
@@ -183,7 +168,7 @@ func bootstrapRunLoopWithDelay(config *bootstrapConfig, e europi.Hardware) {
 	lastTick := time.Now()
 	for {
 		select {
-		case reason := <-piWantDestroyChan:
+		case reason := <-e.Context().Done():
 			panic(reason)
 
 		case now := <-ticker.C:
@@ -201,7 +186,7 @@ func bootstrapRunLoopNoDelay(config *bootstrapConfig, e europi.Hardware) {
 	lastTick := time.Now()
 	for {
 		select {
-		case reason := <-piWantDestroyChan:
+		case reason := <-e.Context().Done():
 			panic(reason)
 
 		default:
@@ -231,9 +216,6 @@ func bootstrapDestroy(config *bootstrapConfig, e europi.Hardware, nonPicoWSApi N
 		// show the last buffer
 		_ = display.Display()
 	}
-
-	close(piWantDestroyChan)
-	Pi = nil
 
 	if config.onFinishDestroyFn != nil {
 		config.onFinishDestroyFn(e)
