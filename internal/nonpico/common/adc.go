@@ -12,7 +12,6 @@ import (
 )
 
 type nonPicoAdc struct {
-	bus   event.Bus
 	id    hal.HardwareId
 	value uint16
 }
@@ -22,10 +21,9 @@ var (
 	_ common.ADCProvider = (*nonPicoAdc)(nil)
 )
 
-func NewNonPicoAdc(bus event.Bus, id hal.HardwareId) *nonPicoAdc {
+func NewNonPicoAdc(id hal.HardwareId) *nonPicoAdc {
 	adc := &nonPicoAdc{
-		bus: bus,
-		id:  id,
+		id: id,
 	}
 	event.Subscribe(bus, fmt.Sprintf("hw_value_%d", id), func(msg HwMessageADCValue) {
 		adc.value = msg.Value

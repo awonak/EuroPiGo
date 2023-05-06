@@ -4,35 +4,20 @@
 package rev0
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/awonak/EuroPiGo/event"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev0"
 	"github.com/awonak/EuroPiGo/internal/nonpico/common"
 	"github.com/awonak/EuroPiGo/lerp"
 )
 
-var (
-	bus = event.NewBus()
-)
-
 func setupDefaultState() {
-	bus.Post(fmt.Sprintf("hw_value_%d", rev0.HardwareIdButton1Input), common.HwMessageDigitalValue{
-		Value: false,
-	})
-	bus.Post(fmt.Sprintf("hw_value_%d", rev0.HardwareIdButton2Input), common.HwMessageDigitalValue{
-		Value: false,
-	})
+	common.SetDigitalValue(rev0.HardwareIdButton1Input, false)
+	common.SetDigitalValue(rev0.HardwareIdButton2Input, false)
 
-	bus.Post(fmt.Sprintf("hw_value_%d", rev0.HardwareIdKnob1Input), common.HwMessageADCValue{
-		Value: aiLerp.Lerp(0.5),
-	})
-
-	bus.Post(fmt.Sprintf("hw_value_%d", rev0.HardwareIdKnob2Input), common.HwMessageADCValue{
-		Value: aiLerp.Lerp(0.5),
-	})
+	common.SetADCValue(rev0.HardwareIdKnob1Input, aiLerp.Lerp(0.5))
+	common.SetADCValue(rev0.HardwareIdKnob2Input, aiLerp.Lerp(0.5))
 }
 
 func setupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
@@ -47,12 +32,9 @@ func setupVoltageOutputListeners(cb func(id hal.HardwareId, voltage float32)) {
 		rev0.HardwareIdDigital4Output,
 	}
 	for _, id := range ids {
-		fn := func(hid hal.HardwareId) func(common.HwMessagePwmValue) {
-			return func(msg common.HwMessagePwmValue) {
-				cb(hid, msg.Voltage)
-			}
-		}(id)
-		event.Subscribe(bus, fmt.Sprintf("hw_pwm_%d", id), fn)
+		common.OnPWMValue(id, func(hid hal.HardwareId, value uint16, voltage float32) {
+			cb(hid, voltage)
+		})
 	}
 }
 
@@ -64,21 +46,15 @@ func setDigitalInput(id hal.HardwareId, value bool) {
 	prevState, _ := states.Load(id)
 
 	states.Store(id, value)
-	bus.Post(fmt.Sprintf("hw_value_%d", id), common.HwMessageDigitalValue{
-		Value: value,
-	})
+	common.SetDigitalValue(id, value)
 
 	if prevState != value {
 		if value {
 			// rising
-			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), common.HwMessageInterrupt{
-				Change: hal.ChangeRising,
-			})
+			common.TriggerInterrupt(id, hal.ChangeRising)
 		} else {
 			// falling
-			bus.Post(fmt.Sprintf("hw_interrupt_%d", id), common.HwMessageInterrupt{
-				Change: hal.ChangeFalling,
-			})
+			common.TriggerInterrupt(id, hal.ChangeFalling)
 		}
 	}
 }
@@ -88,7 +64,5 @@ var (
 )
 
 func setAnalogInput(id hal.HardwareId, voltage float32) {
-	bus.Post(fmt.Sprintf("hw_value_%d", id), common.HwMessageADCValue{
-		Value: aiLerp.Lerp(voltage),
-	})
+	common.SetADCValue(id, aiLerp.Lerp(voltage))
 }

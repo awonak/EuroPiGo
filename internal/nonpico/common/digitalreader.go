@@ -12,7 +12,6 @@ import (
 )
 
 type nonPicoDigitalReader struct {
-	bus   event.Bus
 	id    hal.HardwareId
 	value bool
 }
@@ -22,9 +21,8 @@ var (
 	_ common.DigitalReaderProvider = (*nonPicoDigitalReader)(nil)
 )
 
-func NewNonPicoDigitalReader(bus event.Bus, id hal.HardwareId) *nonPicoDigitalReader {
+func NewNonPicoDigitalReader(id hal.HardwareId) *nonPicoDigitalReader {
 	dr := &nonPicoDigitalReader{
-		bus:   bus,
 		id:    id,
 		value: true, // start off in high, as that's actually read as low
 	}
@@ -40,7 +38,7 @@ func (d *nonPicoDigitalReader) Get() bool {
 }
 
 func (d *nonPicoDigitalReader) SetHandler(changes hal.ChangeFlags, handler func()) {
-	event.Subscribe(d.bus, fmt.Sprintf("hw_interrupt_%d", d.id), func(msg HwMessageInterrupt) {
+	event.Subscribe(bus, fmt.Sprintf("hw_interrupt_%d", d.id), func(msg HwMessageInterrupt) {
 		if (msg.Change & changes) != 0 {
 			handler()
 		}
