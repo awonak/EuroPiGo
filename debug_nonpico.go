@@ -1,7 +1,7 @@
 //go:build !pico
 // +build !pico
 
-package bootstrap
+package europi
 
 import (
 	"context"
