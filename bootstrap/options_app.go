@@ -76,3 +76,25 @@ func AppMainLoopInterval(interval time.Duration) BootstrapAppOption {
 		return nil
 	}
 }
+
+func getAppFuncs(e europi.Hardware, app any) (start AppStartFunc, mainLoop AppMainLoopFunc, end AppEndFunc) {
+	if appStart, _ := app.(ApplicationStart[europi.Hardware]); appStart != nil {
+		start = appStart.Start
+	}
+	if appMainLoop, _ := app.(ApplicationMainLoop[europi.Hardware]); appMainLoop != nil {
+		mainLoop = appMainLoop.MainLoop
+	}
+	if appEnd, _ := app.(ApplicationEnd[europi.Hardware]); appEnd != nil {
+		end = appEnd.End
+	}
+
+	switch e.(type) {
+	case *europi.EuroPiPrototype:
+		start, mainLoop, end = getWrappedAppFuncs[*europi.EuroPiPrototype](app)
+	case *europi.EuroPi:
+		start, mainLoop, end = getWrappedAppFuncs[*europi.EuroPi](app)
+		// TODO: add rev2
+	}
+
+	return
+}

@@ -21,15 +21,31 @@ func TestNew(t *testing.T) {
 
 	t.Run("Revision0", func(t *testing.T) {
 		hardware.SetDetectedRevision(hal.Revision0)
-		if actual, _ := europi.New().(*rev0.EuroPiPrototype); actual == nil {
-			t.Fatalf("EuroPi New: expected[EuroPiPrototype] actual[%T]", actual)
+		pi := europi.New()
+		switch actual := pi.(type) {
+		case *rev0.EuroPiPrototype:
+			if actual == nil {
+				t.Fatal("EuroPi New: expected[non-nil] actual[nil]")
+			}
+		case nil:
+			t.Fatal("EuroPi New: expected[non-nil] actual[nil]")
+		default:
+			t.Fatalf("EuroPi New: expected[EuroPi Prototype] actual[%v]", actual)
 		}
 	})
 
 	t.Run("Revision1", func(t *testing.T) {
 		hardware.SetDetectedRevision(hal.Revision1)
-		if actual, _ := europi.New().(*rev1.EuroPi); actual == nil {
-			t.Fatalf("EuroPi New: expected[EuroPi] actual[%T]", actual)
+		pi := europi.New()
+		switch actual := pi.(type) {
+		case *rev1.EuroPi:
+			if actual == nil {
+				t.Fatal("EuroPi New: expected[non-nil] actual[nil]")
+			}
+		case nil:
+			t.Fatal("EuroPi New: expected[non-nil] actual[nil]")
+		default:
+			t.Fatalf("EuroPi New: expected[EuroPi] actual[%v]", actual)
 		}
 	})
 }

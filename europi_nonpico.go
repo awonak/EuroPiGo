@@ -4,13 +4,19 @@
 package europi
 
 import (
+	"sync"
+
 	"github.com/awonak/EuroPiGo/hardware"
 	"github.com/awonak/EuroPiGo/internal/nonpico"
 )
 
+var nonPicoEnsureHardwareOnce sync.Once
+
 func nonPicoEnsureHardware() {
-	rev := nonpico.DetectRevision()
-	hardware.SetDetectedRevision(rev)
+	nonPicoEnsureHardwareOnce.Do(func() {
+		rev := nonpico.DetectRevision()
+		hardware.SetDetectedRevision(rev)
+	})
 }
 
 func init() {

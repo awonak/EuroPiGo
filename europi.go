@@ -5,6 +5,8 @@ import (
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev0"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
+	_ "github.com/awonak/EuroPiGo/internal/nonpico"
+	_ "github.com/awonak/EuroPiGo/internal/pico"
 )
 
 type (
@@ -21,7 +23,7 @@ type (
 // New will return a new EuroPi struct based on the detected hardware revision
 func New() Hardware {
 	// ensure our hardware has been identified
-	EnsureHardware()
+	ensureHardware()
 
 	// blocks until revision has been identified
 	revision := hardware.GetRevision()
@@ -34,6 +36,9 @@ func NewFrom(revision hal.Revision) Hardware {
 		// unknown revision
 		return nil
 	}
+
+	// ensure our hardware has been identified
+	ensureHardware()
 
 	// this will block until the hardware components are initialized
 	hardware.WaitForReady()
@@ -104,3 +109,7 @@ func Knob(e Hardware, idx int) hal.KnobInput {
 	}
 	return nil
 }
+
+// ensureHardware is part of the hardware setup system.
+// It will be set to a function that can properly configure the hardware for use.
+var ensureHardware func()

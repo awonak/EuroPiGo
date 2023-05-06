@@ -4,13 +4,19 @@
 package europi
 
 import (
+	"sync"
+
 	"github.com/awonak/EuroPiGo/hardware"
 	"github.com/awonak/EuroPiGo/internal/pico"
 )
 
+var picoEnsureHardwareOnce sync.Once
+
 func picoEnsureHardware() {
-	rev := pico.DetectRevision()
-	hardware.SetDetectedRevision(rev)
+	picoEnsureHardwareOnce.Do(func() {
+		rev := pico.DetectRevision()
+		hardware.SetDetectedRevision(rev)
+	})
 }
 
 func init() {
