@@ -8,13 +8,12 @@ import (
 	"machine"
 	"math"
 	"runtime/interrupt"
-	"runtime/volatile"
+	"sync/atomic"
 	"time"
 
 	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev0"
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type picoPwm struct {
@@ -40,29 +39,12 @@ type pwmGroup interface {
 
 type picoPwmMode int
 
-const (
-	picoPwmModeAnalogRevision0 = picoPwmMode(iota)
-	picoPwmModeDigitalRevision0
-	picoPwmModeAnalogRevision1
-)
-
-func newPicoPwm(pwm pwmGroup, pin machine.Pin, mode picoPwmMode) *picoPwm {
-	var cal envelope.Map[float32, uint16]
-	switch mode {
-	case picoPwmModeAnalogRevision0:
-		cal = envelope.NewLerpMap32(rev0.VoltageOutputCalibrationPoints)
-	case picoPwmModeDigitalRevision0:
-		cal = envelope.NewPointMap32(rev0.VoltageOutputCalibrationPoints)
-	case picoPwmModeAnalogRevision1:
-		cal = envelope.NewLerpMap32(rev1.VoltageOutputCalibrationPoints)
-	default:
-		panic("unhandled mode")
-	}
+func newPicoPwm(pwm pwmGroup, pin machine.Pin) *picoPwm {
 	p := &picoPwm{
 		pwm:    pwm,
 		pin:    pin,
 		period: rev0.DefaultPWMPeriod,
-		cal:    cal,
+		// NOTE: cal must be set non-nil by Configure() at least 1 time
 	}
 	return p
 }
@@ -84,6 +66,10 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 
 	if config.Calibration != nil {
 		p.cal = config.Calibration
+	}
+
+	if any(p.cal) == nil {
+		return fmt.Errorf("pwm Configure error: Calibration must be non-nil")
 	}
 
 	p.pwm.SetTop(uint32(p.cal.OutputMaximum()))
@@ -108,11 +94,11 @@ func (p *picoPwm) Set(v float32) {
 	state := interrupt.Disable()
 	p.pwm.Set(p.ch, uint32(volts))
 	interrupt.Restore(state)
-	volatile.StoreUint32(&p.v, math.Float32bits(v))
+	atomic.StoreUint32(&p.v, math.Float32bits(v))
 }
 
 func (p *picoPwm) Get() float32 {
-	return math.Float32frombits(volatile.LoadUint32(&p.v))
+	return math.Float32frombits(atomic.LoadUint32(&p.v))
 }
 
 func (p *picoPwm) MinVoltage() float32 {
