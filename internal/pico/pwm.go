@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev0"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 type picoPwm struct {
@@ -23,7 +23,7 @@ type picoPwm struct {
 	v         uint32
 	period    time.Duration
 	monopolar bool
-	cal       envelope.Map[float32, uint16]
+	cal       lerp.Remapper32[float32, uint16]
 }
 
 // pwmGroup is an interface for interacting with a machine.pwmGroup

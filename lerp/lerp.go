@@ -15,6 +15,8 @@ type Lerper[T Lerpable, F Float] interface {
 	ClampedLerpRound(t F) T
 	InverseLerp(v T) F
 	ClampedInverseLerp(v T) F
+	OutputMinimum() T
+	OutputMaximum() T
 }
 
 type Lerper32[T Lerpable] Lerper[T, float32]

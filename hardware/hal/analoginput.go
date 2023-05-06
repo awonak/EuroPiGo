@@ -1,7 +1,7 @@
 package hal
 
 import (
-	"github.com/awonak/EuroPiGo/experimental/envelope"
+	"github.com/awonak/EuroPiGo/lerp"
 	"github.com/awonak/EuroPiGo/units"
 )
 
@@ -19,5 +19,5 @@ type AnalogInput interface {
 
 type AnalogInputConfig struct {
 	Samples     int
-	Calibration envelope.Map[uint16, float32]
+	Calibration lerp.Remapper32[uint16, float32]
 }

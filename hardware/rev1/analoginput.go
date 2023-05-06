@@ -1,8 +1,8 @@
 package rev1
 
 import (
-	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 const (
@@ -18,19 +18,10 @@ const (
 )
 
 var (
-	AnalogInputCalibrationPoints = []envelope.MapEntry[uint16, float32]{
-		{
-			Input:  DefaultCalibratedMinAI,
-			Output: MinInputVoltage,
-		},
-		{
-			Input:  DefaultCalibratedMaxAI,
-			Output: MaxInputVoltage,
-		},
-	}
+	DefaultAICalibration = lerp.NewRemap32[uint16, float32](DefaultCalibratedMinAI, DefaultCalibratedMaxAI, MinInputVoltage, MaxInputVoltage)
 
 	aiInitialConfig = hal.AnalogInputConfig{
 		Samples:     DefaultSamples,
-		Calibration: envelope.NewLerpMap32(AnalogInputCalibrationPoints),
+		Calibration: DefaultAICalibration,
 	}
 )

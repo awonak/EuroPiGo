@@ -3,7 +3,7 @@ package hal
 import (
 	"time"
 
-	"github.com/awonak/EuroPiGo/experimental/envelope"
+	"github.com/awonak/EuroPiGo/lerp"
 	"github.com/awonak/EuroPiGo/units"
 )
 
@@ -20,5 +20,5 @@ type VoltageOutput interface {
 type VoltageOutputConfig struct {
 	Period      time.Duration
 	Monopolar   bool
-	Calibration envelope.Map[float32, uint16]
+	Calibration lerp.Remapper32[float32, uint16]
 }

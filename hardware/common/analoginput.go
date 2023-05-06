@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/awonak/EuroPiGo/clamp"
-	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 	"github.com/awonak/EuroPiGo/units"
 )
 
@@ -14,7 +14,7 @@ import (
 type Analoginput struct {
 	adc     ADCProvider
 	samples int
-	cal     envelope.Map[uint16, float32]
+	cal     lerp.Remapper32[uint16, float32]
 }
 
 var (

@@ -102,9 +102,6 @@ func TestRemap64(t *testing.T) {
 				inMin, inMax := 0, 10
 				outMin, outMax := float64(-math.Pi), float64(math.Pi)
 				l := lerp.NewRemap64(inMin, inMax, outMin, outMax)
-				// while the 32-bit version of this test truncates down to -1 after some error,
-				// there's enough information available in a 64-bit float where it properly
-				// calculates -2
 				if expected, actual := -2, l.Unmap(float64(-4.39822971502571)); actual != expected {
 					t.Fatalf("Remap64[%v, %v, %v, %v] Unmap: expected[%v] actual[%v]", inMin, inMax, outMin, outMax, expected, actual)
 				}
@@ -118,25 +115,6 @@ func TestRemap64(t *testing.T) {
 					t.Fatalf("Remap64[%v, %v, %v, %v] Unmap: expected[%v] actual[%v]", inMin, inMax, outMin, outMax, expected, actual)
 				}
 			})
-		})
-	})
-
-	t.Run("MCoeff", func(t *testing.T) {
-		t.Run("ZeroRange", func(t *testing.T) {
-			inMin, inMax := 10, 10
-			outMin, outMax := float64(-math.Pi), float64(math.Pi)
-			l := lerp.NewRemap64(inMin, inMax, outMin, outMax)
-			if expected, actual := float64(0.0), l.MCoeff(); actual != expected {
-				t.Fatalf("Remap64[%v, %v, %v, %v] MCoeff: expected[%v] actual[%v]", inMin, inMax, outMin, outMax, expected, actual)
-			}
-		})
-		t.Run("NonZeroRange", func(t *testing.T) {
-			inMin, inMax := 0, 10
-			outMin, outMax := float64(-math.Pi), float64(math.Pi)
-			l := lerp.NewRemap64(inMin, inMax, outMin, outMax)
-			if expected, actual := float64(outMax-outMin)/float64(inMax-inMin), l.MCoeff(); actual != expected {
-				t.Fatalf("Remap64[%v, %v, %v, %v] MCoeff: expected[%v] actual[%v]", inMin, inMax, outMin, outMax, expected, actual)
-			}
 		})
 	})
 

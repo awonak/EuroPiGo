@@ -6,14 +6,14 @@ package common
 import (
 	"fmt"
 
-	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 type nonPicoPwm struct {
 	id  hal.HardwareId
-	cal envelope.Map[float32, uint16]
+	cal lerp.Remapper32[float32, uint16]
 	v   float32
 }
 
@@ -22,7 +22,7 @@ var (
 	_ common.PWMProvider = (*nonPicoPwm)(nil)
 )
 
-func NewNonPicoPwm(id hal.HardwareId, cal envelope.Map[float32, uint16]) *nonPicoPwm {
+func NewNonPicoPwm(id hal.HardwareId, cal lerp.Remapper32[float32, uint16]) *nonPicoPwm {
 	p := &nonPicoPwm{
 		id:  id,
 		cal: cal,

@@ -3,8 +3,8 @@ package rev0
 import (
 	"time"
 
-	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 const (
@@ -23,20 +23,11 @@ const (
 )
 
 var (
-	VoltageOutputCalibrationPoints = []envelope.MapEntry[float32, uint16]{
-		{
-			Input:  MinOutputVoltage,
-			Output: CalibratedTop,
-		},
-		{
-			Input:  MaxOutputVoltage,
-			Output: CalibratedOffset,
-		},
-	}
+	DefaultVoltageOutputCalibration = lerp.NewRemap32[float32, uint16](MinOutputVoltage, MaxOutputVoltage, CalibratedOffset, CalibratedTop)
 
 	cvInitialConfig = hal.VoltageOutputConfig{
 		Period:      DefaultPWMPeriod,
 		Monopolar:   true,
-		Calibration: envelope.NewLerpMap32(VoltageOutputCalibrationPoints),
+		Calibration: DefaultVoltageOutputCalibration,
 	}
 )
