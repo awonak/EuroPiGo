@@ -3,12 +3,14 @@ package hal
 import (
 	"time"
 
+	"github.com/awonak/EuroPiGo/lerp"
 	"github.com/awonak/EuroPiGo/units"
 )
 
 type VoltageOutput interface {
 	SetVoltage(v float32)
 	SetCV(cv units.CV)
+	SetBipolarCV(cv units.BipolarCV)
 	SetVOct(voct units.VOct)
 	Voltage() float32
 	MinVoltage() float32
@@ -16,7 +18,7 @@ type VoltageOutput interface {
 }
 
 type VoltageOutputConfig struct {
-	Period time.Duration
-	Offset uint16
-	Top    uint16
+	Period      time.Duration
+	Monopolar   bool
+	Calibration lerp.Remapper32[float32, uint16]
 }

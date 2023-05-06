@@ -32,14 +32,22 @@ func (l lerp64[T]) ClampedLerpRound(t float64) T {
 
 func (l lerp64[T]) InverseLerp(v T) float64 {
 	if l.r != 0.0 {
-		return float64(v-l.b) / l.r
+		return (float64(v) - float64(l.b)) / l.r
 	}
 	return 0.0
 }
 
 func (l lerp64[T]) ClampedInverseLerp(v T) float64 {
 	if l.r != 0.0 {
-		return clamp.Clamp(float64(v-l.b)/l.r, 0.0, 1.0)
+		return clamp.Clamp((float64(v)-float64(l.b))/l.r, 0.0, 1.0)
 	}
 	return 0.0
+}
+
+func (l lerp64[T]) OutputMinimum() T {
+	return l.b
+}
+
+func (l lerp64[T]) OutputMaximum() T {
+	return T(l.r) + l.b
 }

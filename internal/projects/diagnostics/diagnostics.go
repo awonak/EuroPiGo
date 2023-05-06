@@ -23,7 +23,7 @@ type MyApp struct {
 
 var myApp MyApp
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	myApp.staticCv = 5
 
 	// Demonstrate adding a IRQ handler to B1 and B2.
@@ -41,13 +41,13 @@ var (
 )
 
 func mainLoop(e *europi.EuroPi) {
-	e.Display.ClearBuffer()
+	e.OLED.ClearBuffer()
 
 	// Highlight the border of the oled display.
-	_ = tinydraw.Rectangle(e.Display, 0, 0, 128, 32, draw.White)
+	_ = tinydraw.Rectangle(e.OLED, 0, 0, 128, 32, draw.White)
 
 	writer := fontwriter.Writer{
-		Display: e.Display,
+		Display: e.OLED,
 		Font:    DefaultFont,
 	}
 
@@ -67,7 +67,7 @@ func mainLoop(e *europi.EuroPi) {
 	// Show current button press state.
 	writer.WriteLine(fmt.Sprintf("B1: %5v  B2: %5v", e.B1.Value(), e.B2.Value()), 3, 28, draw.White)
 
-	_ = e.Display.Display()
+	_ = e.OLED.Display()
 
 	// Set voltage values for the 6 CV outputs.
 	if kv := uint16(e.K1.Percent() * float32(1<<12)); kv != myApp.prevK1 {
@@ -88,8 +88,19 @@ func mainLoop(e *europi.EuroPi) {
 }
 
 func main() {
-	e := europi.New()
-	startLoop(e)
+	e, _ := europi.New().(*europi.EuroPi)
+	if e == nil {
+		panic("europi not detected")
+	}
+
+	// since we're not using a full bootstrap, manually activate the webservice (this is a no-op on pico)
+	if ws := europi.ActivateNonPicoWS(e.Context(), e); ws != nil {
+		defer func() {
+			_ = ws.Shutdown()
+		}()
+	}
+
+	appStart(e)
 	for {
 		mainLoop(e)
 		time.Sleep(time.Millisecond)

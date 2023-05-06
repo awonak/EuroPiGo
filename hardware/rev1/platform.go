@@ -1,116 +1,174 @@
 package rev1
 
 import (
+	"context"
+
+	"github.com/awonak/EuroPiGo/hardware/common"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 )
 
-// These will be configured during `init()` from platform-specific files.
+// Pi will be configured during `init()` from platform-specific files.
 // See `hardware/pico/pico.go` and `hardware/nonpico/nonpico.go` for more information.
-var (
-	InputDigital1          hal.DigitalInput
-	InputAnalog1           hal.AnalogInput
-	OutputDisplay1         hal.DisplayOutput
-	InputButton1           hal.ButtonInput
-	InputButton2           hal.ButtonInput
-	InputKnob1             hal.KnobInput
-	InputKnob2             hal.KnobInput
-	OutputVoltage1         hal.VoltageOutput
-	OutputVoltage2         hal.VoltageOutput
-	OutputVoltage3         hal.VoltageOutput
-	OutputVoltage4         hal.VoltageOutput
-	OutputVoltage5         hal.VoltageOutput
-	OutputVoltage6         hal.VoltageOutput
-	DeviceRandomGenerator1 hal.RandomGenerator
-)
+var Pi *EuroPi
+
+type EuroPi struct {
+	common.ContextPi
+
+	// DI is the Digital Input on a EuroPi
+	DI hal.DigitalInput
+	// AI is the Analogue Input on a EuroPi
+	AI hal.AnalogInput
+	// OLED is the display output on a EuroPi
+	OLED hal.DisplayOutput
+	// B1 is the Button 1 input on a EuroPi
+	B1 hal.ButtonInput
+	// B2 is the Button 2 input on a EuroPi
+	B2 hal.ButtonInput
+	// K1 is the Knob 1 input on a EuroPi
+	K1 hal.KnobInput
+	// K2 is the Knob 2 input on a EuroPi
+	K2 hal.KnobInput
+	// CV1 is the voltage output 1 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV1 hal.VoltageOutput
+	// CV2 is the voltage output 2 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV2 hal.VoltageOutput
+	// CV3 is the voltage output 3 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV3 hal.VoltageOutput
+	// CV4 is the voltage output 4 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV4 hal.VoltageOutput
+	// CV5 is the voltage output 5 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV5 hal.VoltageOutput
+	// CV6 is the voltage output 6 jack on a EuroPi. It supports a range of output voltages between 0.0 and 10.0 V.
+	CV6 hal.VoltageOutput
+	// RND is the random number generator within the EuroPi
+	RND hal.RandomGenerator
+}
+
+func (e *EuroPi) Context() context.Context {
+	return e
+}
+
+func (e *EuroPi) Revision() hal.Revision {
+	return hal.Revision1
+}
+
+func (e *EuroPi) Random() hal.RandomGenerator {
+	return e.RND
+}
+
+func (e *EuroPi) String() string {
+	return "EuroPi"
+}
+
+func (e *EuroPi) CV() [6]hal.VoltageOutput {
+	return [6]hal.VoltageOutput{e.CV1, e.CV2, e.CV3, e.CV4, e.CV5, e.CV6}
+}
+
+func (e *EuroPi) Button(idx int) hal.ButtonInput {
+	switch idx {
+	case 0:
+		return e.B1
+	case 1:
+		return e.B2
+	default:
+		return nil
+	}
+}
+
+func (e *EuroPi) Knob(idx int) hal.KnobInput {
+	switch idx {
+	case 0:
+		return e.K1
+	case 1:
+		return e.K2
+	default:
+		return nil
+	}
+}
 
 // GetHardware returns a EuroPi hardware device based on hardware `id`.
 // a `nil` result means that the hardware was not found or some sort of error occurred.
 func GetHardware[T any](hw hal.HardwareId) T {
-	switch hw {
-	case hal.HardwareIdDigital1Input:
-		t, _ := InputDigital1.(T)
+	var t T
+	if Pi == nil {
 		return t
-	case hal.HardwareIdAnalog1Input:
-		t, _ := InputAnalog1.(T)
-		return t
-	case hal.HardwareIdDisplay1Output:
-		t, _ := OutputDisplay1.(T)
-		return t
-	case hal.HardwareIdButton1Input:
-		t, _ := InputButton1.(T)
-		return t
-	case hal.HardwareIdButton2Input:
-		t, _ := InputButton2.(T)
-		return t
-	case hal.HardwareIdKnob1Input:
-		t, _ := InputKnob1.(T)
-		return t
-	case hal.HardwareIdKnob2Input:
-		t, _ := InputKnob2.(T)
-		return t
-	case hal.HardwareIdVoltage1Output:
-		t, _ := OutputVoltage1.(T)
-		return t
-	case hal.HardwareIdVoltage2Output:
-		t, _ := OutputVoltage2.(T)
-		return t
-	case hal.HardwareIdVoltage3Output:
-		t, _ := OutputVoltage3.(T)
-		return t
-	case hal.HardwareIdVoltage4Output:
-		t, _ := OutputVoltage4.(T)
-		return t
-	case hal.HardwareIdVoltage5Output:
-		t, _ := OutputVoltage5.(T)
-		return t
-	case hal.HardwareIdVoltage6Output:
-		t, _ := OutputVoltage6.(T)
-		return t
-	case hal.HardwareIdRandom1Generator:
-		t, _ := DeviceRandomGenerator1.(T)
-		return t
-	default:
-		var none T
-		return none
 	}
+
+	switch hw {
+	case HardwareIdDigital1Input:
+		t, _ = Pi.DI.(T)
+	case HardwareIdAnalog1Input:
+		t, _ = Pi.AI.(T)
+	case HardwareIdDisplay1Output:
+		t, _ = Pi.OLED.(T)
+	case HardwareIdButton1Input:
+		t, _ = Pi.B1.(T)
+	case HardwareIdButton2Input:
+		t, _ = Pi.B2.(T)
+	case HardwareIdKnob1Input:
+		t, _ = Pi.K1.(T)
+	case HardwareIdKnob2Input:
+		t, _ = Pi.K2.(T)
+	case HardwareIdCV1Output:
+		t, _ = Pi.CV1.(T)
+	case HardwareIdCV2Output:
+		t, _ = Pi.CV2.(T)
+	case HardwareIdCV3Output:
+		t, _ = Pi.CV3.(T)
+	case HardwareIdCV4Output:
+		t, _ = Pi.CV4.(T)
+	case HardwareIdCV5Output:
+		t, _ = Pi.CV5.(T)
+	case HardwareIdCV6Output:
+		t, _ = Pi.CV6.(T)
+	case HardwareIdRandom1Generator:
+		t, _ = Pi.RND.(T)
+	default:
+	}
+	return t
 }
 
 // Initialize sets up the hardware
 //
 // This is only to be called by the automatic platform initialization functions
 func Initialize(params InitializationParameters) {
-	InputDigital1 = newDigitalInput(params.InputDigital1)
-	InputAnalog1 = newAnalogInput(params.InputAnalog1)
-	OutputDisplay1 = newDisplayOutput(params.OutputDisplay1)
-	InputButton1 = newDigitalInput(params.InputButton1)
-	InputButton2 = newDigitalInput(params.InputButton2)
-	InputKnob1 = newAnalogInput(params.InputKnob1)
-	InputKnob2 = newAnalogInput(params.InputKnob2)
-	OutputVoltage1 = newVoltageOuput(params.OutputVoltage1)
-	OutputVoltage2 = newVoltageOuput(params.OutputVoltage2)
-	OutputVoltage3 = newVoltageOuput(params.OutputVoltage3)
-	OutputVoltage4 = newVoltageOuput(params.OutputVoltage4)
-	OutputVoltage5 = newVoltageOuput(params.OutputVoltage5)
-	OutputVoltage6 = newVoltageOuput(params.OutputVoltage6)
-	DeviceRandomGenerator1 = newRandomGenerator(params.DeviceRandomGenerator1)
+	Pi = &EuroPi{
+		ContextPi: common.ContextPi{
+			Context: context.Background(),
+		},
+		DI:   common.NewDigitalInput(params.InputDigital1),
+		AI:   common.NewAnalogInput(params.InputAnalog1, aiInitialConfig),
+		OLED: common.NewDisplayOutput(params.OutputDisplay1),
+		B1:   common.NewDigitalInput(params.InputButton1),
+		B2:   common.NewDigitalInput(params.InputButton2),
+		K1:   common.NewAnalogInput(params.InputKnob1, aiInitialConfig),
+		K2:   common.NewAnalogInput(params.InputKnob2, aiInitialConfig),
+		CV1:  common.NewVoltageOuput(params.OutputVoltage1, cvInitialConfig),
+		CV2:  common.NewVoltageOuput(params.OutputVoltage2, cvInitialConfig),
+		CV3:  common.NewVoltageOuput(params.OutputVoltage3, cvInitialConfig),
+		CV4:  common.NewVoltageOuput(params.OutputVoltage4, cvInitialConfig),
+		CV5:  common.NewVoltageOuput(params.OutputVoltage5, cvInitialConfig),
+		CV6:  common.NewVoltageOuput(params.OutputVoltage6, cvInitialConfig),
+		RND:  common.NewRandomGenerator(params.DeviceRandomGenerator1),
+	}
 }
 
 // InitializationParameters is a ferry for hardware functions to the interface layer found here
 //
 // This is only to be used by the automatic platform initialization functions
 type InitializationParameters struct {
-	InputDigital1          DigitalReaderProvider
-	InputAnalog1           ADCProvider
-	OutputDisplay1         DisplayProvider
-	InputButton1           DigitalReaderProvider
-	InputButton2           DigitalReaderProvider
-	InputKnob1             ADCProvider
-	InputKnob2             ADCProvider
-	OutputVoltage1         PWMProvider
-	OutputVoltage2         PWMProvider
-	OutputVoltage3         PWMProvider
-	OutputVoltage4         PWMProvider
-	OutputVoltage5         PWMProvider
-	OutputVoltage6         PWMProvider
-	DeviceRandomGenerator1 RNDProvider
+	InputDigital1          common.DigitalReaderProvider
+	InputAnalog1           common.ADCProvider
+	OutputDisplay1         common.DisplayProvider
+	InputButton1           common.DigitalReaderProvider
+	InputButton2           common.DigitalReaderProvider
+	InputKnob1             common.ADCProvider
+	InputKnob2             common.ADCProvider
+	OutputVoltage1         common.PWMProvider
+	OutputVoltage2         common.PWMProvider
+	OutputVoltage3         common.PWMProvider
+	OutputVoltage4         common.PWMProvider
+	OutputVoltage5         common.PWMProvider
+	OutputVoltage6         common.PWMProvider
+	DeviceRandomGenerator1 common.RNDProvider
 }

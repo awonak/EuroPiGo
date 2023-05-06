@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>EuroPi Tester</title>
+    <script type="text/javascript">
+        window.onload = function () {
+            var conn;
+
+            const hw5 = document.getElementById("hw5"); // Button 1
+            const hw6 = document.getElementById("hw6"); // Button 2
+            const hw7 = document.getElementById("hw7"); // Knob 1
+            const hw8 = document.getElementById("hw8"); // Knob 2
+
+            function setDigitalInputValue(id, value) {
+                if (conn) {
+                    conn.send(JSON.stringify({
+                        kind: "setDigitalInput",
+                        hardwareId: id,
+                        value: value,
+                    }));
+                }
+            }
+
+            function setAnalogInputValue(id, voltage) {
+                if (conn) {
+                    conn.send(JSON.stringify({
+                        kind: "setAnalogInput",
+                        hardwareId: id,
+                        voltage: voltage,
+                    }));
+                }
+            }
+
+            hw5.addEventListener('mousedown', function(evt) {
+                setDigitalInputValue(5, true);
+            });
+            hw5.addEventListener('mouseup', function(evt) {
+                setDigitalInputValue(5, false);
+            });
+
+            hw6.addEventListener('mousedown', function(evt) {
+                setDigitalInputValue(6, true);
+            });
+            hw6.addEventListener('mouseup', function(evt) {
+                setDigitalInputValue(6, false);
+            });
+
+            hw7.addEventListener('change', function(evt) {
+                setAnalogInputValue(7, evt.target.value/65535)
+            });
+            hw7.addEventListener('input', function(evt) {
+                setAnalogInputValue(7, evt.target.value/65535)
+            });
+
+            hw8.addEventListener('change', function(evt) {
+                setAnalogInputValue(8, evt.target.value/65535)
+            });
+            hw8.addEventListener('input', function(evt) {
+                setAnalogInputValue(8, evt.target.value/65535)
+            });
+
+            function processMessage(blob) {
+                var msg = JSON.parse(blob);
+                if (typeof msg != "object") {
+                    return;
+                }
+
+                if (msg.kind == "voltageOutput") {
+                    var item = document.getElementById(`hw${msg.hardwareId}`);
+                    if (item) {
+                        item.value = `${msg.voltage}`;
+                    }
+                }
+            }
+
+            if (window["WebSocket"]) {
+                conn = new WebSocket("ws://" + document.location.host + "/ws");
+                conn.onclose = function (evt) {
+                    var item = document.getElementById("body");
+                    item.innerHTML += "<p><b>Connection closed.</b></p>";
+                };
+                conn.onmessage = function (evt) {
+                    var message = evt.data;
+                    processMessage(message);
+                };
+            } else {
+                var item = document.getElementById("body");
+                item.innerHTML = "<p><b>Your browser does not support WebSockets.</b></p>";
+            }
+        };
+    </script>
+    <style type="text/css">
+        .displayOutputContainer {
+            background: white;
+            margin: 0;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+        }
+        .displayOutput {
+            padding: 2px;
+            background-color: #000000;
+        }
+
+        .analogInputContainer {
+            width: 128px;
+        }
+        .analogInput {
+            -webkit-appearance: none;  /* Override default CSS styles */
+            appearance: none;
+            width: 100%; /* Full-width */
+            height: 25px; /* Specified height */
+            background: #d3d3d3; /* Grey background */
+            outline: none; /* Remove outline */
+            opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+            -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+            transition: opacity .2s;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <div id="hw7-div" class="analogInputContainer">
+        <label for="hw7">Knob 1</label>
+        <input type="range" min="0" max="65535" value="32767" class="analogInput" id="hw7" />
+    </div>
+    <div id="hw8-div" class="analogInputContainer">
+        <label for="hw8">Knob 2</label>
+        <input type="range" min="0" max="65535" value="32767" class="analogInput" id="hw8" />
+    </div>
+    <div id="hw5-div">
+        <label for="hw5">Button 1</label>
+        <button id="hw5">[Press Me]</button>
+    </div>
+    <div id="hw6-div">
+        <label for="hw6">Button 2</label>
+        <button id="hw6">[Press Me]</button>
+    </div>
+    <div id="hw9-div">
+        <label for="hw9">AJ1</label>
+        <input type="text" id="hw9" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw10-div">
+        <label for="hw10">AJ2</label>
+        <input type="text" id="hw10" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw11-div">
+        <label for="hw11">AJ3</label>
+        <input type="text" id="hw11" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw12-div">
+        <label for="hw12">AJ4</label>
+        <input type="text" id="hw12" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw13-div">
+        <label for="hw13">DJ1</label>
+        <input type="text" id="hw13" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw14-div">
+        <label for="hw14">DJ2</label>
+        <input type="text" id="hw14" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw16-div">
+        <label for="hw16">DJ3</label>
+        <input type="text" id="hw16" value="0" readonly="readonly" disabled />
+    </div>
+    <div id="hw17-div">
+        <label for="hw17">DJ4</label>
+        <input type="text" id="hw17" value="0" readonly="readonly" disabled />
+    </div>
+</body>
+
+</html>

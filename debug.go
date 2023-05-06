@@ -1,6 +1,7 @@
 package europi
 
 import (
+	"context"
 	"log"
 	"runtime"
 	"time"
@@ -28,4 +29,20 @@ func DebugMemoryUsedPerSecond() {
 		heapUsed = mem.HeapInuse
 		time.Sleep(time.Second)
 	}
+}
+
+// used for non-pico testing of europi apps
+var (
+	activateNonPicoWebSocket func(ctx context.Context, e Hardware) NonPicoWSActivation
+)
+
+type NonPicoWSActivation interface {
+	Shutdown() error
+}
+
+func ActivateNonPicoWS(ctx context.Context, e Hardware) NonPicoWSActivation {
+	if activateNonPicoWebSocket == nil {
+		return nil
+	}
+	return activateNonPicoWebSocket(ctx, e)
 }

@@ -3,13 +3,11 @@ package knobbank
 import (
 	"errors"
 
-	"github.com/awonak/EuroPiGo/clamp"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/units"
 )
 
 type KnobBank struct {
-	knob      hal.KnobInput
+	hal.KnobInput
 	current   int
 	lastValue float32
 	bank      []knobBankEntry
@@ -21,7 +19,7 @@ func NewKnobBank(knob hal.KnobInput, opts ...KnobBankOption) (*KnobBank, error) 
 	}
 
 	kb := &KnobBank{
-		knob:      knob,
+		KnobInput: knob,
 		lastValue: knob.ReadVoltage(),
 	}
 
@@ -55,42 +53,26 @@ func (kb *KnobBank) Current() hal.KnobInput {
 	return kb
 }
 
-func (kb *KnobBank) MinVoltage() float32 {
-	return kb.knob.MinVoltage()
-}
-
-func (kb *KnobBank) MaxVoltage() float32 {
-	return kb.knob.MaxVoltage()
-}
-
 func (kb *KnobBank) ReadVoltage() float32 {
-	value := kb.knob.ReadVoltage()
+	value := kb.KnobInput.ReadVoltage()
 	if len(kb.bank) == 0 {
 		return value
 	}
 
 	cur := &kb.bank[kb.current]
-	percent := kb.knob.Percent()
+	percent := kb.Percent()
 	kb.lastValue = cur.update(percent, value, kb.lastValue)
 	return cur.Value()
 }
 
-func (kb *KnobBank) ReadCV() units.CV {
-	return units.CV(clamp.Clamp(kb.Percent(), 0.0, 1.0))
-}
-
-func (kb *KnobBank) ReadVOct() units.VOct {
-	return units.VOct(kb.ReadVoltage())
-}
-
 func (kb *KnobBank) Percent() float32 {
-	percent := kb.knob.Percent()
+	percent := kb.KnobInput.Percent()
 	if len(kb.bank) == 0 {
 		return percent
 	}
 
 	cur := &kb.bank[kb.current]
-	value := kb.knob.ReadVoltage()
+	value := kb.KnobInput.ReadVoltage()
 	kb.lastValue = cur.update(percent, value, kb.lastValue)
 	return cur.Percent()
 }
@@ -102,7 +84,7 @@ func (kb *KnobBank) Next() {
 	}
 
 	cur := &kb.bank[kb.current]
-	cur.lock(kb.knob, kb.lastValue)
+	cur.lock(kb.KnobInput, kb.lastValue)
 
 	kb.current++
 	if kb.current >= len(kb.bank) {

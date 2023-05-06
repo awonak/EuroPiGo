@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"machine"
 
-	"github.com/awonak/EuroPiGo/hardware/rev1"
 	"tinygo.org/x/drivers/ssd1306"
 )
 
@@ -22,7 +21,7 @@ type picoDisplayOutput struct {
 	dev ssd1306.Device
 }
 
-func newPicoDisplayOutput(channel *machine.I2C, sdaPin, sclPin machine.Pin) rev1.DisplayProvider {
+func newPicoDisplayOutput(channel *machine.I2C, sdaPin, sclPin machine.Pin) *picoDisplayOutput {
 	channel.Configure(machine.I2CConfig{
 		Frequency: oledFreq,
 		SDA:       sdaPin,

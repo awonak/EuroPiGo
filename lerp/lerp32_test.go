@@ -261,4 +261,20 @@ func TestLerp32(t *testing.T) {
 			})
 		})
 	})
+
+	t.Run("OutputMinimum", func(t *testing.T) {
+		min, max := 0, 10
+		l := lerp.NewLerp32(min, max)
+		if expected, actual := min, l.OutputMinimum(); actual != expected {
+			t.Fatalf("Lerp32[%v, %v] OutputMinimum: expected[%v] actual[%v]", min, max, expected, actual)
+		}
+	})
+
+	t.Run("OutputMaximum", func(t *testing.T) {
+		min, max := 0, 10
+		l := lerp.NewLerp32(min, max)
+		if expected, actual := max, l.OutputMaximum(); actual != expected {
+			t.Fatalf("Lerp32[%v, %v] OutputMaximum: expected[%v] actual[%v]", min, max, expected, actual)
+		}
+	})
 }

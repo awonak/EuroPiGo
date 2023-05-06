@@ -1,12 +1,10 @@
 package rev1
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/awonak/EuroPiGo/clamp"
 	"github.com/awonak/EuroPiGo/hardware/hal"
-	"github.com/awonak/EuroPiGo/units"
+	"github.com/awonak/EuroPiGo/lerp"
 )
 
 const (
@@ -18,86 +16,18 @@ const (
 
 	MaxOutputVoltage = 10.0
 	MinOutputVoltage = 0.0
+
+	// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
+	// Set a period of 500ns.
+	DefaultPWMPeriod time.Duration = time.Nanosecond * 500
 )
-
-// We need a rather high frequency to achieve a stable cv ouput, which means we need a rather low duty cycle period.
-// Set a period of 500ns.
-var defaultPeriod time.Duration = time.Nanosecond * 500
-
-// voltageoutput is struct for interacting with the CV/VOct voltage output jacks.
-type voltageoutput struct {
-	pwm PWMProvider
-	ofs uint16
-}
 
 var (
-	// static check
-	_ hal.VoltageOutput = &voltageoutput{}
-	// silence linter
-	_ = newVoltageOuput
+	DefaultVoltageOutputCalibration = lerp.NewRemap32[float32, uint16](MinOutputVoltage, MaxOutputVoltage, CalibratedOffset, CalibratedTop)
+
+	cvInitialConfig = hal.VoltageOutputConfig{
+		Period:      DefaultPWMPeriod,
+		Monopolar:   true,
+		Calibration: DefaultVoltageOutputCalibration,
+	}
 )
-
-type PWMProvider interface {
-	Configure(config hal.VoltageOutputConfig) error
-	Set(v float32, ofs uint16)
-	Get() float32
-}
-
-// NewOutput returns a new Output interface.
-func newVoltageOuput(pwm PWMProvider) hal.VoltageOutput {
-	o := &voltageoutput{
-		pwm: pwm,
-	}
-	err := o.Configure(hal.VoltageOutputConfig{
-		Period: defaultPeriod,
-		Offset: CalibratedOffset,
-		Top:    CalibratedTop,
-	})
-	if err != nil {
-		panic(fmt.Errorf("configuration error: %v", err.Error()))
-	}
-
-	return o
-}
-
-// Configure updates the device with various configuration parameters
-func (o *voltageoutput) Configure(config hal.VoltageOutputConfig) error {
-	if err := o.pwm.Configure(config); err != nil {
-		return err
-	}
-
-	o.ofs = config.Offset
-
-	return nil
-}
-
-// SetVoltage sets the current output voltage within a range of 0.0 to 10.0.
-func (o *voltageoutput) SetVoltage(v float32) {
-	v = clamp.Clamp(v, MinOutputVoltage, MaxOutputVoltage)
-	o.pwm.Set(v/MaxOutputVoltage, o.ofs)
-}
-
-// SetCV sets the current output voltage based on a CV value
-func (o *voltageoutput) SetCV(cv units.CV) {
-	o.SetVoltage(cv.ToVolts())
-}
-
-// SetCV sets the current output voltage based on a V/Octave value
-func (o *voltageoutput) SetVOct(voct units.VOct) {
-	o.SetVoltage(voct.ToVolts())
-}
-
-// Voltage returns the current voltage
-func (o *voltageoutput) Voltage() float32 {
-	return o.pwm.Get() * MaxOutputVoltage
-}
-
-// MinVoltage returns the minimum voltage this device will output
-func (o *voltageoutput) MinVoltage() float32 {
-	return MinOutputVoltage
-}
-
-// MaxVoltage returns the maximum voltage this device will output
-func (o *voltageoutput) MaxVoltage() float32 {
-	return MaxOutputVoltage
-}

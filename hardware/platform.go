@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/rev0"
 	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
@@ -12,12 +13,16 @@ import (
 // a `nil` result means that the hardware was not found or some sort of error occurred.
 func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 	switch revision {
+	case hal.Revision0:
+		return rev0.GetHardware[T](id)
+
 	case hal.Revision1:
 		return rev1.GetHardware[T](id)
 
 	case hal.Revision2:
 		// TODO: implement hardware design of rev2
-		return rev1.GetHardware[T](id)
+		//return rev2.GetHardware[T](id)
+		fallthrough
 
 	default:
 		var none T
@@ -25,35 +30,10 @@ func GetHardware[T any](revision hal.Revision, id hal.HardwareId) T {
 	}
 }
 
-var (
-	onRevisionDetected                                    = make(chan func(revision hal.Revision), 10)
-	OnRevisionDetected chan<- func(revision hal.Revision) = onRevisionDetected
-	revisionWgDone     sync.Once
-	hardwareReady      atomic.Value
-	hardwareReadyMu    sync.Mutex
-	hardwareReadyCond  = sync.NewCond(&hardwareReadyMu)
-)
-
-func SetDetectedRevision(opts ...hal.Revision) {
-	// need to be sure it's ready before we can done() it
-	hal.RevisionMark = hal.NewRevisionMark(opts...)
-	revisionWgDone.Do(func() {
-		go func() {
-			for fn := range onRevisionDetected {
-				if fn != nil {
-					fn(hal.RevisionMark.Revision())
-				}
-			}
-		}()
-	})
-}
-
-func SetReady() {
-	hardwareReady.Store(true)
-	hardwareReadyCond.Broadcast()
-}
-
+// WaitForReady awaits the readiness of the hardware initialization.
+// This will block until every aspect of hardware initialization has completed.
 func WaitForReady() {
+	ensureHardwareReady()
 	hardwareReadyCond.L.Lock()
 	for {
 		ready := hardwareReady.Load()
@@ -65,14 +45,23 @@ func WaitForReady() {
 	hardwareReadyCond.L.Unlock()
 }
 
-func GetRevision() hal.Revision {
-	var waitForDetect sync.WaitGroup
-	waitForDetect.Add(1)
-	var detectedRevision hal.Revision
-	OnRevisionDetected <- func(revision hal.Revision) {
-		detectedRevision = revision
-		waitForDetect.Done()
-	}
-	waitForDetect.Wait()
-	return detectedRevision
+var (
+	hardwareReady     atomic.Value
+	hardwareReadyMu   sync.Mutex
+	hardwareReadyOnce sync.Once
+	hardwareReadyCond *sync.Cond
+)
+
+func ensureHardwareReady() {
+	hardwareReadyOnce.Do(func() {
+		hardwareReadyCond = sync.NewCond(&hardwareReadyMu)
+	})
+}
+
+// SetReady is used by the hardware initialization code.
+// Do not call this function directly.
+func SetReady() {
+	ensureHardwareReady()
+	hardwareReady.Store(true)
+	hardwareReadyCond.Broadcast()
 }

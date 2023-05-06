@@ -1,5 +1,7 @@
 package hal
 
+import "context"
+
 // HardwareId defines an identifier for specific hardware. See the README.md in the hardware directory for more details.
 type HardwareId int
 
@@ -20,16 +22,22 @@ const (
 	HardwareIdVoltage5Output
 	HardwareIdVoltage6Output
 	HardwareIdRandom1Generator
+	HardwareIdVoltage7Output
+	HardwareIdVoltage8Output
 	// NOTE: always ONLY append to this list, NEVER remove, rename, or reorder
 )
 
 // aliases for friendly internationali(s|z)ation, colloquialisms, and naming conventions
 const (
 	HardwareIdAnalogue1Input = HardwareIdAnalog1Input
-	HardwareIdCV1Output      = HardwareIdVoltage1Output
-	HardwareIdCV2Output      = HardwareIdVoltage2Output
-	HardwareIdCV3Output      = HardwareIdVoltage3Output
-	HardwareIdCV4Output      = HardwareIdVoltage4Output
-	HardwareIdCV5Output      = HardwareIdVoltage5Output
-	HardwareIdCV6Output      = HardwareIdVoltage6Output
 )
+
+// Hardware is the collection of component wrappers used to interact with the module.
+type Hardware interface {
+	Context() context.Context
+	Shutdown(reason any) error
+	Revision() Revision
+	Random() RandomGenerator
+	Button(idx int) ButtonInput
+	Knob(idx int) KnobInput
+}

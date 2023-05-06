@@ -6,7 +6,6 @@ This package is used for the [Original EuroPi hardware](https://github.com/Allen
 
 | Name | Interface | HardwareId | HardwareId Alias |
 |----|----|----|----|
-| `RevisionMarker` | `hal.RevisionMarker` | `HardwareIdRevisionMarker` | |
 | `InputDigital1` | `hal.DigitalInput` | `HardwareIdDigital1Input` | |
 | `InputAnalog1` | `hal.AnalogInput` | `HardwareIdAnalog1Input` | `HardwareIdAnalogue1Input` |
 | `OutputDisplay1` | `hal.DisplayOutput` | `HardwareIdDisplay1Output` | |

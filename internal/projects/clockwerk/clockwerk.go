@@ -162,11 +162,11 @@ func (c *Clockwerk) clock(i uint8, reset chan uint8) {
 
 		high, low := c.clockPulseWidth(c.clocks[i])
 
-		c.CV[i].SetCV(1.0)
+		c.CV()[i].SetCV(1.0)
 		t = t.Add(high)
 		time.Sleep(time.Since(t))
 
-		c.CV[i].SetCV(0.0)
+		c.CV()[i].SetCV(0.0)
 		t = t.Add(low)
 		time.Sleep(time.Since(t))
 	}
@@ -195,7 +195,7 @@ func (c *Clockwerk) updateDisplay() {
 		return
 	}
 	c.displayShouldUpdate = false
-	c.Display.ClearBuffer()
+	c.OLED.ClearBuffer()
 
 	// Master clock and pulse width.
 	var external string
@@ -205,7 +205,7 @@ func (c *Clockwerk) updateDisplay() {
 	c.writer.WriteLine(external+"BPM: "+strconv.Itoa(int(c.bpm)), 2, 8, draw.White)
 
 	// Display each clock multiplication or division setting.
-	dispWidth, _ := c.Display.Size()
+	dispWidth, _ := c.OLED.Size()
 	divWidth := int(dispWidth) / len(c.clocks)
 	for i, factor := range c.clocks {
 		text := " 1"
@@ -220,19 +220,19 @@ func (c *Clockwerk) updateDisplay() {
 	xWidth := int16(divWidth)
 	xOffset := int16(c.selected) * xWidth
 	// TODO: replace box with chevron.
-	_ = tinydraw.Rectangle(c.Display, xOffset, 16, xWidth, 16, draw.White)
+	_ = tinydraw.Rectangle(c.OLED, xOffset, 16, xWidth, 16, draw.White)
 
-	_ = c.Display.Display()
+	_ = c.OLED.Display()
 }
 
 var app Clockwerk
 
-func startLoop(e *europi.EuroPi) {
+func appStart(e *europi.EuroPi) {
 	app.EuroPi = e
 	app.clocks = DefaultFactor
 	app.displayShouldUpdate = true
 	app.writer = fontwriter.Writer{
-		Display: e.Display,
+		Display: e.OLED,
 		Font:    DefaultFont,
 	}
 	app.bpmLerp = lerp.NewLerp32[uint16](MinBPM-1, MaxBPM)
@@ -288,7 +288,19 @@ func mainLoop() {
 }
 
 func main() {
-	startLoop(europi.New())
+	e, _ := europi.New().(*europi.EuroPi)
+	if e == nil {
+		panic("europi not detected")
+	}
+
+	// since we're not using a full bootstrap, manually activate the webservice (this is a no-op on pico)
+	if ws := europi.ActivateNonPicoWS(e.Context(), e); ws != nil {
+		defer func() {
+			_ = ws.Shutdown()
+		}()
+	}
+
+	appStart(e)
 
 	// Check for clock updates every 2 seconds.
 	ticker := time.NewTicker(ResetDelay)
