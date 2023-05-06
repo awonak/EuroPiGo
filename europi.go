@@ -1,64 +1,115 @@
-package europi // import europi "github.com/awonak/EuroPiGo"
+package europi // import "github.com/awonak/EuroPiGo"
 
 import (
-	"machine"
+	"github.com/awonak/EuroPiGo/hardware"
+	"github.com/awonak/EuroPiGo/hardware/hal"
+	"github.com/awonak/EuroPiGo/hardware/rev0"
+	"github.com/awonak/EuroPiGo/hardware/rev1"
+	_ "github.com/awonak/EuroPiGo/internal/nonpico"
+	_ "github.com/awonak/EuroPiGo/internal/pico"
 )
 
-const (
-	MaxVoltage = 10.0
-	MinVoltage = 0.0
+type (
+	// Hardware is the collection of component wrappers used to interact with the module.
+	Hardware = hal.Hardware
+
+	// EuroPiPrototype is the revision 0 hardware
+	EuroPiPrototype = rev0.EuroPiPrototype
+	// EuroPi is the revision 1 hardware
+	EuroPi = rev1.EuroPi
+	// TODO: add rev2
 )
 
-// EuroPi is the collection of component wrappers used to interact with the module.
-type EuroPi struct {
-	// Display is a wrapper around ssd1306.Device
-	Display *Display
+// New will return a new EuroPi struct based on the detected hardware revision
+func New() Hardware {
+	// ensure our hardware has been identified
+	ensureHardware()
 
-	DI DigitalReader
-	AI AnalogReader
-
-	B1 DigitalReader
-	B2 DigitalReader
-
-	K1 AnalogReader
-	K2 AnalogReader
-
-	CV1 Outputer
-	CV2 Outputer
-	CV3 Outputer
-	CV4 Outputer
-	CV5 Outputer
-	CV6 Outputer
-	CV  [6]Outputer
+	// blocks until revision has been identified
+	revision := hardware.GetRevision()
+	return NewFrom(revision)
 }
 
-// New will return a new EuroPi struct.
-func New() *EuroPi {
-	cv1 := NewOutput(machine.GPIO21, machine.PWM2)
-	cv2 := NewOutput(machine.GPIO20, machine.PWM2)
-	cv3 := NewOutput(machine.GPIO16, machine.PWM0)
-	cv4 := NewOutput(machine.GPIO17, machine.PWM0)
-	cv5 := NewOutput(machine.GPIO18, machine.PWM1)
-	cv6 := NewOutput(machine.GPIO19, machine.PWM1)
+// NewFrom will return a new EuroPi struct based on a specific revision
+func NewFrom(revision hal.Revision) Hardware {
+	if revision == hal.RevisionUnknown {
+		// unknown revision
+		return nil
+	}
 
-	return &EuroPi{
-		Display: NewDisplay(machine.I2C0, machine.GPIO0, machine.GPIO1),
+	// ensure our hardware has been identified
+	ensureHardware()
 
-		DI: NewDI(machine.GPIO22),
-		AI: NewAI(machine.ADC0),
+	// this will block until the hardware components are initialized
+	hardware.WaitForReady()
 
-		B1: NewButton(machine.GPIO4),
-		B2: NewButton(machine.GPIO5),
-
-		K1: NewKnob(machine.ADC1),
-		K2: NewKnob(machine.ADC2),
-
-		CV1: cv1,
-		CV2: cv2,
-		CV3: cv3,
-		CV4: cv4,
-		CV5: cv5,
-		CV6: cv5,
-		CV:  [6]Outputer{cv1, cv2, cv3, cv4, cv5, cv6},
+	switch revision {
+	case hal.Revision0:
+		return rev0.Pi
+	case hal.Revision1:
+		return rev1.Pi
+	case hal.Revision2:
+		// TODO: add rev2
+		return nil
+	default:
+		return nil
 	}
 }
+
+// Display returns the primary display from the hardware interface, if it has one
+func Display(e Hardware) hal.DisplayOutput {
+	if e == nil {
+		return nil
+	}
+
+	switch e.Revision() {
+	case hal.Revision1:
+		return e.(*rev1.EuroPi).OLED
+	case hal.Revision2:
+		// TODO: add rev2
+		//return e.(*rev2.EuroPiX).Display
+	}
+	return nil
+}
+
+// Button returns a button input at the specified index from the hardware interface,
+// if it has one there
+func Button(e Hardware, idx int) hal.ButtonInput {
+	if e == nil {
+		return nil
+	}
+
+	switch e.Revision() {
+	case hal.Revision0:
+		return e.(*rev0.EuroPiPrototype).Button(idx)
+	case hal.Revision1:
+		return e.(*rev1.EuroPi).Button(idx)
+	case hal.Revision2:
+		// TODO: add rev2
+		//return e.(*rev2.EuroPiX).Button(idx)
+	}
+	return nil
+}
+
+// Knob returns a knob input at the specified index from the hardware interface,
+// if it has one there
+func Knob(e Hardware, idx int) hal.KnobInput {
+	if e == nil {
+		return nil
+	}
+
+	switch e.Revision() {
+	case hal.Revision0:
+		return e.(*rev0.EuroPiPrototype).Knob(idx)
+	case hal.Revision1:
+		return e.(*rev1.EuroPi).Knob(idx)
+	case hal.Revision2:
+		// TODO: add rev2
+		//return e.(*rev2.EuroPiX).Knob(idx)
+	}
+	return nil
+}
+
+// ensureHardware is part of the hardware setup system.
+// It will be set to a function that can properly configure the hardware for use.
+var ensureHardware func()
