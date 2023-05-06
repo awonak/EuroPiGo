@@ -18,13 +18,13 @@ import (
 )
 
 type picoPwm struct {
-	pwm      pwmGroup
-	pin      machine.Pin
-	ch       uint8
-	v        uint32
-	period   time.Duration
-	wavefold bool
-	cal      envelope.Map[float32, uint16]
+	pwm       pwmGroup
+	pin       machine.Pin
+	ch        uint8
+	v         uint32
+	period    time.Duration
+	monopolar bool
+	cal       envelope.Map[float32, uint16]
 }
 
 // pwmGroup is an interface for interacting with a machine.pwmGroup
@@ -93,13 +93,13 @@ func (p *picoPwm) Configure(config hal.VoltageOutputConfig) error {
 	}
 	p.ch = ch
 
-	p.wavefold = config.PerformWavefold
+	p.monopolar = config.Monopolar
 
 	return nil
 }
 
 func (p *picoPwm) Set(v float32) {
-	if p.wavefold {
+	if p.monopolar {
 		if v < 0.0 {
 			v = -v
 		}

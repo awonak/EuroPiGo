@@ -35,8 +35,8 @@ var (
 	}
 
 	cvInitialConfig = hal.VoltageOutputConfig{
-		Period:          DefaultPWMPeriod,
-		PerformWavefold: true,
-		Calibration:     envelope.NewLerpMap32(VoltageOutputCalibrationPoints),
+		Period:      DefaultPWMPeriod,
+		Monopolar:   true,
+		Calibration: envelope.NewLerpMap32(VoltageOutputCalibrationPoints),
 	}
 )
