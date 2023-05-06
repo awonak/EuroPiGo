@@ -13,10 +13,10 @@ func GetRevision() hal.Revision {
 	var waitForDetect sync.WaitGroup
 	waitForDetect.Add(1)
 	var detectedRevision hal.Revision
-	OnRevisionDetected() <- func(revision hal.Revision) {
+	OnRevisionDetected(func(revision hal.Revision) {
 		detectedRevision = revision
 		waitForDetect.Done()
-	}
+	})
 	waitForDetect.Wait()
 	return detectedRevision
 }
@@ -33,9 +33,12 @@ func ensureOnRevisionDetection() {
 	})
 }
 
-func OnRevisionDetected() chan<- func(revision hal.Revision) {
+func OnRevisionDetected(fn func(revision hal.Revision)) {
+	if fn == nil {
+		return
+	}
 	ensureOnRevisionDetection()
-	return onRevisionDetected
+	onRevisionDetected <- fn
 }
 
 // SetDetectedRevision sets the currently detected hardware revision.

@@ -18,17 +18,19 @@ const (
 )
 
 var (
+	AnalogInputCalibrationPoints = []envelope.MapEntry[uint16, float32]{
+		{
+			Input:  DefaultCalibratedMinAI,
+			Output: MinInputVoltage,
+		},
+		{
+			Input:  DefaultCalibratedMaxAI,
+			Output: MaxInputVoltage,
+		},
+	}
+
 	aiInitialConfig = hal.AnalogInputConfig{
-		Samples: DefaultSamples,
-		Calibration: envelope.NewMap32([]envelope.MapEntry[uint16, float32]{
-			{
-				Input:  DefaultCalibratedMinAI,
-				Output: MinInputVoltage,
-			},
-			{
-				Input:  DefaultCalibratedMaxAI,
-				Output: MaxInputVoltage,
-			},
-		}),
+		Samples:     DefaultSamples,
+		Calibration: envelope.NewLerpMap32(AnalogInputCalibrationPoints),
 	}
 )

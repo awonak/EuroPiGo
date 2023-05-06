@@ -14,6 +14,7 @@ import (
 	"github.com/awonak/EuroPiGo/experimental/envelope"
 	"github.com/awonak/EuroPiGo/hardware/hal"
 	"github.com/awonak/EuroPiGo/hardware/rev0"
+	"github.com/awonak/EuroPiGo/hardware/rev1"
 )
 
 type picoPwm struct {
@@ -46,20 +47,22 @@ const (
 )
 
 func newPicoPwm(pwm pwmGroup, pin machine.Pin, mode picoPwmMode) *picoPwm {
+	var cal envelope.Map[float32, uint16]
+	switch mode {
+	case picoPwmModeAnalogRevision0:
+		cal = envelope.NewLerpMap32(rev0.VoltageOutputCalibrationPoints)
+	case picoPwmModeDigitalRevision0:
+		cal = envelope.NewPointMap32(rev0.VoltageOutputCalibrationPoints)
+	case picoPwmModeAnalogRevision1:
+		cal = envelope.NewLerpMap32(rev1.VoltageOutputCalibrationPoints)
+	default:
+		panic("unhandled mode")
+	}
 	p := &picoPwm{
 		pwm:    pwm,
 		pin:    pin,
 		period: rev0.DefaultPWMPeriod,
-		cal: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
-			{
-				Input:  rev0.MinOutputVoltage,
-				Output: rev0.CalibratedTop,
-			},
-			{
-				Input:  rev0.MaxOutputVoltage,
-				Output: rev0.CalibratedOffset,
-			},
-		}),
+		cal:    cal,
 	}
 	return p
 }

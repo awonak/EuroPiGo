@@ -29,7 +29,7 @@ func DetectRevision() hal.Revision {
 }
 
 func init() {
-	hardware.OnRevisionDetected() <- func(revision hal.Revision) {
+	hardware.OnRevisionDetected(func(revision hal.Revision) {
 		switch revision {
 		case hal.Revision0:
 			initRevision0()
@@ -40,5 +40,5 @@ func init() {
 		default:
 		}
 		hardware.SetReady()
-	}
+	})
 }

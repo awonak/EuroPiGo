@@ -12,7 +12,7 @@ type envMap64[TIn, TOut lerp.Lerpable] struct {
 	outRoot *remapList[TIn, TOut, float64]
 }
 
-func NewMap64[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TOut] {
+func NewLerpMap64[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TOut] {
 	if len(points) == 0 {
 		panic("must have at least 1 point")
 	}
@@ -36,6 +36,45 @@ func NewMap64[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TO
 	rem = append(rem, remapList[TIn, TOut, float64]{
 		Remapper: lerp.NewRemapPoint[TIn, TOut, float64](last.Input, last.Output),
 	})
+
+	outSort := make(MapEntryList[TOut, int], len(rem))
+	for i, e := range rem {
+		outSort[i].Input = e.OutputMinimum()
+		outSort[i].Output = i
+	}
+	sort.Sort(outSort)
+	rootIdx := outSort[0].Output
+	outRoot := &rem[rootIdx]
+	for pos := 0; pos < len(rem)-1; pos++ {
+		cur, next := outSort[pos].Output, outSort[pos+1].Output
+		rem[cur].nextOut = &rem[next]
+	}
+
+	return &envMap64[TIn, TOut]{
+		rem:     rem,
+		outMax:  last.Output,
+		outRoot: outRoot,
+	}
+}
+
+func NewPointMap64[TIn, TOut lerp.Lerpable](points []MapEntry[TIn, TOut]) Map[TIn, TOut] {
+	if len(points) == 0 {
+		panic("must have at least 1 point")
+	}
+
+	p := make(MapEntryList[TIn, TOut], len(points))
+	// make a copy just in case we're dealing with another goroutine's data
+	copy(p, points)
+	// ensure it's sorted
+	sort.Sort(p)
+
+	var rem []remapList[TIn, TOut, float64]
+	for _, cur := range p {
+		rem = append(rem, remapList[TIn, TOut, float64]{
+			Remapper: lerp.NewRemapPoint[TIn, TOut, float64](cur.Input, cur.Output),
+		})
+	}
+	last := &p[len(p)-1]
 
 	outSort := make(MapEntryList[TOut, int], len(rem))
 	for i, e := range rem {

@@ -7,16 +7,7 @@ import (
 )
 
 func DoInit() {
-	cvCalMap := envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
-		{
-			Input:  rev1.MinOutputVoltage,
-			Output: rev1.CalibratedTop,
-		},
-		{
-			Input:  rev1.MaxOutputVoltage,
-			Output: rev1.CalibratedOffset,
-		},
-	})
+	cvCalMap := envelope.NewLerpMap32(rev1.VoltageOutputCalibrationPoints)
 	rev1.Initialize(rev1.InitializationParameters{
 		InputDigital1:          common.NewNonPicoDigitalReader(bus, rev1.HardwareIdDigital1Input),
 		InputAnalog1:           common.NewNonPicoAdc(bus, rev1.HardwareIdAnalog1Input),

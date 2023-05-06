@@ -23,18 +23,20 @@ const (
 )
 
 var (
+	VoltageOutputCalibrationPoints = []envelope.MapEntry[float32, uint16]{
+		{
+			Input:  MinOutputVoltage,
+			Output: CalibratedTop,
+		},
+		{
+			Input:  MaxOutputVoltage,
+			Output: CalibratedOffset,
+		},
+	}
+
 	cvInitialConfig = hal.VoltageOutputConfig{
 		Period:          DefaultPWMPeriod,
 		PerformWavefold: true,
-		Calibration: envelope.NewMap32([]envelope.MapEntry[float32, uint16]{
-			{
-				Input:  MinOutputVoltage,
-				Output: CalibratedTop,
-			},
-			{
-				Input:  MaxOutputVoltage,
-				Output: CalibratedOffset,
-			},
-		}),
+		Calibration:     envelope.NewLerpMap32(VoltageOutputCalibrationPoints),
 	}
 )
